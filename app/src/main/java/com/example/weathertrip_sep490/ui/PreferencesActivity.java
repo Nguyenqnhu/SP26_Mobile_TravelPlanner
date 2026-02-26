@@ -1,0 +1,141 @@
+package com.example.weathertrip_sep490.ui;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.weathertrip_sep490.R;
+import com.example.weathertrip_sep490.data.PreferenceAPI;
+import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.model.Preference;
+import com.example.weathertrip_sep490.util.ViewAnimationUtil;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class PreferencesActivity extends AppCompatActivity {
+
+    private ChipGroup cgPreferences;
+    private TextView tvSkip;
+    private EditText etSearch;
+    private final List<String> selectedIds = new ArrayList<>(); // Lưu ID những mục người dùng chọn
+    private final List<Preference> allPreferences = new ArrayList<>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_preferences);
+
+        cgPreferences = findViewById(R.id.cgPreferences);
+        tvSkip = findViewById(R.id.tvSkip);
+        etSearch = findViewById(R.id.etSearch);
+
+        ViewAnimationUtil.setTouchScaleAnimation(findViewById(R.id.btnContinue));
+        ViewAnimationUtil.setTouchScaleAnimation(tvSkip);
+
+        // Gọi API lấy danh sách sở thích
+        fetchPreferencesFromServer();
+
+        findViewById(R.id.btnContinue).setOnClickListener(v -> {
+            if (selectedIds.isEmpty()) {
+                Toast.makeText(this, "Vui lòng chọn ít nhất 1 sở thích", Toast.LENGTH_SHORT).show();
+            } else {
+                saveUserPreferencesAndContinue();
+            }
+        });
+
+        tvSkip.setOnClickListener(v -> navigateNext());
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterAndRender(s.toString());
+            }
+        });
+    }
+
+    private void fetchPreferencesFromServer() {
+        PreferenceAPI api = RetrofitClient.getInstance().getPreferenceAPI();
+        api.getAllPreferences().enqueue(new Callback<List<Preference>>() {
+            @Override
+            public void onResponse(Call<List<Preference>> call, Response<List<Preference>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    allPreferences.clear();
+                    allPreferences.addAll(response.body());
+                    filterAndRender(etSearch.getText().toString());
+                } else {
+                    Toast.makeText(PreferencesActivity.this, "Không tải được danh sách sở thích", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Preference>> call, Throwable t) {
+                Toast.makeText(PreferencesActivity.this, "Lỗi kết nối server", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void filterAndRender(String query) {
+        String q = query == null ? "" : query.toLowerCase().trim();
+        List<Preference> filtered = new ArrayList<>();
+        for (Preference p : allPreferences) {
+            if (p.getName() != null && p.getName().toLowerCase().contains(q)) {
+                filtered.add(p);
+            }
+        }
+        renderChips(filtered);
+    }
+
+    private void renderChips(List<Preference> list) {
+        cgPreferences.removeAllViews();
+        for (Preference pref : list) {
+            Chip chip = new Chip(this);
+            chip.setText(pref.getName());
+            chip.setCheckable(true);
+            chip.setChecked(selectedIds.contains(pref.getId()));
+
+            chip.setOnCheckedChangeListener((v, isChecked) -> {
+                if (isChecked) {
+                    if (!selectedIds.contains(pref.getId())) {
+                        selectedIds.add(pref.getId());
+                    }
+                } else {
+                    selectedIds.remove(pref.getId());
+                }
+            });
+
+            cgPreferences.addView(chip);
+        }
+    }
+
+    private void saveUserPreferencesAndContinue() {
+        SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+        String joinedIds = TextUtils.join(",", selectedIds);
+        prefs.edit().putString("selected_preferences", joinedIds).apply();
+        navigateNext();
+    }
+
+    private void navigateNext() {
+        // TODO: sau này có màn hình chính thì điều hướng về đó
+        Intent intent = new Intent(this, ListPOIActivity.class);
+        startActivity(intent);
+        finish();
+    }
+}

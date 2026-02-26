@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="green_primary">#399970</color>
+    <color name="green_button">#399970</color>
+    <color name="green_dark">#399970</color>
+
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#B3B3B3</color>
+
+    <color name="background_light">#F6FAF0</color>
+    <color name="border_gray">#E0E0E0</color>
+    <color name="yellow_pastel">#FFF9C4</color>
+    <color name="light_green_pastel">#C8E6C9</color>
+    <color name="light_blue_pastel">#BBDEFB</color>
+    <color name="purple_pastel">#E1BEE7</color>
+    <color name="orange_pastel">#FFE0B2</color>
+
+
+<!--    <color name="sky_100">#E0F2FE</color>-->
+    <color name="blue_50">#EFF6FF</color>
+    <color name="emerald_100">#D1FAE5</color>
+
+    <color name="mint_bg_main">#E4F1EB</color>
+    <color name="mint_bg_light">#F2F9F6</color>
+    <color name="mint_bg_dark">#D1E7DD</color>
+
+    <color name="green">#4ADE80</color>
+    <color name="dark_green">#22C55E</color>
+    <color name="green_soft">#BBF7D0</color>
+    <color name="text_main">#064E3B</color>
+    <color name="sencond_text">#374151</color>
+    <color name="bright_green_start">#00F5A0</color>
+    <color name="bright_green_end">#00D9F5</color>
+
+    <color name="emerald_600">#059669</color>
+    <color name="emerald_700">#047857</color>
+
+    <color name="text_title">#064E3B</color>
+    <color name="text_body">#374151</color>
+    <color name="bg_welcome_center">#E4F1EB</color>
+
+    <color name="bg_auth">#E4F1EB</color>
+    <color name="emerald_shadow">#33059669</color>
+    <color name="slate_800">#1E293B</color>
+    <color name="slate_500">#64748B</color>
+    <color name="slate_400">#989899</color>
+
+    <color name="amber_400">#FBBF24</color>
+    <color name="emerald_400">#34D399</color>
+    <color name="rose_400">#FB7185</color>
+    <color name="violet_400">#A78BFA</color>
+</resources>
