@@ -6,6 +6,9 @@ android {
     namespace = "com.example.weathertrip_sep490"
     compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId = "com.example.weathertrip_sep490"
         minSdk = 34
@@ -14,6 +17,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5131/\"")
     }
 
     buildTypes {
@@ -44,6 +49,9 @@ dependencies {
     //Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+
 
 
 }

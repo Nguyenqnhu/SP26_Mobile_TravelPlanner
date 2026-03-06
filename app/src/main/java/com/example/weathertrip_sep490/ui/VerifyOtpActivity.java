@@ -149,23 +149,34 @@ public class VerifyOtpActivity extends AppCompatActivity {
             });
         } else {
             // Xác thực OTP cho luồng ĐĂNG KÝ
-            authAPI.verifyRegisterOtp(new OtpRequest(email, otpCode)).enqueue(new Callback<Boolean>() {
+            authAPI.verifyRegisterOtp(new OtpRequest(email, otpCode)).enqueue(new Callback<Void>() {
                 @Override
-                public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                public void onResponse(Call<Void> call, Response<Void> response) {
                     setLoading(false);
-                    if (response.isSuccessful() && response.body() != null && response.body()) {
+                    if (response.isSuccessful()) {
                         Toast.makeText(VerifyOtpActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(VerifyOtpActivity.this, LoginActivity.class));
                         finish();
                     } else {
-                        Toast.makeText(VerifyOtpActivity.this, "Mã không đúng hoặc hết hạn", Toast.LENGTH_SHORT).show();
+                        String msg = "Mã không đúng hoặc đã hết hạn";
+                        try {
+                            if (response.errorBody() != null) {
+                                String body = response.errorBody().string();
+                                if (body != null && body.contains("\"Message\"")) {
+                                    int start = body.indexOf("\"Message\"") + 10;
+                                    int end = body.indexOf("\"", start);
+                                    if (end > start) msg = body.substring(start, end);
+                                }
+                            }
+                        } catch (Exception ignored) {}
+                        Toast.makeText(VerifyOtpActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
-                public void onFailure(Call<Boolean> call, Throwable t) {
+                public void onFailure(Call<Void> call, Throwable t) {
                     setLoading(false);
-                    Toast.makeText(VerifyOtpActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(VerifyOtpActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }

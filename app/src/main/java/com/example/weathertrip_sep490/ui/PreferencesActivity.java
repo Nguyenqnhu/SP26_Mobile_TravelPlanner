@@ -40,6 +40,13 @@ public class PreferencesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preferences);
 
+        // Nếu Login gửi token qua Intent thì lưu ngay vào SharedPreferences (tránh chưa kịp đọc sau)
+        String tokenFromIntent = getIntent() != null ? getIntent().getStringExtra("access_token") : null;
+        if (tokenFromIntent != null && !tokenFromIntent.trim().isEmpty()) {
+            getSharedPreferences("TravelGoPrefs", MODE_PRIVATE).edit()
+                    .putString("access_token", tokenFromIntent.trim()).apply();
+        }
+
         cgPreferences = findViewById(R.id.cgPreferences);
         tvSkip = findViewById(R.id.tvSkip);
         etSearch = findViewById(R.id.etSearch);
@@ -47,7 +54,6 @@ public class PreferencesActivity extends AppCompatActivity {
         ViewAnimationUtil.setTouchScaleAnimation(findViewById(R.id.btnContinue));
         ViewAnimationUtil.setTouchScaleAnimation(tvSkip);
 
-        // Gọi API lấy danh sách sở thích
         fetchPreferencesFromServer();
 
         findViewById(R.id.btnContinue).setOnClickListener(v -> {
@@ -126,10 +132,48 @@ public class PreferencesActivity extends AppCompatActivity {
     }
 
     private void saveUserPreferencesAndContinue() {
+        // Lưu local để dùng offline
         SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
         String joinedIds = TextUtils.join(",", selectedIds);
         prefs.edit().putString("selected_preferences", joinedIds).apply();
-        navigateNext();
+
+        // Token: ưu tiên từ Intent (vừa đăng nhập), không có thì đọc SharedPreferences
+        String accessToken = (getIntent() != null ? getIntent().getStringExtra("access_token") : null);
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            accessToken = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE).getString("access_token", null);
+        }
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            Toast.makeText(this, "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+            navigateNext();
+            return;
+        }
+
+        PreferenceAPI api = RetrofitClient.getInstance().getPreferenceAPI();
+        Call<Void> call = api.updateUserPreferences(new ArrayList<>(selectedIds));
+
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(PreferencesActivity.this, "Đã cập nhật sở thích thành công!", Toast.LENGTH_SHORT).show();
+                    navigateNext();
+                } else {
+                    int code = response.code();
+                    Toast.makeText(PreferencesActivity.this,
+                            "Không lưu được lên server (" + code + "). Kiểm tra đăng nhập hoặc token.",
+                            Toast.LENGTH_LONG).show();
+                    navigateNext();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(PreferencesActivity.this,
+                        "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "Unknown"),
+                        Toast.LENGTH_LONG).show();
+                navigateNext();
+            }
+        });
     }
 
     private void navigateNext() {

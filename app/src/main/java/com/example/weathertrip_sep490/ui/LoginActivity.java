@@ -118,9 +118,13 @@ public class LoginActivity extends AppCompatActivity {
                 setLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
                     LoginResponse loginResponse = response.body();
+                    String token = loginResponse.getAccessToken();
+                    if (token == null || token.trim().isEmpty()) {
+                        android.util.Log.w("Login", "Backend không trả accessToken. Kiểm tra API login trả về field accessToken/AccessToken.");
+                    }
                     SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("access_token", loginResponse.getAccessToken());
-                    editor.putString("refresh_token", loginResponse.getRefreshToken());
+                    editor.putString("access_token", token != null ? token.trim() : "");
+                    editor.putString("refresh_token", loginResponse.getRefreshToken() != null ? loginResponse.getRefreshToken().trim() : "");
                     if (swRemember.isChecked()) {
                         editor.putBoolean("remember_me", true);
                         editor.putString("saved_email", email);
@@ -130,10 +134,12 @@ public class LoginActivity extends AppCompatActivity {
                         editor.remove("saved_email");
                         editor.remove("saved_password");
                     }
-                    editor.apply();
+                    editor.commit();
                     Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                    // Sau khi đăng nhập thành công → tới trang chọn sở thích
                     Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
+                    if (token != null && !token.isEmpty()) {
+                        intent.putExtra("access_token", token);
+                    }
                     startActivity(intent);
                     finish();
                 } else {

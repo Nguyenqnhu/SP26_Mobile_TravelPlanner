@@ -65,7 +65,7 @@ public class RegisterActivity extends AppCompatActivity {
         authAPI = RetrofitClient.getInstance().getAuthAPI();
         calendar = Calendar.getInstance();
         dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        
+
         // Set timezone UTC để đảm bảo format đúng với backend
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
@@ -172,8 +172,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Get gender - thử với tiếng Anh trước, nếu không được thì thử "Nam"/"Nữ"
-        // Backend có thể mong đợi "Male"/"Female" hoặc "M"/"F"
+
         String gender = rbMale.isChecked() ? "Male" : "Female";
 
         // Parse date và set time thành 00:00:00 UTC để format đúng ISO 8601
@@ -208,7 +207,7 @@ public class RegisterActivity extends AppCompatActivity {
                 phone,
                 gender
         );
-        
+
         // Log để debug
         Log.d("RegisterActivity", "Register request - Email: " + email + ", Name: " + name + ", Gender: " + gender);
         Log.d("RegisterActivity", "DateOfBirth: " + dateOfBirthStr + " -> " + dateOfBirth);
@@ -222,7 +221,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng xác thực OTP", Toast.LENGTH_SHORT).show();
-                    
+
                     // Navigate to OTP verification screen
                     Intent intent = new Intent(RegisterActivity.this, VerifyOtpActivity.class);
                     intent.putExtra("email", email);
@@ -239,7 +238,7 @@ public class RegisterActivity extends AppCompatActivity {
                         Log.e("RegisterActivity", "Error reading error body: " + e.getMessage());
                     }
 
-                    // Hiển thị message thật từ backend nếu có, để tránh hiểu lầm là lỗi email trùng
+
                     String errorMessage;
                     if (!errorBody.isEmpty()) {
                         errorMessage = "Đăng ký thất bại: " + errorBody;

@@ -26,7 +26,7 @@ public interface AuthAPI {
 
     // 2. Xác thực OTP khi đăng ký
     @POST("api/auth/verify-register-otp")
-    Call<Boolean> verifyRegisterOtp(@Body OtpRequest request);
+    Call<Void> verifyRegisterOtp(@Body OtpRequest request);
 
     // 3. Gửi lại OTP đăng ký (Sử dụng Query tham số email)
     @GET("api/auth/resend-register-otp")

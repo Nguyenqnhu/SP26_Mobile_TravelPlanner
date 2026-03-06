@@ -1,7 +1,11 @@
 package com.example.weathertrip_sep490.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class LoginResponse {
+    @SerializedName(value = "token", alternate = {"accessToken", "AccessToken", "access_token"})
     private String accessToken;
+    @SerializedName(value = "refreshToken", alternate = {"RefreshToken", "refresh_token"})
     private String refreshToken;
 //    private AccountResponse user;
 
