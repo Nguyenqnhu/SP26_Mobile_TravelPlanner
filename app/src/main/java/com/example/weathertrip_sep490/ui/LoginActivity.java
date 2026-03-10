@@ -22,6 +22,10 @@ import com.example.weathertrip_sep490.model.LoginRequest;
 import com.example.weathertrip_sep490.model.LoginResponse;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 
+import android.util.Base64;
+
+import org.json.JSONObject;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -125,6 +129,15 @@ public class LoginActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("access_token", token != null ? token.trim() : "");
                     editor.putString("refresh_token", loginResponse.getRefreshToken() != null ? loginResponse.getRefreshToken().trim() : "");
+                    // Giải mã JWT để lấy userId (nameid/sub) cho các API /api/user/{id}
+                    if (token != null && !token.trim().isEmpty()) {
+                        String userId = extractUserIdFromToken(token.trim());
+                        if (userId != null && !userId.isEmpty()) {
+                            editor.putString("current_user_id", userId);
+                        }
+                    }
+                    // Lưu email hiện đang đăng nhập để lấy thông tin profile
+                    editor.putString("current_email", email);
                     if (swRemember.isChecked()) {
                         editor.putBoolean("remember_me", true);
                         editor.putString("saved_email", email);
@@ -159,5 +172,30 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setEnabled(!loading);
         btnLogin.setText(loading ? "Đang đăng nhập..." : "Đăng nhập");
         btnLogin.setAlpha(loading ? 0.7f : 1f);
+    }
+
+    private String extractUserIdFromToken(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) return null;
+            byte[] decoded = Base64.decode(parts[1], Base64.URL_SAFE | Base64.NO_WRAP);
+            String payloadJson = new String(decoded);
+            JSONObject obj = new JSONObject(payloadJson);
+
+            // 1. Thử các key ngắn phổ biến
+            if (obj.has("nameid")) return obj.getString("nameid");
+            if (obj.has("nameidentifier")) return obj.getString("nameidentifier");
+            if (obj.has("sub")) return obj.getString("sub");
+            if (obj.has("id")) return obj.getString("id");
+
+            // 2. Thử key dạng full URI chứa "nameidentifier"
+            for (java.util.Iterator<String> it = obj.keys(); it.hasNext(); ) {
+                String key = it.next();
+                if (key != null && key.toLowerCase().contains("nameidentifier")) {
+                    return obj.getString(key);
+                }
+            }
+        } catch (Exception ignored) { }
+        return null;
     }
 }

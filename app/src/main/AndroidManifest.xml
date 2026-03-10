@@ -52,6 +52,14 @@
             android:name=".ui.PreferencesActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.ProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.EditProfileActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

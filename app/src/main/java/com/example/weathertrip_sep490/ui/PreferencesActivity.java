@@ -13,7 +13,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.weathertrip_sep490.R;
-import com.example.weathertrip_sep490.data.PreferenceAPI;
+import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.model.Preference;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
@@ -78,7 +78,7 @@ public class PreferencesActivity extends AppCompatActivity {
     }
 
     private void fetchPreferencesFromServer() {
-        PreferenceAPI api = RetrofitClient.getInstance().getPreferenceAPI();
+        UserAPI api = RetrofitClient.getInstance().getPreferenceAPI();
         api.getAllPreferences().enqueue(new Callback<List<Preference>>() {
             @Override
             public void onResponse(Call<List<Preference>> call, Response<List<Preference>> response) {
@@ -148,7 +148,7 @@ public class PreferencesActivity extends AppCompatActivity {
             return;
         }
 
-        PreferenceAPI api = RetrofitClient.getInstance().getPreferenceAPI();
+        UserAPI api = RetrofitClient.getInstance().getPreferenceAPI();
         Call<Void> call = api.updateUserPreferences(new ArrayList<>(selectedIds));
 
         call.enqueue(new Callback<Void>() {
@@ -177,8 +177,8 @@ public class PreferencesActivity extends AppCompatActivity {
     }
 
     private void navigateNext() {
-        // TODO: sau này có màn hình chính thì điều hướng về đó
-        Intent intent = new Intent(this, ListPOIActivity.class);
+       //navigate
+        Intent intent = new Intent(PreferencesActivity.this, ProfileActivity.class);
         startActivity(intent);
         finish();
     }

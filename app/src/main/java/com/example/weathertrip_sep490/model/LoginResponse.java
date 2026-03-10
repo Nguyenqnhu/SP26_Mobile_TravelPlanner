@@ -7,7 +7,7 @@ public class LoginResponse {
     private String accessToken;
     @SerializedName(value = "refreshToken", alternate = {"RefreshToken", "refresh_token"})
     private String refreshToken;
-//    private AccountResponse user;
+
 
 
     public LoginResponse() {

@@ -29,7 +29,7 @@ public class RetrofitClient {
     private static Context appContext;
     private Retrofit retrofit;
     private AuthAPI authAPI;
-    private PreferenceAPI preferenceAPI;
+    private UserAPI preferenceAPI;
 
     public static void init(Context context) {
         appContext = context != null ? context.getApplicationContext() : null;
@@ -94,7 +94,7 @@ public class RetrofitClient {
                 .build();
 
         authAPI = retrofit.create(AuthAPI.class);
-        preferenceAPI = retrofit.create(PreferenceAPI.class);
+        preferenceAPI = retrofit.create(UserAPI.class);
     }
     public static synchronized RetrofitClient getInstance() {
         if (instance == null) {
@@ -107,7 +107,7 @@ public class RetrofitClient {
         return authAPI;
     }
 
-    public PreferenceAPI getPreferenceAPI() {
+    public UserAPI getPreferenceAPI() {
         return preferenceAPI;
     }
 }
