@@ -183,7 +183,7 @@ public class EditProfileActivity extends AppCompatActivity {
         RequestBody phoneBody = RequestBody.create(textMediaType, phone);
         RequestBody genderBody = RequestBody.create(textMediaType, gender);
 
-        // Chưa upload avatar nên tạm thời không gửi part file (null → Retrofit bỏ qua)
+        
         MultipartBody.Part avatarPart = null;
 
         UserAPI api = RetrofitClient.getInstance().getPreferenceAPI();

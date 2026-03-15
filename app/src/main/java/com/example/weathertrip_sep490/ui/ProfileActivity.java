@@ -17,6 +17,7 @@ import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.User;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import retrofit2.Call;
@@ -42,8 +43,35 @@ public class ProfileActivity extends AppCompatActivity {
 
         initViews();
         setupClickListeners();
+        setupBottomNav();
         loadSavedSettings();
         loadUserProfile();
+    }
+
+    private void setupBottomNav() {
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav_profile);
+        if (bottomNav == null) return;
+        bottomNav.setSelectedItemId(R.id.nav_fav); // Tô đúng icon Tài khoản
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_now) {
+                startActivity(new Intent(this, HomepageActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_hourly) {
+                startActivity(new Intent(this, ListPOIActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_fav) {
+                return true; // Đã ở Profile
+            }
+            if (id == R.id.nav_daily) {
+                return true;
+            }
+            return false;
+        });
     }
 
     private void initViews() {
