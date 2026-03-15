@@ -178,7 +178,7 @@ public class PreferencesActivity extends AppCompatActivity {
 
     private void navigateNext() {
        //navigate
-        Intent intent = new Intent(PreferencesActivity.this, ProfileActivity.class);
+        Intent intent = new Intent(PreferencesActivity.this, HomepageActivity.class);
         startActivity(intent);
         finish();
     }
