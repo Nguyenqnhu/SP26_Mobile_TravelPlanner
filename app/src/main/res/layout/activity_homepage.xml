@@ -71,7 +71,7 @@
                 android:text="Bạn muốn đi đâu hôm nay?"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@color/slate_800" />
+                android:textColor="#111827" />
 
             <!-- Search -->
             <com.google.android.material.textfield.TextInputLayout
@@ -232,7 +232,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Xem tất cả"
-                    android:textColor="@color/emerald_600"
+                    android:textColor="#047857"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -269,7 +269,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Xem tất cả"
-                    android:textColor="@color/emerald_600"
+                    android:textColor="#047857"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -306,7 +306,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Xem tất cả"
-                    android:textColor="@color/emerald_600"
+                    android:textColor="#047857"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -337,7 +337,7 @@
                     android:textAllCaps="true"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:textColor="@color/slate_500" />
+                    android:textColor="#064E3B" />
 
                 <TextView
                     android:layout_width="wrap_content"

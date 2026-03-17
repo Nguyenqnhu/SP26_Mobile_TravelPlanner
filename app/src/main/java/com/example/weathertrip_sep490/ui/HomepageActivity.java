@@ -124,23 +124,23 @@ public class HomepageActivity extends AppCompatActivity {
     private void setupBottomNav() {
         com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottom_nav_home);
         if (bottomNav == null) return;
-        bottomNav.setSelectedItemId(R.id.nav_now); // Tô đúng icon Trang chủ
+        bottomNav.setSelectedItemId(R.id.nav_home); // Tô đúng icon Trang chủ
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_now) {
+            if (id == R.id.nav_home) {
                 return true; // Đã ở trang chủ
             }
-            if (id == R.id.nav_fav) {
+            if (id == R.id.nav_user) {
                 startActivity(new Intent(this, ProfileActivity.class));
                 finish();
                 return true;
             }
-            if (id == R.id.nav_hourly) {
-                startActivity(new Intent(this, ListPOIActivity.class));
+            if (id == R.id.nav_explore) {
+                startActivity(new Intent(this, ExploreActivity.class));
                 finish();
                 return true;
             }
-            if (id == R.id.nav_daily) {
+            if (id == R.id.nav_trip) {
                 Toast.makeText(this, "Lịch trình", Toast.LENGTH_SHORT).show();
                 return true;
             }

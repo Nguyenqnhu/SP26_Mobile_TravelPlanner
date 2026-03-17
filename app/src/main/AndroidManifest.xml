@@ -45,10 +45,6 @@
             android:exported="false" />
 
         <activity
-            android:name=".ui.ListPOIActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".ui.PreferencesActivity"
             android:exported="false" />
 
@@ -62,6 +58,10 @@
 
         <activity
             android:name=".ui.HomepageActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.ExploreActivity"
             android:exported="false" />
 
 
