@@ -35,7 +35,6 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Kết nối với file layout xml
         setContentView(R.layout.activity_profile);
 
         sharedPrefs = getSharedPreferences("AppSettings", Context.MODE_PRIVATE);
@@ -51,23 +50,23 @@ public class ProfileActivity extends AppCompatActivity {
     private void setupBottomNav() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav_profile);
         if (bottomNav == null) return;
-        bottomNav.setSelectedItemId(R.id.nav_fav); // Tô đúng icon Tài khoản
+        bottomNav.setSelectedItemId(R.id.nav_user); // Tô đúng icon Tài khoản
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_now) {
+            if (id == R.id.nav_home) {
                 startActivity(new Intent(this, HomepageActivity.class));
                 finish();
                 return true;
             }
-            if (id == R.id.nav_hourly) {
-                startActivity(new Intent(this, ListPOIActivity.class));
+            if (id == R.id.nav_explore) {
+                startActivity(new Intent(this, ExploreActivity.class));
                 finish();
                 return true;
             }
-            if (id == R.id.nav_fav) {
+            if (id == R.id.nav_user) {
                 return true; // Đã ở Profile
             }
-            if (id == R.id.nav_daily) {
+            if (id == R.id.nav_trip) {
                 return true;
             }
             return false;

@@ -1,5 +1,6 @@
 package com.example.weathertrip_sep490.data;
 
+import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.Preference;
 import com.example.weathertrip_sep490.model.User;
 
@@ -38,5 +39,9 @@ public interface UserAPI {
             @Part("Gender") RequestBody gender,
             @Part MultipartBody.Part avatarUrl
     );
+
+    // Get POIs
+    @GET("api/pois/recommended")
+    Call<List<POI>> getRecommendedPOIs();
 
 }
