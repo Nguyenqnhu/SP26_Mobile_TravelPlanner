@@ -20,6 +20,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.model.POI;
+import com.example.weathertrip_sep490.ui.ExplorePOIDetailActivity;
 
 import java.util.List;
 
@@ -45,18 +46,12 @@ public class ExplorePOIAdapter extends RecyclerView.Adapter<ExplorePOIAdapter.Vi
 
         holder.txtExploreName.setText(safe(poi.getName()));
         holder.txtExploreCity.setText(safe(poi.getCity()));
-        holder.txtExploreAddress.setText(safe(poi.getAddress()));
-        holder.txtExploreOpen.setText(
-                poi.getOpeningHours() == null || poi.getOpeningHours().isEmpty()
-                        ? "Chưa có giờ mở cửa"
-                        : poi.getOpeningHours()
-        );
+        holder.txtExploreOpen.setText(buildOpenHoursText(poi));
         holder.txtExploreCost.setText(
                 poi.getApproxCost() == null || poi.getApproxCost().isEmpty()
                         ? "Chưa cập nhật"
                         : poi.getApproxCost()
         );
-        holder.txtIndoor.setText(poi.isIndoor() ? "Trong nhà" : "Ngoài trời");
 
         String url = poi.getPoiImgUrl();
         if (url == null || url.trim().isEmpty()) {
@@ -83,10 +78,11 @@ public class ExplorePOIAdapter extends RecyclerView.Adapter<ExplorePOIAdapter.Vi
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (poi.getGoogleMapLink() != null && !poi.getGoogleMapLink().isEmpty()) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(poi.getGoogleMapLink()));
-                v.getContext().startActivity(intent);
-            }
+            String id = poi.getId();
+            if (id == null || id.trim().isEmpty()) return;
+            Intent intent = new Intent(v.getContext(), ExplorePOIDetailActivity.class);
+            intent.putExtra(ExplorePOIDetailActivity.EXTRA_POI_ID, id.trim());
+            v.getContext().startActivity(intent);
         });
     }
 
@@ -99,19 +95,32 @@ public class ExplorePOIAdapter extends RecyclerView.Adapter<ExplorePOIAdapter.Vi
         return text == null ? "" : text;
     }
 
+    private String buildOpenHoursText(POI poi) {
+        if (poi == null) return "Chưa có giờ mở cửa";
+        if (poi.isIs24Hours()) return "Mở cửa 24/7";
+
+        String open = safe(poi.getOpenHour()).trim();
+        String close = safe(poi.getCloseHour()).trim();
+
+        // Nếu backend trả "HH:mm:ss" thì lấy "HH:mm"
+        if (open.length() >= 5) open = open.substring(0, 5);
+        if (close.length() >= 5) close = close.substring(0, 5);
+
+        if (open.isEmpty() || close.isEmpty()) return "Chưa có giờ mở cửa";
+        return open + "-" + close;
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgExplore;
-        TextView txtExploreName, txtExploreCity, txtExploreAddress, txtExploreOpen, txtExploreCost, txtIndoor;
+        TextView txtExploreName, txtExploreCity, txtExploreOpen, txtExploreCost;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imgExplore = itemView.findViewById(R.id.imgExplore);
             txtExploreName = itemView.findViewById(R.id.txtExploreName);
             txtExploreCity = itemView.findViewById(R.id.txtExploreCity);
-            txtExploreAddress = itemView.findViewById(R.id.txtExploreAddress);
             txtExploreOpen = itemView.findViewById(R.id.txtExploreOpen);
             txtExploreCost = itemView.findViewById(R.id.txtExploreCost);
-            txtIndoor = itemView.findViewById(R.id.txtIndoor);
         }
     }
 }

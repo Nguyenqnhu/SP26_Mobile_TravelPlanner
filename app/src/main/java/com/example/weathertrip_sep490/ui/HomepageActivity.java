@@ -17,12 +17,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.weathertrip_sep490.R;
-import com.example.weathertrip_sep490.adapter.DestinationAdapter;
-import com.example.weathertrip_sep490.adapter.DestinationGridAdapter;
+import com.example.weathertrip_sep490.adapter.PoiGridAdapter;
+import com.example.weathertrip_sep490.adapter.PoiRecentAdapter;
+import com.example.weathertrip_sep490.data.RecentPoiStorage;
 import com.example.weathertrip_sep490.adapter.PartnerAdapter;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
-import com.example.weathertrip_sep490.model.Destination;
+import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.Partner;
 import com.example.weathertrip_sep490.model.User;
 
@@ -40,10 +41,10 @@ public class HomepageActivity extends AppCompatActivity {
     private TextView tvWeatherTemp;
     private TextView tvWeatherDesc;
     private EditText etSearchHome;
-    private DestinationGridAdapter popularAdapter;
-    private DestinationAdapter recentAdapter;
-    private final List<Destination> popularAll = new ArrayList<>();
-    private final List<Destination> recentAll = new ArrayList<>();
+    private PoiGridAdapter popularAdapter;
+    private PoiRecentAdapter recentAdapter;
+    private final List<POI> popularAll = new ArrayList<>();
+    private final List<POI> recentAll = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,6 +62,12 @@ public class HomepageActivity extends AppCompatActivity {
         setupRecentlyViewed();
         setupPartners();
         setupSearch();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshRecentFromLocal();
     }
 
     private void setupActionButtons() {
@@ -154,14 +161,9 @@ public class HomepageActivity extends AppCompatActivity {
         rv.setLayoutManager(new GridLayoutManager(this, 2));
         rv.setNestedScrollingEnabled(false);
 
-        popularAll.clear();
-        popularAll.add(new Destination("Vịnh Hạ Long", "Quảng Ninh", 4.8, 1200, R.drawable.sampleplace));
-        popularAll.add(new Destination("Phố cổ Hội An", "Quảng Nam", 4.9, 980, R.drawable.sampleplace));
-        popularAll.add(new Destination("Sa Pa", "Lào Cai", 4.7, 860, R.drawable.sampleplace));
-        popularAll.add(new Destination("Đà Lạt", "Lâm Đồng", 4.8, 1100, R.drawable.sampleplace));
-
-        popularAdapter = new DestinationGridAdapter(new ArrayList<>(popularAll));
+        popularAdapter = new PoiGridAdapter(poi -> openPoiDetail(poi));
         rv.setAdapter(popularAdapter);
+        loadPopularFromApi();
     }
 
     private void setupRecentlyViewed() {
@@ -169,13 +171,9 @@ public class HomepageActivity extends AppCompatActivity {
         rv.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        // Dùng lại Destination làm mock "đã xem gần đây"
-        recentAll.clear();
-        recentAll.add(new Destination("Hồ Hoàn Kiếm", "Hà Nội", 4.6, 540, R.drawable.sampleplace));
-        recentAll.add(new Destination("Núi Phú Sĩ", "Nhật Bản", 4.9, 1350, R.drawable.sampleplace));
-
-        recentAdapter = new DestinationAdapter(new ArrayList<>(recentAll));
+        recentAdapter = new PoiRecentAdapter(poi -> openPoiDetail(poi));
         rv.setAdapter(recentAdapter);
+        refreshRecentFromLocal();
     }
 
     private void setupPartners() {
@@ -203,24 +201,24 @@ public class HomepageActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 String q = (s != null ? s.toString() : "").trim().toLowerCase();
-                filterDestinations(q);
+                filterPois(q);
             }
         });
     }
 
-    private void filterDestinations(String query) {
-        List<Destination> filteredPopular = new ArrayList<>();
-        List<Destination> filteredRecent = new ArrayList<>();
+    private void filterPois(String query) {
+        List<POI> filteredPopular = new ArrayList<>();
+        List<POI> filteredRecent = new ArrayList<>();
 
         if (query.isEmpty()) {
             filteredPopular.addAll(popularAll);
             filteredRecent.addAll(recentAll);
         } else {
-            for (Destination d : popularAll) {
-                if (matchesQuery(d, query)) filteredPopular.add(d);
+            for (POI p : popularAll) {
+                if (matchesQuery(p, query)) filteredPopular.add(p);
             }
-            for (Destination d : recentAll) {
-                if (matchesQuery(d, query)) filteredRecent.add(d);
+            for (POI p : recentAll) {
+                if (matchesQuery(p, query)) filteredRecent.add(p);
             }
         }
         if (popularAdapter != null) {
@@ -231,8 +229,53 @@ public class HomepageActivity extends AppCompatActivity {
         }
     }
 
-    private boolean matchesQuery(Destination d, String q) {
-        return (d.getName() != null && d.getName().toLowerCase().contains(q))
-                || (d.getCity() != null && d.getCity().toLowerCase().contains(q));
+    private boolean matchesQuery(POI p, String q) {
+        if (p == null) return false;
+        return (p.getName() != null && p.getName().toLowerCase().contains(q))
+                || (p.getCity() != null && p.getCity().toLowerCase().contains(q));
+    }
+
+    private void loadPopularFromApi() {
+        UserAPI api = RetrofitClient.getInstance().getPOIAPI();
+        api.getRecommendedPOIs("vi").enqueue(new Callback<List<POI>>() {
+            @Override
+            public void onResponse(Call<List<POI>> call, Response<List<POI>> response) {
+                if (!response.isSuccessful() || response.body() == null) return;
+                List<POI> all = response.body();
+                popularAll.clear();
+                if (all != null) {
+                    int limit = Math.min(4, all.size());
+                    for (int i = 0; i < limit; i++) {
+                        POI p = all.get(i);
+                        if (p != null) popularAll.add(p);
+                    }
+                }
+                if (popularAdapter != null) popularAdapter.updateData(new ArrayList<>(popularAll));
+                filterPois(safeLower(etSearchHome != null ? etSearchHome.getText() : null));
+            }
+
+            @Override
+            public void onFailure(Call<List<POI>> call, Throwable t) {}
+        });
+    }
+
+    private void refreshRecentFromLocal() {
+        List<POI> stored = RecentPoiStorage.getRecent(this);
+        recentAll.clear();
+        if (stored != null) recentAll.addAll(stored);
+        if (recentAdapter != null) recentAdapter.updateData(new ArrayList<>(recentAll));
+        filterPois(safeLower(etSearchHome != null ? etSearchHome.getText() : null));
+    }
+
+    private void openPoiDetail(POI poi) {
+        if (poi == null || poi.getId() == null || poi.getId().trim().isEmpty()) return;
+        Intent intent = new Intent(this, ExplorePOIDetailActivity.class);
+        intent.putExtra(ExplorePOIDetailActivity.EXTRA_POI_ID, poi.getId().trim());
+        startActivity(intent);
+    }
+
+    private String safeLower(CharSequence s) {
+        String raw = s == null ? "" : s.toString();
+        return raw.trim().toLowerCase();
     }
 }

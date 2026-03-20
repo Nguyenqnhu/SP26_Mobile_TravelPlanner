@@ -16,6 +16,7 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface UserAPI {
     @GET("api/preferences/get-all")
@@ -42,6 +43,6 @@ public interface UserAPI {
 
     // Get POIs
     @GET("api/pois/recommended")
-    Call<List<POI>> getRecommendedPOIs();
+    Call<List<POI>> getRecommendedPOIs(@Query("lang") String lang);
 
 }

@@ -55,8 +55,7 @@ public class ExploreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_explore);
 
-        rvPlaceFilters = findViewById(R.id.rvPlaceFilters);
-        rvActivityFilters = findViewById(R.id.rvActivityFilters);
+
         rvFeaturedPlaces = findViewById(R.id.rvFeaturedPlaces);
         rvExplorePlaces = findViewById(R.id.rvExplorePlaces);
         tvPlaceCount = findViewById(R.id.tvPlaceCount);
@@ -67,41 +66,11 @@ public class ExploreActivity extends AppCompatActivity {
 
         setupImageStack();
         setupBottomNav();
-        setupPlaceFilters();
-        setupActivityFilters();
         setupRecyclerViews();
         loadRecommendedPOIs();
     }
 
-    private void setupPlaceFilters() {
-        List<String> placeFilters = Arrays.asList(
-                "Nổi bật", "Gần bạn", "Trong nhà", "Ngoài trời"
-        );
 
-        FilterChipAdapter adapter = new FilterChipAdapter(placeFilters, (position, value) -> {
-            // lọc sau
-        });
-
-        rvPlaceFilters.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        );
-        rvPlaceFilters.setAdapter(adapter);
-    }
-
-    private void setupActivityFilters() {
-        List<String> activityFilters = Arrays.asList(
-                "Tham quan", "Ẩm thực", "Café", "Bảo tàng", "Mua sắm"
-        );
-
-        FilterChipAdapter adapter = new FilterChipAdapter(activityFilters, (position, value) -> {
-            // lọc sau
-        });
-
-        rvActivityFilters.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        );
-        rvActivityFilters.setAdapter(adapter);
-    }
 
     private void setupRecyclerViews() {
         featuredPOIAdapter = new FeaturedPOIAdapter(poiList);
@@ -118,10 +87,11 @@ public class ExploreActivity extends AppCompatActivity {
         rvExplorePlaces.setAdapter(explorePOIAdapter);
     }
 
+//     Connect API
     private void loadRecommendedPOIs() {
         UserAPI apiService = RetrofitClient.getInstance().getPOIAPI();
 
-        apiService.getRecommendedPOIs().enqueue(new Callback<List<POI>>() {
+        apiService.getRecommendedPOIs("vi").enqueue(new Callback<List<POI>>() {
             @Override
             public void onResponse(Call<List<POI>> call, Response<List<POI>> response) {
                 if (response.isSuccessful() && response.body() != null) {

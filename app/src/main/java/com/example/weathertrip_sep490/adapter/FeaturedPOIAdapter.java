@@ -18,6 +18,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.model.POI;
+import com.example.weathertrip_sep490.ui.ExplorePOIDetailActivity;
 
 import java.util.List;
 
@@ -67,6 +68,14 @@ public class FeaturedPOIAdapter extends RecyclerView.Adapter<FeaturedPOIAdapter.
                     }
                 })
                 .into(holder.imgPlace);
+
+        holder.itemView.setOnClickListener(v -> {
+            String id = poi.getId();
+            if (id == null || id.trim().isEmpty()) return;
+            android.content.Intent intent = new android.content.Intent(v.getContext(), ExplorePOIDetailActivity.class);
+            intent.putExtra(ExplorePOIDetailActivity.EXTRA_POI_ID, id.trim());
+            v.getContext().startActivity(intent);
+        });
     }
 
     @Override

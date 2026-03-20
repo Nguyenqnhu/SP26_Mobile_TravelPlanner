@@ -46,16 +46,6 @@
             android:textSize="13sp" />
 
         <TextView
-            android:id="@+id/txtExploreAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:maxLines="1"
-            android:text="Địa chỉ"
-            android:textColor="#6B7280"
-            android:textSize="12sp" />
-
-        <TextView
             android:id="@+id/txtExploreOpen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -84,20 +74,6 @@
                 android:text="30.000đ"
                 android:textColor="#111827"
                 android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtIndoor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_detail_button"
-                android:paddingStart="12dp"
-                android:paddingTop="6dp"
-                android:paddingEnd="12dp"
-                android:paddingBottom="6dp"
-                android:text="Trong nhà"
-                android:textColor="#6B7280"
-                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 

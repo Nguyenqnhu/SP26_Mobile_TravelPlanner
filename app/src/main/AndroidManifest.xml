@@ -64,6 +64,10 @@
             android:name=".ui.ExploreActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.ExplorePOIDetailActivity"
+            android:exported="false" />
+
 
     </application>
 
