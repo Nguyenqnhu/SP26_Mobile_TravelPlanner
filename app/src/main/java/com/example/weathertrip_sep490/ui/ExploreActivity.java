@@ -292,7 +292,8 @@ public class ExploreActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.nav_trip) {
-                Toast.makeText(this, "Lịch trình", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, TripManageActivity.class));
+                finish();
                 return true;
             }
             return false;

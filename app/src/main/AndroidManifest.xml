@@ -65,6 +65,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.TripManageActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.ExplorePOIDetailActivity"
             android:exported="false" />
 

@@ -76,10 +76,8 @@ public class HomepageActivity extends AppCompatActivity {
         View btnExplore = findViewById(R.id.btnActionExplore);
 
         if (btnCreateTrip != null) {
-            btnCreateTrip.setOnClickListener(v -> {
-                Toast.makeText(this, "Tạo chuyến đi", Toast.LENGTH_SHORT).show();
-                // TODO: mở màn tạo lịch trình
-            });
+            btnCreateTrip.setOnClickListener(v ->
+                    startActivity(new Intent(this, TripManageActivity.class)));
         }
         if (btnWeather != null) {
             btnWeather.setOnClickListener(v -> Toast.makeText(this, "Xem thời tiết", Toast.LENGTH_SHORT).show());
@@ -148,7 +146,8 @@ public class HomepageActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.nav_trip) {
-                Toast.makeText(this, "Lịch trình", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, TripManageActivity.class));
+                finish();
                 return true;
             }
             return false;
