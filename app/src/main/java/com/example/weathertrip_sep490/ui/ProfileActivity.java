@@ -67,6 +67,8 @@ public class ProfileActivity extends AppCompatActivity {
                 return true; // Đã ở Profile
             }
             if (id == R.id.nav_trip) {
+                startActivity(new Intent(this, TripManageActivity.class));
+                finish();
                 return true;
             }
             return false;

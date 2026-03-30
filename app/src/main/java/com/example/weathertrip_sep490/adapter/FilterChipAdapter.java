@@ -28,6 +28,16 @@ public class FilterChipAdapter extends RecyclerView.Adapter<FilterChipAdapter.Ch
         this.listener = listener;
     }
 
+    /** Cập nhật nhãn chip (ví dụ số lượng) mà vẫn giữ vị trí đang chọn nếu hợp lệ. */
+    public void setItems(List<String> newItems) {
+        items.clear();
+        items.addAll(newItems);
+        if (selectedPosition >= items.size()) {
+            selectedPosition = Math.max(0, items.size() - 1);
+        }
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ChipViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
