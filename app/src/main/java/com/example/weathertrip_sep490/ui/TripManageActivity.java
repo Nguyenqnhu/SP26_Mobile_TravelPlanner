@@ -55,7 +55,10 @@ public class TripManageActivity extends AppCompatActivity {
 
             @Override
             public void onViewDetails(Trip trip) {
-                Toast.makeText(TripManageActivity.this, "Chi tiết: " + trip.getCity(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(TripManageActivity.this, TripDetailActivity.class);
+                intent.putExtra(TripDetailActivity.EXTRA_CITY, trip.getCity());
+                intent.putExtra(TripDetailActivity.EXTRA_DATES, trip.getDateRange());
+                startActivity(intent);
             }
 
             @Override
