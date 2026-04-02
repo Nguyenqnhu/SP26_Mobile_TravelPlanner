@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class TripManageActivity extends AppCompatActivity {
+public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener {
 
     private final List<Trip> allTrips = new ArrayList<>();
     private EditText etSearch;
@@ -93,7 +94,7 @@ public class TripManageActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnCreateTrip).setOnClickListener(v ->
-                Toast.makeText(this, "Tạo chuyến đi", Toast.LENGTH_SHORT).show());
+                new CreateTripBottomSheet().show(getSupportFragmentManager(), CreateTripBottomSheet.TAG));
 
         setupBottomNav();
         applyFiltersAndRefresh();
@@ -190,5 +191,28 @@ public class TripManageActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    @Override
+    public void onCreateTripWithAi(
+            @NonNull String startPoint,
+            @NonNull String destination,
+            boolean roundTrip,
+            @NonNull String startDateDisplay,
+            @NonNull String endDateDisplay
+    ) {
+        String title = startPoint + " → " + destination;
+        String range = roundTrip
+                ? (startDateDisplay + " - " + endDateDisplay)
+                : (startDateDisplay + " · 1 chiều");
+        int ph = R.drawable.bg_image_placeholder;
+        allTrips.add(0, new Trip(String.valueOf(System.currentTimeMillis()), title, range, null, TripStatus.UPCOMING, ph));
+        chipAdapter.setItems(buildChipLabels());
+        applyFiltersAndRefresh();
+        Toast.makeText(
+                this,
+                "Đã tạo chuyến với AI (demo): " + title + (roundTrip ? "" : " (1 chiều)"),
+                Toast.LENGTH_SHORT
+        ).show();
     }
 }

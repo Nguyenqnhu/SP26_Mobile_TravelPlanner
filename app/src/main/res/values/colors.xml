@@ -51,4 +51,8 @@
     <color name="emerald_400">#34D399</color>
     <color name="rose_400">#FB7185</color>
     <color name="violet_400">#A78BFA</color>
+
+    <!-- Create trip sheet (mockup) -->
+    <color name="heading_dark_green">#004D40</color>
+    <color name="sage_button">#76A086</color>
 </resources>

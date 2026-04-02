@@ -31,4 +31,9 @@
     <string name="invalid_email">Email không hợp lệ</string>
     <string name="invalid_password">Mật khẩu phải có ít nhất 6 ký tự</string>
     <string name="fill_all_fields">Vui lòng điền đầy đủ thông tin</string>
+
+    <string-array name="trip_type_choices">
+        <item>1 chiều</item>
+        <item>Khứ hồi</item>
+    </string-array>
 </resources>
