@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".TravelGoApplication"
         android:allowBackup="true"
@@ -14,6 +15,11 @@
         android:theme="@style/Theme.WeatherTrip_SEP490"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
         <activity
             android:name=".ui.WelcomeActivity"
             android:exported="true">

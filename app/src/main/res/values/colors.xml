@@ -55,4 +55,7 @@
     <!-- Create trip sheet (mockup) -->
     <color name="heading_dark_green">#004D40</color>
     <color name="sage_button">#76A086</color>
+
+    <color name="itinerary_header_green">#006D4E</color>
+    <color name="itinerary_ribbon_day_bg">#E8F5E9</color>
 </resources>

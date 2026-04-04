@@ -1,9 +1,12 @@
 package com.example.weathertrip_sep490.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.TypedValue;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,11 +14,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.weathertrip_sep490.R;
-import com.example.weathertrip_sep490.adapter.FilterChipAdapter;
 import com.example.weathertrip_sep490.adapter.TripCardAdapter;
 import com.example.weathertrip_sep490.model.Trip;
 import com.example.weathertrip_sep490.model.TripStatus;
@@ -30,7 +33,10 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
     private EditText etSearch;
     private TextView tvEmpty;
     private TripCardAdapter tripAdapter;
-    private FilterChipAdapter chipAdapter;
+
+    private TextView tabAll;
+    private TextView tabActive;
+    private TextView tabDone;
 
     private String searchQuery = "";
     private int filterTabIndex;
@@ -43,7 +49,10 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         etSearch = findViewById(R.id.etSearchTrip);
         tvEmpty = findViewById(R.id.tvTripEmpty);
         RecyclerView rvTrips = findViewById(R.id.rvTrips);
-        RecyclerView rvChips = findViewById(R.id.rvTripStatusChips);
+
+        tabAll = findViewById(R.id.tabTripAll);
+        tabActive = findViewById(R.id.tabTripActive);
+        tabDone = findViewById(R.id.tabTripDone);
 
         seedSampleTrips();
 
@@ -69,14 +78,12 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         });
         rvTrips.setAdapter(tripAdapter);
 
-        rvChips.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        List<String> chipLabels = buildChipLabels();
-        chipAdapter = new FilterChipAdapter(chipLabels, (position, value) -> {
-            filterTabIndex = position;
-            applyFiltersAndRefresh();
-        });
-        rvChips.setAdapter(chipAdapter);
+        tabAll.setOnClickListener(v -> selectStatusTab(0));
+        tabActive.setOnClickListener(v -> selectStatusTab(1));
+        tabDone.setOnClickListener(v -> selectStatusTab(2));
+
+        refreshStatusTabLabels();
+        selectStatusTab(0);
 
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -88,7 +95,8 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
             @Override
             public void afterTextChanged(Editable s) {
                 searchQuery = s != null ? s.toString() : "";
-                chipAdapter.setItems(buildChipLabels());
+                refreshStatusTabLabels();
+                applyTabVisualState();
                 applyFiltersAndRefresh();
             }
         });
@@ -97,7 +105,45 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 new CreateTripBottomSheet().show(getSupportFragmentManager(), CreateTripBottomSheet.TAG));
 
         setupBottomNav();
+    }
+
+    private void refreshStatusTabLabels() {
+        List<String> labels = buildChipLabels();
+        tabAll.setText(labels.get(0));
+        tabActive.setText(labels.get(1));
+        tabDone.setText(labels.get(2));
+    }
+
+    private void selectStatusTab(int index) {
+        filterTabIndex = index;
+        applyTabVisualState();
         applyFiltersAndRefresh();
+    }
+
+    private void applyTabVisualState() {
+        styleStatusTab(tabAll, filterTabIndex == 0);
+        styleStatusTab(tabActive, filterTabIndex == 1);
+        styleStatusTab(tabDone, filterTabIndex == 2);
+    }
+
+    private void styleStatusTab(TextView tab, boolean selected) {
+        int green = ContextCompat.getColor(this, R.color.text_title);
+        int grey = Color.parseColor("#9CA3AF");
+        float ez = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2f, getResources().getDisplayMetrics());
+
+        if (selected) {
+            tab.setBackgroundResource(R.drawable.bg_trip_status_thumb);
+            tab.setTextColor(green);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                tab.setElevation(ez);
+            }
+        } else {
+            tab.setBackground(null);
+            tab.setTextColor(grey);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                tab.setElevation(0f);
+            }
+        }
     }
 
     private void seedSampleTrips() {
@@ -207,7 +253,8 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 : (startDateDisplay + " · 1 chiều");
         int ph = R.drawable.bg_image_placeholder;
         allTrips.add(0, new Trip(String.valueOf(System.currentTimeMillis()), title, range, null, TripStatus.UPCOMING, ph));
-        chipAdapter.setItems(buildChipLabels());
+        refreshStatusTabLabels();
+        applyTabVisualState();
         applyFiltersAndRefresh();
         Toast.makeText(
                 this,
