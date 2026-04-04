@@ -36,4 +36,9 @@
         <item>1 chiều</item>
         <item>Khứ hồi</item>
     </string-array>
+
+    <!-- Thay bằng API key Maps SDK (Console Google Cloud) -->
+    <string name="google_maps_key" translatable="false">YOUR_GOOGLE_MAPS_API_KEY</string>
+
+    <string name="trip_journey_at">Hành trình tại %1$s</string>
 </resources>

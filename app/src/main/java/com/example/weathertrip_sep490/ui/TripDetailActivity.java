@@ -2,8 +2,10 @@ package com.example.weathertrip_sep490.ui;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,22 +16,50 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
 
 import com.example.weathertrip_sep490.R;
-import com.example.weathertrip_sep490.adapter.TimelineEventAdapter;
-import com.example.weathertrip_sep490.adapter.TripDayBandAdapter;
-import com.example.weathertrip_sep490.model.TimelineEvent;
+import com.example.weathertrip_sep490.adapter.ItineraryListAdapter;
+import com.example.weathertrip_sep490.adapter.TripDateRibbonAdapter;
+import com.example.weathertrip_sep490.ui.decoration.ItineraryTimelineLineDecoration;
+import com.example.weathertrip_sep490.model.ItineraryRow;
+import com.example.weathertrip_sep490.model.ItinerarySegmentRow;
+import com.example.weathertrip_sep490.model.ItineraryStopRow;
+import com.example.weathertrip_sep490.model.TripRibbonDay;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
-public class TripDetailActivity extends AppCompatActivity {
+public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     public static final String EXTRA_CITY = "extra_city";
     public static final String EXTRA_DATES = "extra_dates";
+    public static final String EXTRA_ROUTE = "extra_route";
 
-    private final List<TimelineEvent> events = new ArrayList<>();
-    private TimelineEventAdapter timelineAdapter;
-    private TripDayBandAdapter dayBandAdapter;
+    private static final String MAPVIEW_BUNDLE_KEY = "TripDetailMapViewBundle";
+
+    private MapView mapView;
+    private GoogleMap googleMap;
+    private boolean mapReady;
+
+    private final List<Marker> mapMarkers = new ArrayList<>();
+    private final List<ItineraryRow> currentRows = new ArrayList<>();
+
+    private TripDateRibbonAdapter dayRibbonAdapter;
+    private ItineraryListAdapter itineraryAdapter;
     private RecyclerView rvDays;
+    private RecyclerView rvTimeline;
+
+    private TextView tvRibbonMonthTitle;
+    private TextView tvMapPlaceCount;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,48 +68,79 @@ public class TripDetailActivity extends AppCompatActivity {
 
         String city = getIntent().getStringExtra(EXTRA_CITY);
         String dates = getIntent().getStringExtra(EXTRA_DATES);
+        String route = getIntent().getStringExtra(EXTRA_ROUTE);
 
         ImageView btnBack = findViewById(R.id.btnBackTripDetail);
-        TextView tvTitle = findViewById(R.id.tvTripDetailTitle);
-        TextView tvCity = findViewById(R.id.tvTripDetailCity);
+        TextView tvJourneyTitle = findViewById(R.id.tvTripJourneyTitle);
         TextView tvDates = findViewById(R.id.tvTripDetailDates);
+        TextView tvRoute = findViewById(R.id.tvTripRouteBreadcrumb);
+        TextView tvStatDays = findViewById(R.id.tvTripStatDays);
+        TextView tvStatPlaces = findViewById(R.id.tvTripStatPlaces);
+        tvRibbonMonthTitle = findViewById(R.id.tvRibbonMonthTitle);
+        tvMapPlaceCount = findViewById(R.id.tvMapPlaceCount);
 
-        tvTitle.setText("Lịch trình chi tiết");
-        tvCity.setText(city != null ? city : "Chuyến đi");
-        tvDates.setText(dates != null ? dates : "");
+        tvJourneyTitle.setText(getString(R.string.trip_journey_at, primaryDestination(city)));
+        tvDates.setText(dates != null && !dates.isEmpty() ? dates : "5/4/2026 – 12/4/2026");
+        tvRoute.setText(route != null && !route.isEmpty()
+                ? route
+                : "Hồ Chí Minh → Hội An → Đà Nẵng → Huế → Hà Nội");
+        tvStatDays.setText("8 ngày");
+        tvStatPlaces.setText("15 địa điểm gợi ý");
 
         btnBack.setOnClickListener(v -> finish());
+        findViewById(R.id.btnTripInvite).setOnClickListener(v ->
+                Toast.makeText(this, "Mời bạn bè cùng xem chuyến đi", Toast.LENGTH_SHORT).show());
 
-        setupDayChips();
-        setupTimeline();
-        seedSampleTimeline(0);
+        initMapView(savedInstanceState);
+
+        rvTimeline = findViewById(R.id.rvTripTimeline);
+        rvTimeline.setLayoutManager(new LinearLayoutManager(this));
+        itineraryAdapter = new ItineraryListAdapter();
+        rvTimeline.setAdapter(itineraryAdapter);
+        rvTimeline.addItemDecoration(new ItineraryTimelineLineDecoration(itineraryAdapter, getResources()));
+
+        setupDayRibbon();
+
+
+        seedItinerary(0);
+        updateMonthTitle(0);
     }
 
-    private void setupDayChips() {
+    private void initMapView(@Nullable Bundle savedInstanceState) {
+        mapView = findViewById(R.id.mapTripDetail);
+        Bundle mapBundle = null;
+        if (savedInstanceState != null) {
+            mapBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+        }
+        mapView.onCreate(mapBundle);
+        mapView.getMapAsync(this);
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
+        mapReady = true;
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+        applyMapMarkers();
+    }
+
+    private void setupDayRibbon() {
         rvDays = findViewById(R.id.rvTripDetailDays);
         rvDays.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        List<String> days = new ArrayList<>();
-        // Mock nhiều ngày để "băng" có thể trượt như ảnh 2
-        days.add("15.01");
-        days.add("16.01");
-        days.add("17.01");
-        days.add("18.01");
-        days.add("19.01");
-        days.add("20.01");
-        days.add("21.01");
-
-        dayBandAdapter = new TripDayBandAdapter(days, (pos, value) -> {
-            // Click: focus item và đổi data theo ngày
+        List<TripRibbonDay> days = buildRibbonDays();
+        dayRibbonAdapter = new TripDateRibbonAdapter((pos, day) -> {
             rvDays.smoothScrollToPosition(pos);
-            seedSampleTimeline(pos);
+            seedItinerary(pos);
+            updateMonthTitle(pos);
+            applyMapMarkers();
         });
-        rvDays.setAdapter(dayBandAdapter);
+        dayRibbonAdapter.setDays(days);
+        rvDays.setAdapter(dayRibbonAdapter);
 
-        // Snap/center giống "băng" chọn ngày (pill)
         SnapHelper snapHelper = new LinearSnapHelper();
         snapHelper.attachToRecyclerView(rvDays);
-
         rvDays.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -89,44 +150,246 @@ public class TripDetailActivity extends AppCompatActivity {
                 if (snapped == null) return;
                 int pos = recyclerView.getLayoutManager().getPosition(snapped);
                 if (pos == RecyclerView.NO_POSITION) return;
-                if (dayBandAdapter.getSelectedPosition() != pos) {
-                    dayBandAdapter.setSelectedPosition(pos);
-                    seedSampleTimeline(pos);
+                if (dayRibbonAdapter.getSelectedPosition() != pos) {
+                    dayRibbonAdapter.setSelectedPosition(pos);
+                    seedItinerary(pos);
+                    updateMonthTitle(pos);
+                    applyMapMarkers();
                 }
             }
         });
     }
 
-    private void setupTimeline() {
-        RecyclerView rv = findViewById(R.id.rvTripTimeline);
-        rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        timelineAdapter = new TimelineEventAdapter();
-        rv.setAdapter(timelineAdapter);
+    private void shiftRibbonDay(int delta) {
+        int next = dayRibbonAdapter.getSelectedPosition() + delta;
+        if (next < 0 || next >= dayRibbonAdapter.getItemCount()) return;
+        dayRibbonAdapter.setSelectedPosition(next);
+        rvDays.smoothScrollToPosition(next);
+        seedItinerary(next);
+        updateMonthTitle(next);
+        applyMapMarkers();
     }
 
-    private void seedSampleTimeline(int dayIndex) {
-        int p1 = R.drawable.sampleplace3;
-        int p2 = R.drawable.sampleplace3;
-        int p3 = R.drawable.sampleplace3;
+    private List<TripRibbonDay> buildRibbonDays() {
+        List<TripRibbonDay> out = new ArrayList<>();
+        Calendar c = Calendar.getInstance();
+        c.set(2026, Calendar.APRIL, 5, 0, 0, 0);
+        for (int i = 0; i < 8; i++) {
+            Calendar copy = (Calendar) c.clone();
+            copy.add(Calendar.DAY_OF_MONTH, i);
+            out.add(new TripRibbonDay(copy, weekdayVnShort(copy)));
+        }
+        return out;
+    }
 
-        events.clear();
-        if (dayIndex % 3 == 0) {
-            events.add(new TimelineEvent("14:00", "Hồ Hoàn Kiếm", "Đà Lạt · Hoàn Kiếm · Food", p1, "22°C", "Nắng nhẹ"));
-            events.add(new TimelineEvent("16:00", "Phố cổ Đà Lạt", "Đà Lạt · Hoàn Kiếm · Food", p2, "26°C", "Ít mây"));
-            events.add(new TimelineEvent("19:00", "Ăn tối", "Quán đặc sản địa phương", p3, "24°C", "Mát"));
-        } else if (dayIndex % 3 == 1) {
-            events.add(new TimelineEvent("08:30", "Cà phê sáng", "Quán view hồ", p2, "21°C", "Mát"));
-            events.add(new TimelineEvent("10:30", "Tham quan", "Chợ địa phương", p3, "24°C", "Nắng"));
-            events.add(new TimelineEvent("15:00", "Check-in", "Điểm chụp ảnh", p1, "25°C", "Nắng nhẹ"));
+    private static String weekdayVnShort(Calendar cal) {
+        switch (cal.get(Calendar.DAY_OF_WEEK)) {
+            case Calendar.MONDAY:
+                return "T2";
+            case Calendar.TUESDAY:
+                return "T3";
+            case Calendar.WEDNESDAY:
+                return "T4";
+            case Calendar.THURSDAY:
+                return "T5";
+            case Calendar.FRIDAY:
+                return "T6";
+            case Calendar.SATURDAY:
+                return "T7";
+            case Calendar.SUNDAY:
+            default:
+                return "CN";
+        }
+    }
+
+    private void updateMonthTitle(int dayIndex) {
+        if (dayRibbonAdapter == null || dayIndex < 0 || dayIndex >= dayRibbonAdapter.getItemCount()) return;
+        Calendar c = dayRibbonAdapter.getDayAt(dayIndex).getCalendar();
+        int m = c.get(Calendar.MONTH) + 1;
+        int y = c.get(Calendar.YEAR);
+        tvRibbonMonthTitle.setText(String.format(Locale.getDefault(), "THÁNG %d %d", m, y));
+    }
+
+    private void seedItinerary(int dayIndex) {
+        currentRows.clear();
+        int img = R.drawable.bg_image_placeholder;
+
+        if (dayIndex % 2 == 0) {
+            currentRows.add(new ItinerarySegmentRow("Segment 1", "Hồ Chí Minh", "27°"));
+            currentRows.add(new ItineraryStopRow(
+                    "08:30 – 09:30", "08:30", "09:30",
+                    "Chợ địa phương Hồ Chí Minh",
+                    "Hồ Chí Minh · Khu vực trung tâm",
+                    "9:00 – 18:00",
+                    "Từ 30.000 đ",
+                    "Cà phê view đẹp Hồ Chí Minh",
+                    "27°",
+                    img,
+                    10.773, 106.698,
+                    1
+            ));
+            currentRows.add(new ItineraryStopRow(
+                    "11:00 – 12:00", "11:00", "12:00",
+                    "Cà phê view đẹp Hồ Chí Minh",
+                    "Quận 1 · View phố",
+                    "8:00 – 11:00 và 14:00 – 20:00",
+                    "Miễn phí",
+                    "Nhà hàng đặc sản",
+                    "28°",
+                    img,
+                    10.782, 106.698,
+                    2
+            ));
+            currentRows.add(new ItinerarySegmentRow("Segment 2", "Hội An", "28°"));
+            currentRows.add(new ItineraryStopRow(
+                    "14:00 – 16:00", "14:00", "16:00",
+                    "Phố cổ Hội An",
+                    "Hội An · Di sản",
+                    "Cả ngày",
+                    "Miễn phí tham quan",
+                    "Bãi biển An Bàng",
+                    "28°",
+                    img,
+                    15.880, 108.338,
+                    3
+            ));
         } else {
-            events.add(new TimelineEvent("09:00", "Di chuyển", "Taxi tới điểm tham quan", p3, "20°C", "Ít mây"));
-            events.add(new TimelineEvent("11:00", "Bảo tàng", "Vé từ 50.000 đ", p1, "23°C", "Nắng"));
-            events.add(new TimelineEvent("17:30", "Nghỉ ngơi", "Về khách sạn", p2, "22°C", "Mát"));
+            currentRows.add(new ItinerarySegmentRow("Segment 1", "Đà Nẵng", "26°"));
+            currentRows.add(new ItineraryStopRow(
+                    "09:00 – 11:00", "09:00", "11:00",
+                    "Bán đảo Sơn Trà",
+                    "Đà Nẵng",
+                    "7:00 – 17:30",
+                    "Miễn phí",
+                    "Cầu Rồng buổi tối",
+                    "26°",
+                    img,
+                    16.059, 108.245,
+                    1
+            ));
+            currentRows.add(new ItineraryStopRow(
+                    "15:30 – 17:00", "15:30", "17:00",
+                    "Cầu Rồng",
+                    "Sông Hàn",
+                    "19:00 – 22:00 (lửa)",
+                    "Miễn phí",
+                    "Ẩm thực đêm",
+                    "25°",
+                    img,
+                    16.061, 108.228,
+                    2
+            ));
         }
 
-        if (timelineAdapter != null) {
-            timelineAdapter.updateData(new ArrayList<>(events));
+        itineraryAdapter.updateData(new ArrayList<>(currentRows));
+        rvTimeline.invalidateItemDecorations();
+        tvMapPlaceCount.setText(countStops(currentRows) + " địa điểm");
+        applyMapMarkers();
+    }
+
+    private static int countStops(List<ItineraryRow> rows) {
+        int n = 0;
+        for (ItineraryRow r : rows) {
+            if (r instanceof ItineraryStopRow) n++;
         }
+        return n;
+    }
+
+    private void applyMapMarkers() {
+        if (!mapReady || googleMap == null) return;
+        for (Marker m : mapMarkers) {
+            m.remove();
+        }
+        mapMarkers.clear();
+
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        boolean has = false;
+        for (ItineraryRow r : currentRows) {
+            if (r instanceof ItineraryStopRow) {
+                ItineraryStopRow s = (ItineraryStopRow) r;
+                LatLng ll = new LatLng(s.getLatitude(), s.getLongitude());
+                bounds.include(ll);
+                has = true;
+                Marker marker = googleMap.addMarker(new MarkerOptions()
+                        .position(ll)
+                        .title(String.valueOf(s.getMarkerOrder()))
+                        .snippet(s.getTitle())
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                if (marker != null) {
+                    mapMarkers.add(marker);
+                }
+            }
+        }
+        if (has) {
+            LatLngBounds b = bounds.build();
+            if (mapMarkers.size() == 1) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(b.getCenter(), 13f));
+            } else {
+                try {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(b, 80));
+                } catch (Exception ignored) {
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(b.getCenter(), 10f));
+                }
+            }
+        } else {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(16.0, 107.5), 5.5f));
+        }
+    }
+
+    private static String primaryDestination(@Nullable String city) {
+        if (city == null || city.trim().isEmpty()) return "Việt Nam";
+        String c = city.trim();
+        int idx = c.lastIndexOf('→');
+        if (idx >= 0 && idx < c.length() - 1) {
+            return c.substring(idx + 1).trim();
+        }
+        return c;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        mapView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        mapView.onStop();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mapView.onDestroy();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Bundle mapBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+        if (mapBundle == null) {
+            mapBundle = new Bundle();
+            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapBundle);
+        }
+        mapView.onSaveInstanceState(mapBundle);
     }
 }
-
