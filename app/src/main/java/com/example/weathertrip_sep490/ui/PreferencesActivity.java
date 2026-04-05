@@ -2,7 +2,10 @@ package com.example.weathertrip_sep490.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -11,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.UserAPI;
@@ -116,6 +120,7 @@ public class PreferencesActivity extends AppCompatActivity {
             chip.setText(pref.getName());
             chip.setCheckable(true);
             chip.setChecked(selectedIds.contains(pref.getId()));
+            stylePreferenceChip(chip);
 
             chip.setOnCheckedChangeListener((v, isChecked) -> {
                 if (isChecked) {
@@ -129,6 +134,33 @@ public class PreferencesActivity extends AppCompatActivity {
 
             cgPreferences.addView(chip);
         }
+    }
+
+    /**
+     * Chip giống mockup: nền trắng; chọn — viền + chữ xanh; chưa chọn — viền xám + chữ slate.
+     * Màu dùng từ colors.xml, không thêm drawable mới.
+     */
+    private void stylePreferenceChip(Chip chip) {
+        chip.setCloseIconVisible(false);
+        chip.setEnsureMinTouchTargetSize(false);
+        float d = getResources().getDisplayMetrics().density;
+        chip.setChipCornerRadius(24f * d);
+        chip.setChipMinHeight((int) (40 * d));
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+        chip.setChipStrokeWidth(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1f, getResources().getDisplayMetrics()));
+
+        int greenStroke = ContextCompat.getColor(this, R.color.emerald_600);
+        int greenText = ContextCompat.getColor(this, R.color.text_title);
+        int greyStroke = Color.parseColor("#E5E7EB");
+        int greyText = ContextCompat.getColor(this, R.color.slate_500);
+
+        chip.setChipBackgroundColor(ColorStateList.valueOf(Color.WHITE));
+        chip.setChipStrokeColor(new ColorStateList(
+                new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}},
+                new int[]{greenStroke, greyStroke}));
+        chip.setTextColor(new ColorStateList(
+                new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}},
+                new int[]{greenText, greyText}));
     }
 
     private void saveUserPreferencesAndContinue() {
