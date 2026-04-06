@@ -6,21 +6,25 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.weathertrip_sep490.R;
+import com.example.weathertrip_sep490.adapter.HeroBannerAdapter;
+import com.example.weathertrip_sep490.adapter.PartnerAdapter;
 import com.example.weathertrip_sep490.adapter.PoiGridAdapter;
 import com.example.weathertrip_sep490.adapter.PoiRecentAdapter;
 import com.example.weathertrip_sep490.data.RecentPoiStorage;
-import com.example.weathertrip_sep490.adapter.PartnerAdapter;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.POI;
@@ -37,10 +41,9 @@ import retrofit2.Response;
 public class HomepageActivity extends AppCompatActivity {
 
     private TextView tvUserNameHome;
-    private TextView tvWeatherCity;
-    private TextView tvWeatherTemp;
-    private TextView tvWeatherDesc;
     private EditText etSearchHome;
+    private TextView tvFeaturedEmpty;
+    private NestedScrollView nestedHomeScroll;
     private PoiGridAdapter popularAdapter;
     private PoiRecentAdapter recentAdapter;
     private final List<POI> popularAll = new ArrayList<>();
@@ -53,9 +56,14 @@ public class HomepageActivity extends AppCompatActivity {
 
         tvUserNameHome = findViewById(R.id.tvUserNameHome);
         etSearchHome = findViewById(R.id.etSearchHome);
+        tvFeaturedEmpty = findViewById(R.id.tvFeaturedEmpty);
+        nestedHomeScroll = findViewById(R.id.nestedHomeScroll);
 
         loadUserNameFromApi();
         setupHeaderAvatar();
+        setupHeroBanner();
+        setupHeroAndSectionScroll();
+        setupSeeAllLinks();
         setupActionButtons();
         setupBottomNav();
         setupPopularDestinations();
@@ -68,6 +76,82 @@ public class HomepageActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshRecentFromLocal();
+    }
+
+    private void setupHeroBanner() {
+        ViewPager2 vp = findViewById(R.id.vpHeroBanner);
+        if (vp == null) return;
+
+        View dot0 = findViewById(R.id.dotHero0);
+        View dot1 = findViewById(R.id.dotHero1);
+        int[] slides = new int[]{R.drawable.sampleplace3, R.drawable.sampleplace};
+        vp.setAdapter(new HeroBannerAdapter(slides));
+
+        ViewPager2.OnPageChangeCallback cb = new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                if (dot0 != null) {
+                    dot0.setBackgroundResource(
+                            position == 0
+                                    ? R.drawable.bg_carousel_dot_selected
+                                    : R.drawable.bg_carousel_dot_unselected);
+                }
+                if (dot1 != null) {
+                    dot1.setBackgroundResource(
+                            position == 1
+                                    ? R.drawable.bg_carousel_dot_selected
+                                    : R.drawable.bg_carousel_dot_unselected);
+                }
+            }
+        };
+        vp.registerOnPageChangeCallback(cb);
+        cb.onPageSelected(0);
+    }
+
+    private void setupHeroAndSectionScroll() {
+        View btnHeroAbout = findViewById(R.id.btnHeroAbout);
+        if (btnHeroAbout != null) {
+            btnHeroAbout.setOnClickListener(v -> scrollToSection(R.id.sectionAbout));
+        }
+        View btnHeroExplore = findViewById(R.id.btnHeroExplore);
+        if (btnHeroExplore != null) {
+            btnHeroExplore.setOnClickListener(v ->
+                    startActivity(new Intent(this, ExploreActivity.class)));
+        }
+        View btnAboutFeatured = findViewById(R.id.btnAboutFeatured);
+        if (btnAboutFeatured != null) {
+            btnAboutFeatured.setOnClickListener(v -> scrollToSection(R.id.sectionFeaturedDestinations));
+        }
+        View btnAboutLearnMore = findViewById(R.id.btnAboutLearnMore);
+        if (btnAboutLearnMore != null) {
+            btnAboutLearnMore.setOnClickListener(v -> scrollToSection(R.id.sectionWhyUs));
+        }
+    }
+
+    private void scrollToSection(int viewId) {
+        View section = findViewById(viewId);
+        if (section == null || nestedHomeScroll == null) return;
+        nestedHomeScroll.post(() -> {
+            int y = 0;
+            View v = section;
+            while (v != null && v != nestedHomeScroll) {
+                y += v.getTop();
+                ViewParent vp = v.getParent();
+                v = vp instanceof View ? (View) vp : null;
+            }
+            nestedHomeScroll.smoothScrollTo(0, Math.max(0, y - 24));
+        });
+    }
+
+    private void setupSeeAllLinks() {
+        View.OnClickListener openExplore = v ->
+                startActivity(new Intent(this, ExploreActivity.class));
+        TextView tvPopular = findViewById(R.id.tvPopularSeeAll);
+        if (tvPopular != null) tvPopular.setOnClickListener(openExplore);
+        TextView tvRecent = findViewById(R.id.tvRecentSeeAll);
+        if (tvRecent != null) tvRecent.setOnClickListener(openExplore);
+        TextView tvPartner = findViewById(R.id.tvPartnerSeeAll);
+        if (tvPartner != null) tvPartner.setOnClickListener(openExplore);
     }
 
     private void setupActionButtons() {
@@ -83,10 +167,8 @@ public class HomepageActivity extends AppCompatActivity {
             btnWeather.setOnClickListener(v -> Toast.makeText(this, "Xem thời tiết", Toast.LENGTH_SHORT).show());
         }
         if (btnExplore != null) {
-            btnExplore.setOnClickListener(v -> {
-                Toast.makeText(this, "Khám phá", Toast.LENGTH_SHORT).show();
-                // Có thể mở ListPOIActivity (Khám phá) hoặc cuộn tới Khám phá điểm đến
-            });
+            btnExplore.setOnClickListener(v ->
+                    startActivity(new Intent(this, ExploreActivity.class)));
         }
     }
 
@@ -129,11 +211,11 @@ public class HomepageActivity extends AppCompatActivity {
     private void setupBottomNav() {
         com.google.android.material.bottomnavigation.BottomNavigationView bottomNav = findViewById(R.id.bottom_nav_home);
         if (bottomNav == null) return;
-        bottomNav.setSelectedItemId(R.id.nav_home); // Tô đúng icon Trang chủ
+        bottomNav.setSelectedItemId(R.id.nav_home);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                return true; // Đã ở trang chủ
+                return true;
             }
             if (id == R.id.nav_user) {
                 startActivity(new Intent(this, ProfileActivity.class));
@@ -154,13 +236,12 @@ public class HomepageActivity extends AppCompatActivity {
         });
     }
 
-
     private void setupPopularDestinations() {
         RecyclerView rv = findViewById(R.id.rvPopularDestinations);
         rv.setLayoutManager(new GridLayoutManager(this, 2));
         rv.setNestedScrollingEnabled(false);
 
-        popularAdapter = new PoiGridAdapter(poi -> openPoiDetail(poi));
+        popularAdapter = new PoiGridAdapter(this::openPoiDetail);
         rv.setAdapter(popularAdapter);
         loadPopularFromApi();
     }
@@ -170,7 +251,7 @@ public class HomepageActivity extends AppCompatActivity {
         rv.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        recentAdapter = new PoiRecentAdapter(poi -> openPoiDetail(poi));
+        recentAdapter = new PoiRecentAdapter(this::openPoiDetail);
         rv.setAdapter(recentAdapter);
         refreshRecentFromLocal();
     }
@@ -205,6 +286,12 @@ public class HomepageActivity extends AppCompatActivity {
         });
     }
 
+    private void updateFeaturedEmpty(List<POI> filteredPopular) {
+        if (tvFeaturedEmpty == null) return;
+        boolean empty = filteredPopular == null || filteredPopular.isEmpty();
+        tvFeaturedEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+    }
+
     private void filterPois(String query) {
         List<POI> filteredPopular = new ArrayList<>();
         List<POI> filteredRecent = new ArrayList<>();
@@ -226,6 +313,7 @@ public class HomepageActivity extends AppCompatActivity {
         if (recentAdapter != null) {
             recentAdapter.updateData(filteredRecent);
         }
+        updateFeaturedEmpty(filteredPopular);
     }
 
     private boolean matchesQuery(POI p, String q) {
@@ -239,22 +327,31 @@ public class HomepageActivity extends AppCompatActivity {
         api.getRecommendedPOIs("vi").enqueue(new Callback<List<POI>>() {
             @Override
             public void onResponse(Call<List<POI>> call, Response<List<POI>> response) {
-                if (!response.isSuccessful() || response.body() == null) return;
-                List<POI> all = response.body();
                 popularAll.clear();
-                if (all != null) {
-                    int limit = Math.min(4, all.size());
-                    for (int i = 0; i < limit; i++) {
-                        POI p = all.get(i);
-                        if (p != null) popularAll.add(p);
+                if (response.isSuccessful() && response.body() != null) {
+                    List<POI> all = response.body();
+                    if (all != null) {
+                        int limit = Math.min(4, all.size());
+                        for (int i = 0; i < limit; i++) {
+                            POI p = all.get(i);
+                            if (p != null) popularAll.add(p);
+                        }
                     }
                 }
-                if (popularAdapter != null) popularAdapter.updateData(new ArrayList<>(popularAll));
+                if (popularAdapter != null) {
+                    popularAdapter.updateData(new ArrayList<>(popularAll));
+                }
                 filterPois(safeLower(etSearchHome != null ? etSearchHome.getText() : null));
             }
 
             @Override
-            public void onFailure(Call<List<POI>> call, Throwable t) {}
+            public void onFailure(Call<List<POI>> call, Throwable t) {
+                popularAll.clear();
+                if (popularAdapter != null) {
+                    popularAdapter.updateData(new ArrayList<>());
+                }
+                filterPois(safeLower(etSearchHome != null ? etSearchHome.getText() : null));
+            }
         });
     }
 
@@ -262,7 +359,9 @@ public class HomepageActivity extends AppCompatActivity {
         List<POI> stored = RecentPoiStorage.getRecent(this);
         recentAll.clear();
         if (stored != null) recentAll.addAll(stored);
-        if (recentAdapter != null) recentAdapter.updateData(new ArrayList<>(recentAll));
+        if (recentAdapter != null) {
+            recentAdapter.updateData(new ArrayList<>(recentAll));
+        }
         filterPois(safeLower(etSearchHome != null ? etSearchHome.getText() : null));
     }
 
