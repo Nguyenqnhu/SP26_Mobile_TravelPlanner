@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#FFFFFFFF"
->
+    android:background="#FDFBF7"
+    android:orientation="vertical">
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedHomeScroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -18,26 +18,26 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Header: Xin chào, [tên user] góc trái; icon user/avatar góc phải -->
+            <!-- Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="20dp"
                 android:paddingTop="20dp"
-                android:paddingBottom="8dp"
-                android:gravity="center_vertical">
+                android:paddingBottom="8dp">
 
                 <TextView
                     android:id="@+id/tvUserNameHome"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Xin chào, bạn!"
-                    android:textSize="16sp"
-                    android:textColor="@color/slate_800"
+                    android:ellipsize="end"
                     android:maxLines="1"
-                    android:ellipsize="end" />
+                    android:text="Xin chào, bạn!"
+                    android:textColor="@color/slate_800"
+                    android:textSize="16sp" />
 
                 <FrameLayout
                     android:id="@+id/btnAvatarHome"
@@ -53,6 +53,7 @@
                         app:shapeAppearanceOverlay="@style/CircleImage"
                         app:strokeColor="@color/white"
                         app:strokeWidth="2dp" />
+
                     <View
                         android:layout_width="10dp"
                         android:layout_height="10dp"
@@ -60,20 +61,18 @@
                         android:background="@drawable/bg_dot_orange" />
                 </FrameLayout>
             </LinearLayout>
-
-            <!-- Bạn muốn khám phá đâu hôm nay? (đậm, to) -->
+            <!-- Search + quick actions -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="20dp"
                 android:text="Bạn muốn đi đâu hôm nay?"
+                android:textColor="#111827"
                 android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#111827" />
+                android:textStyle="bold" />
 
-            <!-- Search -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSearchHome"
                 android:layout_width="match_parent"
@@ -81,14 +80,14 @@
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_round_outline"
+                app:boxCornerRadiusBottomEnd="24dp"
+                app:boxCornerRadiusBottomStart="24dp"
+                app:boxCornerRadiusTopEnd="24dp"
+                app:boxCornerRadiusTopStart="24dp"
                 app:hintEnabled="false"
                 app:startIconDrawable="@android:drawable/ic_menu_search"
-                android:background="@drawable/bg_round_outline"
-                app:startIconTint="@color/slate_400"
-                app:boxCornerRadiusTopStart="24dp"
-                app:boxCornerRadiusTopEnd="24dp"
-                app:boxCornerRadiusBottomStart="24dp"
-                app:boxCornerRadiusBottomEnd="24dp">
+                app:startIconTint="@color/slate_400">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSearchHome"
@@ -100,12 +99,11 @@
                     android:textColorHint="@color/slate_400" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 3 nút action: Tạo trip, Xem thời tiết, Khám phá -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center"
+                android:orientation="horizontal"
                 android:paddingHorizontal="24dp"
                 android:paddingBottom="16dp">
 
@@ -114,10 +112,10 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_horizontal"
-                    android:padding="8dp"
-                    android:background="?attr/selectableItemBackground">
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <FrameLayout
                         android:layout_width="56dp"
@@ -131,15 +129,16 @@
                             android:src="@drawable/ic_trip"
                             app:tint="@color/green_primary" />
                     </FrameLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Tạo trip"
-                        android:textSize="12sp"
-                        android:textColor="@color/slate_800"
+                        android:ellipsize="end"
                         android:maxLines="1"
-                        android:ellipsize="end" />
+                        android:text="Tạo trip"
+                        android:textColor="@color/slate_800"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -147,10 +146,10 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_horizontal"
-                    android:padding="8dp"
-                    android:background="?attr/selectableItemBackground">
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <FrameLayout
                         android:layout_width="56dp"
@@ -164,15 +163,16 @@
                             android:src="@drawable/ic_cloud"
                             app:tint="@color/green_primary" />
                     </FrameLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Xem thời tiết"
-                        android:textSize="12sp"
-                        android:textColor="@color/slate_800"
+                        android:ellipsize="end"
                         android:maxLines="1"
-                        android:ellipsize="end" />
+                        android:text="Xem thời tiết"
+                        android:textColor="@color/slate_800"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -180,10 +180,10 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
                     android:gravity="center_horizontal"
-                    android:padding="8dp"
-                    android:background="?attr/selectableItemBackground">
+                    android:orientation="vertical"
+                    android:padding="8dp">
 
                     <FrameLayout
                         android:layout_width="56dp"
@@ -197,79 +197,487 @@
                             android:src="@drawable/ic_explore"
                             app:tint="@color/green_primary" />
                     </FrameLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Khám phá"
-                        android:textSize="12sp"
-                        android:textColor="@color/slate_800"
+                        android:ellipsize="end"
                         android:maxLines="1"
-                        android:ellipsize="end" />
+                        android:text="Khám phá"
+                        android:textColor="@color/slate_800"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+            <!-- Hero -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/mint_bg_light"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.04"
+                    android:text="DU LỊCH VIỆT — GỌN TRONG TAY BẠN"
+                    android:textAllCaps="true"
+                    android:textColor="@color/text_title"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Chúng tôi đồng hành cùng hành trình của bạn"
+                    android:textColor="@color/text_title"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="TravelGo giúp bạn lên kế hoạch, khám phá và tận hưởng từng chuyến đi — thân thiện, rõ ràng và đúng chất người Việt."
+                    android:textColor="@color/slate_500"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnHeroExplore"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_hero_primary_pill"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:paddingVertical="14dp"
+                        android:text="Khám phá ngay"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnHeroAbout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_green_pill"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:paddingVertical="14dp"
+                        android:text="Về chúng tôi"
+                        android:textColor="@color/emerald_600"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
-
-            <!-- Popular Destinations -->
-            <LinearLayout
+            <!-- Banner carousel -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="20dp"
-                android:paddingBottom="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginTop="4dp"
+                android:paddingBottom="8dp">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Khám phá điểm đến"
-                    android:textColor="@color/slate_800"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/vpHeroBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:nestedScrollingEnabled="false" />
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/heroBannerDots"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
-                    android:textColor="#047857"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:orientation="horizontal">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvPopularDestinations"
+                    <View
+                        android:id="@+id/dotHero0"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_carousel_dot_selected" />
+
+                    <View
+                        android:id="@+id/dotHero1"
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:background="@drawable/bg_carousel_dot_unselected" />
+                </LinearLayout>
+            </FrameLayout>
+
+
+
+            <!-- Về chúng tôi -->
+            <LinearLayout
+                android:id="@+id/sectionAbout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:clipToPadding="false"
-                android:nestedScrollingEnabled="false" />
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="20dp">
 
-            <!-- Recently viewed -->
+
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Chào mừng đến TravelGo"
+                    android:textColor="@color/text_title"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingMultiplier="1.25"
+                    android:text="Chúng tôi không chỉ gợi ý điểm đến — mà còn cá nhân hóa trải nghiệm theo sở thích, ngân sách và thời gian rảnh của bạn, đúng nhịp sống Việt."
+                    android:textColor="@color/slate_500"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Hơn cả một chuyến đi — là kỷ niệm quê hương"
+                    android:textColor="@color/slate_800"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingMultiplier="1.25"
+                    android:text="Từ gợi ý lịch trình thông minh đến bản đồ trực quan và cập nhật thời tiết, TravelGo mang đến nền tảng du lịch hiện đại nhưng vẫn ấm áp, dễ hiểu cho mọi lứa tuổi."
+                    android:textColor="@color/slate_500"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnAboutFeatured"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_green_pill"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:paddingVertical="12dp"
+                        android:text="Địa điểm nổi bật"
+                        android:textColor="@color/emerald_600"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnAboutLearnMore"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_green_pill"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center"
+                        android:paddingVertical="12dp"
+                        android:text="Tìm hiểu thêm"
+                        android:textColor="@color/emerald_600"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="#E5E7EB" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="50+"
+                            android:textColor="@color/text_title"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Đối tác"
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="1K+"
+                            android:textColor="@color/text_title"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Lộ trình"
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="10K+"
+                            android:textColor="@color/text_title"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Người dùng"
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="24/7"
+                            android:textColor="@color/text_title"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="Hỗ trợ"
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeWidth="0dp">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:contentDescription="@null"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/sampleplace" />
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Quảng cáo / đối tác -->
+            <LinearLayout
+                android:id="@+id/sectionPromo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="20dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Ưu đãi &amp; quảng cáo"
+                        android:textColor="@color/text_title"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvPartnerSeeAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Xem tất cả"
+                        android:textColor="@color/emerald_700"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPartners"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp" />
+            </LinearLayout>
+
+            <!-- Địa điểm nổi bật -->
+            <LinearLayout
+                android:id="@+id/sectionFeaturedDestinations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingHorizontal="24dp"
+                    android:text="Địa điểm nổi bật"
+                    android:textColor="@color/text_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:paddingHorizontal="24dp"
+                    android:text="Gợi ý dành riêng cho bạn dựa trên sở thích và xu hướng."
+                    android:textColor="@color/slate_500"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|end"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="20dp"
+                    android:paddingTop="8dp">
+
+                    <TextView
+                        android:id="@+id/tvPopularSeeAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Xem tất cả"
+                        android:textColor="@color/emerald_700"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvFeaturedEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingHorizontal="32dp"
+                    android:paddingTop="24dp"
+                    android:paddingBottom="8dp"
+                    android:text="Chưa có địa điểm gợi ý. Vui lòng thử lại sau."
+                    android:textColor="@color/slate_500"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPopularDestinations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp" />
+            </LinearLayout>
+
+            <!-- Đã xem gần đây -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingHorizontal="20dp"
                 android:paddingTop="16dp"
-                android:paddingBottom="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:paddingBottom="8dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Đã xem gần đây"
-                    android:textColor="@color/slate_800"
-                    android:textSize="20sp"
+                    android:textColor="@color/text_title"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvRecentSeeAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Xem tất cả"
-                    android:textColor="#047857"
+                    android:textColor="@color/emerald_700"
                     android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -278,155 +686,205 @@
                 android:id="@+id/rvRecentlyViewed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
                 android:clipToPadding="false"
-                android:nestedScrollingEnabled="false" />
-
-            <!-- Partner ads -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="20dp"
-                android:paddingTop="20dp"
-                android:paddingBottom="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Đối tác ưu đãi "
-                    android:textColor="@color/slate_800"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
-                    android:textColor="#047857"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvPartners"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
                 android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:clipToPadding="false"
-                android:nestedScrollingEnabled="false" />
+                android:paddingEnd="20dp" />
 
-            <!-- Feature section: Tại sao chọn TravelGo? -->
+            <!-- Tại sao chọn chúng tôi -->
             <LinearLayout
+                android:id="@+id/sectionWhyUs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="24dp"
                 android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="20dp"
                 android:paddingHorizontal="20dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:text="TÍNH NĂNG"
-                    android:textAllCaps="true"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:textColor="#064E3B" />
+                    android:gravity="center"
+                    android:text="Tại sao chọn chúng tôi"
+                    android:textColor="@color/text_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:layout_gravity="center_horizontal"
-                    android:text="Tại sao chọn TravelGo?"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/slate_800" />
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:text="Những lợi ích giúp bạn lên kế hoạch gọn mà vẫn trọn vẹn."
+                    android:textColor="@color/slate_500"
+                    android:textSize="13sp" />
 
-                <!-- 3 feature rows -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_rounded"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@drawable/ic_trip"
+                            app:tint="@color/emerald_600" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="AI thông minh"
+                            android:textColor="@color/slate_800"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center"
+                            android:lineSpacingMultiplier="1.15"
+                            android:text="Gợi ý lịch trình bằng tiếng Việt, tối ưu theo gu và ngân sách."
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_rounded"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@drawable/ic_explore"
+                            app:tint="@color/emerald_600" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="Bản đồ trực quan"
+                            android:textColor="@color/slate_800"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center"
+                            android:lineSpacingMultiplier="1.15"
+                            android:text="Nhìn một cái là thấy cả hành trình, dễ chỉnh tay trên bản đồ."
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_outline_rounded"
-                    android:orientation="vertical"
-                    android:padding="14dp">
+                    android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="AI thông minh"
-                        android:textStyle="bold"
-                        android:textColor="@color/slate_800" />
+                        android:layout_marginEnd="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_rounded"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@android:drawable/ic_menu_share"
+                            app:tint="@color/emerald_600" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="Chia sẻ dễ dàng"
+                            android:textColor="@color/slate_800"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center"
+                            android:lineSpacingMultiplier="1.15"
+                            android:text="Gửi link hoặc ảnh đẹp cho cả nhà cùng xem chuyến đi."
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Lịch trình được AI tối ưu theo gu và ngân sách của bạn"
-                        android:textSize="12sp"
-                        android:textColor="@color/slate_500" />
-                </LinearLayout>
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_outline_rounded"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_outline_rounded"
-                    android:orientation="vertical"
-                    android:padding="14dp">
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:src="@drawable/ic_cloud"
+                            app:tint="@color/emerald_600" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Bản đồ trực quan"
-                        android:textStyle="bold"
-                        android:textColor="@color/slate_800" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="Thời tiết &amp; mùa đẹp"
+                            android:textColor="@color/slate_800"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Xem toàn bộ lịch trình trên Google Maps"
-                        android:textSize="12sp"
-                        android:textColor="@color/slate_500" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_outline_rounded"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Chia sẻ dễ dàng"
-                        android:textStyle="bold"
-                        android:textColor="@color/slate_800" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Xuất PDF, ảnh đẹp hoặc link để khoe bạn bè"
-                        android:textSize="12sp"
-                        android:textColor="@color/slate_500" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="center"
+                            android:lineSpacingMultiplier="1.15"
+                            android:text="Gợi ý theo mùa mưa nắng để khỏi bất ngờ."
+                            android:textColor="@color/slate_500"
+                            android:textSize="11sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav_home"
         android:layout_width="match_parent"
@@ -436,5 +894,4 @@
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
         app:menu="@menu/bottom_nav" />
-
 </LinearLayout>
