@@ -33,6 +33,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
 
     public interface Listener {
         void onCreateTripWithAi(
+                @NonNull String tripTitle,
                 @NonNull String startPoint,
                 @NonNull String destination,
                 boolean roundTrip,
@@ -43,6 +44,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
 
     private Listener listener;
 
+    private EditText etTripTitle;
     private EditText etStartPoint;
     private EditText etDestination;
     private Spinner spinnerTripType;
@@ -71,6 +73,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        etTripTitle = view.findViewById(R.id.etCreateTripTitle);
         etStartPoint = view.findViewById(R.id.etCreateTripStartPoint);
         etDestination = view.findViewById(R.id.etCreateTripDestination);
         spinnerTripType = view.findViewById(R.id.spinnerTripType);
@@ -163,8 +166,13 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void submit() {
+        String tripTitle = etTripTitle.getText() != null ? etTripTitle.getText().toString().trim() : "";
         String startPoint = etStartPoint.getText() != null ? etStartPoint.getText().toString().trim() : "";
         String destination = etDestination.getText() != null ? etDestination.getText().toString().trim() : "";
+        if (tripTitle.isEmpty()) {
+            Toast.makeText(requireContext(), "Vui lòng nhập tên chuyến đi", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (startPoint.isEmpty()) {
             Toast.makeText(requireContext(), "Vui lòng nhập điểm bắt đầu", Toast.LENGTH_SHORT).show();
             return;
@@ -187,7 +195,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         }
 
         if (listener != null) {
-            listener.onCreateTripWithAi(startPoint, destination, roundTrip, startStr, endStr);
+            listener.onCreateTripWithAi(tripTitle, startPoint, destination, roundTrip, startStr, endStr);
         }
         dismiss();
     }

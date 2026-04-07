@@ -19,7 +19,7 @@
         android:paddingTop="6dp"
         android:paddingEnd="12dp"
         android:paddingBottom="6dp"
-        android:text="Segment 1"
+        android:text="Chặng 1"
         android:textColor="@color/white"
         android:textSize="12sp"
         android:textStyle="bold" />

@@ -1,10 +1,12 @@
 package com.example.weathertrip_sep490.model;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 
 public class Trip {
 
     private final String id;
+    private final String tripTitle;
     private final String city;
     private final String dateRange;
     @Nullable
@@ -14,12 +16,14 @@ public class Trip {
 
     public Trip(
             String id,
+            @NonNull String tripTitle,
             String city,
             String dateRange,
             @Nullable String costDisplay,
             TripStatus status,
             int imageResId) {
         this.id = id;
+        this.tripTitle = tripTitle;
         this.city = city;
         this.dateRange = dateRange;
         this.costDisplay = costDisplay;
@@ -29,6 +33,10 @@ public class Trip {
 
     public String getId() {
         return id;
+    }
+
+    public String getTripTitle() {
+        return tripTitle;
     }
 
     public String getCity() {

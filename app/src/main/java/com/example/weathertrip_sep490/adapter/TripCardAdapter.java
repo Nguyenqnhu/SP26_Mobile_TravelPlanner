@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -68,22 +69,25 @@ public class TripCardAdapter extends RecyclerView.Adapter<TripCardAdapter.Holder
         private final ImageView imgTrip;
         private final TextView tvBadge;
         private final TextView tvCity;
-        private final TextView tvDates;
+        private final TextView tvStartDate;
+
         private final TextView tvCost;
+        private final TextView tvType;
         private final TextView btnReplan;
         private final TextView btnDetails;
-        private final TextView btnReview;
+
 
         Holder(@NonNull View itemView) {
             super(itemView);
             imgTrip = itemView.findViewById(R.id.imgTripCover);
             tvBadge = itemView.findViewById(R.id.tvTripStatusBadge);
             tvCity = itemView.findViewById(R.id.tvTripCity);
-            tvDates = itemView.findViewById(R.id.tvTripDates);
+            tvStartDate = itemView.findViewById(R.id.tvTripDateRange);
             tvCost = itemView.findViewById(R.id.tvTripCost);
+            tvType = itemView.findViewById(R.id.tvTripType);
             btnReplan = itemView.findViewById(R.id.btnTripReplan);
             btnDetails = itemView.findViewById(R.id.btnTripDetails);
-            btnReview = itemView.findViewById(R.id.btnTripReview);
+
         }
 
         void bind(Trip trip, TripCardListener listener) {
@@ -94,16 +98,20 @@ public class TripCardAdapter extends RecyclerView.Adapter<TripCardAdapter.Holder
                     .error(R.drawable.bg_image_placeholder)
                     .into(imgTrip);
 
-            tvCity.setText(trip.getCity());
-            tvDates.setText(trip.getDateRange());
+            tvCity.setText(trip.getTripTitle());
+
+            ParsedDates parsed = parseDates(trip.getDateRange());
+            tvStartDate.setText("Lịch đi: " + parsed.startDate);
+
+            tvType.setText("Loại: " + parsed.tripTypeLabel);
 
             String cost = trip.getCostDisplay();
-            if (cost != null && !cost.trim().isEmpty()) {
-                tvCost.setVisibility(View.VISIBLE);
-                tvCost.setText(cost);
+            if (cost == null || cost.trim().isEmpty()) {
+                tvCost.setText("—");
             } else {
-                tvCost.setVisibility(View.GONE);
+                tvCost.setText(cost);
             }
+            tvCost.setVisibility(View.VISIBLE);
 
             applyStatusBadge(trip.getStatus());
 
@@ -112,9 +120,6 @@ public class TripCardAdapter extends RecyclerView.Adapter<TripCardAdapter.Holder
             });
             btnDetails.setOnClickListener(v -> {
                 if (listener != null) listener.onViewDetails(trip);
-            });
-            btnReview.setOnClickListener(v -> {
-                if (listener != null) listener.onReview(trip);
             });
         }
 
@@ -151,6 +156,34 @@ public class TripCardAdapter extends RecyclerView.Adapter<TripCardAdapter.Holder
         private float dp(float v) {
             return TypedValue.applyDimension(
                     TypedValue.COMPLEX_UNIT_DIP, v, itemView.getContext().getResources().getDisplayMetrics());
+        }
+
+        private static class ParsedDates {
+            String startDate;
+            String endDate;
+            String tripTypeLabel; // "1 chiều" hoặc "Khứ hồi"
+        }
+
+        private static ParsedDates parseDates(@Nullable String dateRange) {
+            String s = dateRange != null ? dateRange.trim() : "";
+            ParsedDates out = new ParsedDates();
+
+            if (s.contains("1 chiều")) {
+                out.tripTypeLabel = "1 chiều";
+                // Format hiện tại: "dd/MM/yyyy · 1 chiều"
+                out.startDate = s.replace("· 1 chiều", "").replace(" · 1 chiều", "").trim();
+                if (out.startDate.isEmpty()) out.startDate = "—";
+                // Với 1 chiều popup chỉ có 1 ngày => coi "ngày đến" trùng ngày đi
+                out.endDate = out.startDate;
+                return out;
+            }
+
+            out.tripTypeLabel = "Khứ hồi";
+            // Format round-trip: "dd/MM/yyyy - dd/MM/yyyy"
+            String[] parts = s.split("\\s+-\\s+", 2);
+            out.startDate = parts.length >= 1 ? parts[0].trim() : "—";
+            out.endDate = parts.length >= 2 ? parts[1].trim() : "—";
+            return out;
         }
     }
 }

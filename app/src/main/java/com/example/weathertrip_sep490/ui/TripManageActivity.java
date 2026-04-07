@@ -147,13 +147,13 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
     }
 
     private void seedSampleTrips() {
-        int ph = R.drawable.bg_image_placeholder;
-        allTrips.add(new Trip("1", "Đà Lạt", "31/3/2026 - 5/4/2026", "10.000.000 đ", TripStatus.UPCOMING, ph));
-        allTrips.add(new Trip("2", "Hội An", "15/3/2026 - 22/3/2026", null, TripStatus.ONGOING, ph));
-        allTrips.add(new Trip("3", "Sapa", "1/3/2026 - 8/3/2026", "8.500.000 đ", TripStatus.ONGOING, ph));
-        allTrips.add(new Trip("4", "Nha Trang", "10/3/2026 - 14/3/2026", null, TripStatus.ONGOING, ph));
-        allTrips.add(new Trip("5", "Phú Quốc", "1/2/2026 - 7/2/2026", "15.000.000 đ", TripStatus.COMPLETED, ph));
-        allTrips.add(new Trip("6", "Huế", "20/1/2026 - 25/1/2026", null, TripStatus.COMPLETED, ph));
+        int ph = R.drawable.sampleplace;
+        allTrips.add(new Trip("1", "Đà Lạt", "Đà Lạt", "31/3/2026 - 5/4/2026", "10.000.000 đ", TripStatus.UPCOMING, ph));
+        allTrips.add(new Trip("2", "Hội An", "Hội An", "15/3/2026 - 22/3/2026", null, TripStatus.ONGOING, ph));
+        allTrips.add(new Trip("3", "Sapa", "Sapa", "1/3/2026 - 8/3/2026", "8.500.000 đ", TripStatus.ONGOING, ph));
+        allTrips.add(new Trip("4", "Nha Trang", "Nha Trang", "10/3/2026 - 14/3/2026", null, TripStatus.ONGOING, ph));
+        allTrips.add(new Trip("5", "Phú Quốc", "Phú Quốc", "1/2/2026 - 7/2/2026", "15.000.000 đ", TripStatus.COMPLETED, ph));
+        allTrips.add(new Trip("6", "Huế", "Huế", "20/1/2026 - 25/1/2026", null, TripStatus.COMPLETED, ph));
     }
 
     private List<String> buildChipLabels() {
@@ -241,24 +241,32 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
 
     @Override
     public void onCreateTripWithAi(
+            @NonNull String tripTitle,
             @NonNull String startPoint,
             @NonNull String destination,
             boolean roundTrip,
             @NonNull String startDateDisplay,
             @NonNull String endDateDisplay
     ) {
-        String title = startPoint + " → " + destination;
         String range = roundTrip
                 ? (startDateDisplay + " - " + endDateDisplay)
                 : (startDateDisplay + " · 1 chiều");
-        int ph = R.drawable.bg_image_placeholder;
-        allTrips.add(0, new Trip(String.valueOf(System.currentTimeMillis()), title, range, null, TripStatus.UPCOMING, ph));
+        int ph = R.drawable.sampleplace;
+        allTrips.add(0, new Trip(
+                String.valueOf(System.currentTimeMillis()),
+                tripTitle,
+                destination,
+                range,
+                null,
+                TripStatus.UPCOMING,
+                ph
+        ));
         refreshStatusTabLabels();
         applyTabVisualState();
         applyFiltersAndRefresh();
         Toast.makeText(
                 this,
-                "Đã tạo chuyến với AI (demo): " + title + (roundTrip ? "" : " (1 chiều)"),
+                "Đã tạo chuyến với AI (demo): " + tripTitle + (roundTrip ? "" : " (1 chiều)"),
                 Toast.LENGTH_SHORT
         ).show();
     }
