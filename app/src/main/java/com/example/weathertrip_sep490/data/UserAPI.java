@@ -2,6 +2,8 @@ package com.example.weathertrip_sep490.data;
 
 import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.Preference;
+import com.example.weathertrip_sep490.model.TripCreateRequest;
+import com.example.weathertrip_sep490.model.TripResponse;
 import com.example.weathertrip_sep490.model.User;
 
 import java.util.List;
@@ -44,5 +46,12 @@ public interface UserAPI {
     // Get POIs
     @GET("api/pois/recommended")
     Call<List<POI>> getRecommendedPOIs(@Query("lang") String lang);
+
+    //Create trip
+    @POST("api/trip/create")
+    Call<TripResponse> createTrip(
+            @Query("type") String type,
+            @Body TripCreateRequest body);
+
 
 }

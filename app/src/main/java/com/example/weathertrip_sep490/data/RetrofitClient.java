@@ -3,7 +3,6 @@ package com.example.weathertrip_sep490.data;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.weathertrip_sep490.BuildConfig;
 import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.POIListResponse;
 import com.google.gson.Gson;
@@ -21,7 +20,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    private static final String BASE_URL = BuildConfig.API_BASE_URL;
+
+    private static final String BASE_URL = "http://10.0.2.2:5131/";
     private static final String PREFS_NAME = "TravelGoPrefs";
     private static final String KEY_ACCESS_TOKEN = "access_token";
 
@@ -29,8 +29,8 @@ public class RetrofitClient {
     private static Context appContext;
     private Retrofit retrofit;
     private AuthAPI authAPI;
-    private UserAPI preferenceAPI;
-    private UserAPI poiAPI;
+    private UserAPI userAPI;
+
 
     public static void init(Context context) {
         appContext = context != null ? context.getApplicationContext() : null;
@@ -95,8 +95,8 @@ public class RetrofitClient {
                 .build();
 
         authAPI = retrofit.create(AuthAPI.class);
-        preferenceAPI = retrofit.create(UserAPI.class);
-        poiAPI = retrofit.create(UserAPI.class);
+        userAPI = retrofit.create(UserAPI.class);
+
     }
     public static synchronized RetrofitClient getInstance() {
         if (instance == null) {
@@ -110,8 +110,15 @@ public class RetrofitClient {
     }
 
     public UserAPI getPreferenceAPI() {
-        return preferenceAPI;
+        return userAPI;
     }
 
-    public UserAPI getPOIAPI(){return poiAPI;}
+    public UserAPI getPOIAPI(){
+        return userAPI;
+    }
+
+    public UserAPI getUserAPI() {
+        return userAPI;
+    }
+
 }

@@ -18,10 +18,20 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.example.weathertrip_sep490.R;
+import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.model.TripCreateRequest;
+import com.example.weathertrip_sep490.model.TripResponse;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
+
+import okhttp3.ResponseBody;
+import android.util.Log;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CreateTripBottomSheet extends BottomSheetDialogFragment {
 
@@ -54,6 +64,8 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
 
     private Calendar startCal;
     private Calendar endCal;
+
+    private boolean isSubmitting = false;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -166,6 +178,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void submit() {
+        if (isSubmitting) return;
         String tripTitle = etTripTitle.getText() != null ? etTripTitle.getText().toString().trim() : "";
         String startPoint = etStartPoint.getText() != null ? etStartPoint.getText().toString().trim() : "";
         String destination = etDestination.getText() != null ? etDestination.getText().toString().trim() : "";
@@ -183,9 +196,9 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         }
 
         boolean roundTrip = spinnerTripType.getSelectedItemPosition() == TRIP_TYPE_ROUND_TRIP;
-        java.text.DateFormat df = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        String startStr = df.format(startCal.getTime());
-        String endStr = roundTrip ? df.format(endCal.getTime()) : "";
+        java.text.DateFormat dfDisplay = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        String startStr = dfDisplay.format(startCal.getTime());
+        String endStr = roundTrip ? dfDisplay.format(endCal.getTime()) : "";
 
         if (roundTrip) {
             if (endCal.before(startCal)) {
@@ -194,9 +207,66 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
             }
         }
 
-        if (listener != null) {
-            listener.onCreateTripWithAi(tripTitle, startPoint, destination, roundTrip, startStr, endStr);
-        }
-        dismiss();
+        // Backend thống nhất dùng DateTime: gửi ISO-8601 (UTC) để bind ổn định
+        String typeQuery = roundTrip ? "1" : "0";
+        String startIso = toIsoUtc(startCal);
+        String endIso = roundTrip ? toIsoUtc(endCal) : startIso;
+        TripCreateRequest body = new TripCreateRequest(tripTitle, startPoint, destination, startIso, endIso);
+
+        isSubmitting = true;
+        Log.d(TAG, "createTrip type=" + typeQuery + " title=" + tripTitle
+                + " startLocation=" + startPoint + " endLocation=" + destination
+                + " startDate=" + startIso + " endDate=" + endIso);
+        Call<TripResponse> call = RetrofitClient.getInstance().getUserAPI().createTrip(typeQuery, body);
+        call.enqueue(new Callback<TripResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<TripResponse> call, @NonNull Response<TripResponse> response) {
+                isSubmitting = false;
+                if (!response.isSuccessful()) {
+                    String details = "";
+                    try {
+                        ResponseBody eb = response.errorBody();
+                        if (eb != null) {
+                            String raw = eb.string();
+                            if (raw != null) {
+                                details = raw.trim();
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                    Log.e(TAG, "createTrip failed code=" + response.code() + " body=" + details);
+                    Toast.makeText(
+                            requireContext(),
+                            "Tạo chuyến đi thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : (": " + details)),
+                            Toast.LENGTH_LONG
+                    ).show();
+                    return;
+                }
+                // Response body có thể null (ví dụ: 204/empty body)
+                TripResponse resp = response.body();
+                Toast.makeText(requireContext(), "Đã tạo chuyến đi", Toast.LENGTH_SHORT).show();
+
+                if (listener != null) {
+                    listener.onCreateTripWithAi(tripTitle, startPoint, destination, roundTrip, startStr, endStr);
+                }
+                dismiss();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<TripResponse> call, @NonNull Throwable t) {
+                isSubmitting = false;
+                Toast.makeText(requireContext(), "Lỗi mạng: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private static String toIsoUtc(@NonNull Calendar calendar) {
+        Calendar c = (Calendar) calendar.clone();
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
+        iso.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return iso.format(c.getTime());
     }
 }
