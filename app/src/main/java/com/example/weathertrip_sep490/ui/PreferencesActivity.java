@@ -9,6 +9,7 @@ import android.util.TypedValue;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +21,7 @@ import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.model.Preference;
+import com.example.weathertrip_sep490.model.UserPreferencesRequest;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -32,6 +34,12 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class PreferencesActivity extends AppCompatActivity {
+
+    private static final String TAG = "PreferencesActivity";
+    private static final String PREFS_NAME = "TravelGoPrefs";
+    private static final String KEY_SELECTED_PREFERENCES = "selected_preferences";
+    private static final String KEY_PENDING_PREFERENCES_SYNC = "pending_preferences_sync";
+    private static final String KEY_PENDING_PREFERENCES_IDS = "pending_preferences_ids";
 
     private ChipGroup cgPreferences;
     private TextView tvSkip;
@@ -165,14 +173,14 @@ public class PreferencesActivity extends AppCompatActivity {
 
     private void saveUserPreferencesAndContinue() {
         // Lưu local để dùng offline
-        SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String joinedIds = TextUtils.join(",", selectedIds);
-        prefs.edit().putString("selected_preferences", joinedIds).apply();
+        prefs.edit().putString(KEY_SELECTED_PREFERENCES, joinedIds).apply();
 
         // Token: ưu tiên từ Intent (vừa đăng nhập), không có thì đọc SharedPreferences
         String accessToken = (getIntent() != null ? getIntent().getStringExtra("access_token") : null);
         if (accessToken == null || accessToken.trim().isEmpty()) {
-            accessToken = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE).getString("access_token", null);
+            accessToken = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString("access_token", null);
         }
         if (accessToken == null || accessToken.trim().isEmpty()) {
             Toast.makeText(this, "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
@@ -181,18 +189,48 @@ public class PreferencesActivity extends AppCompatActivity {
         }
 
         UserAPI api = RetrofitClient.getInstance().getPreferenceAPI();
-        Call<Void> call = api.updateUserPreferences(new ArrayList<>(selectedIds));
+        String authHeader = accessToken.trim().startsWith("Bearer ")
+                ? accessToken.trim()
+                : "Bearer " + accessToken.trim();
+        Call<Void> call = api.updateUserPreferences(
+                authHeader,
+                new UserPreferencesRequest(new ArrayList<>(selectedIds))
+        );
 
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
+                    prefs.edit()
+                            .putBoolean(KEY_PENDING_PREFERENCES_SYNC, false)
+                            .remove(KEY_PENDING_PREFERENCES_IDS)
+                            .apply();
                     Toast.makeText(PreferencesActivity.this, "Đã cập nhật sở thích thành công!", Toast.LENGTH_SHORT).show();
                     navigateNext();
                 } else {
                     int code = response.code();
+                    String err = null;
+                    try {
+                        if (response.errorBody() != null) err = response.errorBody().string();
+                    } catch (Exception ignored) { }
+                    Log.e(TAG, "updateUserPreferences failed. code=" + code
+                            + " selectedIds=" + selectedIds
+                            + " errorBody=" + (err != null ? err : "<null>"));
+                    // Đánh dấu chờ đồng bộ lại khi server ổn
+                    prefs.edit()
+                            .putBoolean(KEY_PENDING_PREFERENCES_SYNC, true)
+                            .putString(KEY_PENDING_PREFERENCES_IDS, joinedIds)
+                            .apply();
+
+                    String detailLower = err != null ? err.toLowerCase() : "";
+                    boolean looksLikeServerMisconfig = code >= 500
+                            || detailLower.contains("cloudinary")
+                            || detailLower.contains("developerexceptionpagemiddleware")
+                            || detailLower.contains("system.reflection");
                     Toast.makeText(PreferencesActivity.this,
-                            "Không lưu được lên server (" + code + "). Kiểm tra đăng nhập hoặc token.",
+                            looksLikeServerMisconfig
+                                    ? "Server đang lỗi (" + code + "). Sở thích đã lưu trên máy và sẽ đồng bộ sau."
+                                    : ("Không lưu được lên server (" + code + "). " + (err != null && !err.trim().isEmpty() ? err : "Vui lòng thử lại sau.")),
                             Toast.LENGTH_LONG).show();
                     navigateNext();
                 }

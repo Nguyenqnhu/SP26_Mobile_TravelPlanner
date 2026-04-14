@@ -30,6 +30,7 @@ public class RetrofitClient {
     private Retrofit retrofit;
     private AuthAPI authAPI;
     private UserAPI userAPI;
+    private WeatherAPI weatherAPI;
 
 
     public static void init(Context context) {
@@ -47,6 +48,10 @@ public class RetrofitClient {
             if (path != null && (path.contains("/auth/login") || path.contains("/auth/register")
                     || path.contains("/auth/verify-") || path.contains("/auth/request-password-reset")
                     || path.contains("/auth/resend-") || path.contains("/auth/refresh-token"))) {
+                return chain.proceed(original);
+            }
+            // Nếu request đã set Authorization (ví dụ truyền trực tiếp ở API call) thì không gắn thêm nữa
+            if (original.header("Authorization") != null) {
                 return chain.proceed(original);
             }
             String token = null;
@@ -96,6 +101,7 @@ public class RetrofitClient {
 
         authAPI = retrofit.create(AuthAPI.class);
         userAPI = retrofit.create(UserAPI.class);
+        weatherAPI = retrofit.create(WeatherAPI.class);
 
     }
     public static synchronized RetrofitClient getInstance() {
@@ -119,6 +125,10 @@ public class RetrofitClient {
 
     public UserAPI getUserAPI() {
         return userAPI;
+    }
+
+    public WeatherAPI getWeatherAPI() {
+        return weatherAPI;
     }
 
 }

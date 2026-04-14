@@ -5,6 +5,7 @@ import com.example.weathertrip_sep490.model.Preference;
 import com.example.weathertrip_sep490.model.TripCreateRequest;
 import com.example.weathertrip_sep490.model.TripResponse;
 import com.example.weathertrip_sep490.model.User;
+import com.example.weathertrip_sep490.model.UserPreferencesRequest;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -25,7 +27,8 @@ public interface UserAPI {
     Call<List<Preference>> getAllPreferences();
 
     @POST("api/user/update-preference")
-    Call<Void> updateUserPreferences(@Body List<String> preferenceIds);
+    Call<Void> updateUserPreferences(@Header("Authorization") String authorization,
+                                     @Body UserPreferencesRequest body);
 
     // Get user by Id
     @GET("api/user/{id}")

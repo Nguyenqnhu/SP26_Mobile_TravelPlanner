@@ -5,7 +5,7 @@ import java.util.List;
 
 public class UserPreferencesRequest {
 
-    @SerializedName("preferenceIds")
+    @SerializedName(value = "preferenceIds", alternate = {"PreferenceIds", "preference_ids", "preferenceIdList"})
     private List<String> preferenceIds;
 
     public UserPreferencesRequest(List<String> preferenceIds) {
