@@ -164,7 +164,7 @@ public class HomepageActivity extends AppCompatActivity {
                     startActivity(new Intent(this, TripManageActivity.class)));
         }
         if (btnWeather != null) {
-            btnWeather.setOnClickListener(v -> Toast.makeText(this, "Xem thời tiết", Toast.LENGTH_SHORT).show());
+            btnWeather.setOnClickListener(v -> new WeatherBottomSheet().show(getSupportFragmentManager(), "WeatherBottomSheet"));
         }
         if (btnExplore != null) {
             btnExplore.setOnClickListener(v ->
