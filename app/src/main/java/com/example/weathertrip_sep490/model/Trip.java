@@ -7,6 +7,8 @@ public class Trip {
 
     private final String id;
     private final String tripTitle;
+    private final String startPoint;
+    private final String destination;
     private final String city;
     private final String dateRange;
     @Nullable
@@ -22,9 +24,23 @@ public class Trip {
             @Nullable String costDisplay,
             TripStatus status,
             int imageResId) {
+        this(id, tripTitle, "", city, dateRange, costDisplay, status, imageResId);
+    }
+
+    public Trip(
+            String id,
+            @NonNull String tripTitle,
+            String startPoint,
+            String destination,
+            String dateRange,
+            @Nullable String costDisplay,
+            TripStatus status,
+            int imageResId) {
         this.id = id;
         this.tripTitle = tripTitle;
-        this.city = city;
+        this.startPoint = startPoint;
+        this.destination = destination;
+        this.city = destination;
         this.dateRange = dateRange;
         this.costDisplay = costDisplay;
         this.status = status;
@@ -41,6 +57,14 @@ public class Trip {
 
     public String getCity() {
         return city;
+    }
+
+    public String getStartPoint() {
+        return startPoint;
+    }
+
+    public String getDestination() {
+        return destination;
     }
 
     public String getDateRange() {

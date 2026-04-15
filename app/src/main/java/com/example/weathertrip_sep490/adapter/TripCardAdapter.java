@@ -101,15 +101,20 @@ public class TripCardAdapter extends RecyclerView.Adapter<TripCardAdapter.Holder
             tvCity.setText(trip.getTripTitle());
 
             ParsedDates parsed = parseDates(trip.getDateRange());
-            tvStartDate.setText("Lịch đi: " + parsed.startDate);
+            tvStartDate.setText(parsed.startDate + " - " + parsed.endDate);
 
             tvType.setText("Loại: " + parsed.tripTypeLabel);
 
-            String cost = trip.getCostDisplay();
-            if (cost == null || cost.trim().isEmpty()) {
+            String from = trip.getStartPoint() != null ? trip.getStartPoint().trim() : "";
+            String to = trip.getDestination() != null ? trip.getDestination().trim() : "";
+            if (from.isEmpty() && to.isEmpty()) {
                 tvCost.setText("—");
+            } else if (from.isEmpty()) {
+                tvCost.setText("Đến: " + to);
+            } else if (to.isEmpty()) {
+                tvCost.setText("Đi: " + from);
             } else {
-                tvCost.setText(cost);
+                tvCost.setText(from + " → " + to);
             }
             tvCost.setVisibility(View.VISIBLE);
 
