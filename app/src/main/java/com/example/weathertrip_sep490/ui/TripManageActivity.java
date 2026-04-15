@@ -1,6 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,11 +24,17 @@ import com.example.weathertrip_sep490.adapter.TripCardAdapter;
 import com.example.weathertrip_sep490.model.Trip;
 import com.example.weathertrip_sep490.model.TripStatus;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener {
+public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener, AddSegmentBottomSheet.Listener {
+
+    private static final String PREFS_NAME = "TravelGoPrefs";
+    private static final String KEY_MANAGED_TRIPS = "managed_trips_json";
 
     private final List<Trip> allTrips = new ArrayList<>();
     private EditText etSearch;
@@ -40,6 +47,14 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
 
     private String searchQuery = "";
     private int filterTabIndex;
+
+    private String pendingTripTitle;
+    private String pendingTripId;
+    private String pendingStartPoint;
+    private String pendingDestination;
+    private boolean pendingRoundTrip;
+    private String pendingStartDateDisplay;
+    private String pendingEndDateDisplay;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,7 +69,7 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         tabActive = findViewById(R.id.tabTripActive);
         tabDone = findViewById(R.id.tabTripDone);
 
-        seedSampleTrips();
+        loadTripsFromLocal();
 
         rvTrips.setLayoutManager(new LinearLayoutManager(this));
         tripAdapter = new TripCardAdapter(new TripCardAdapter.TripCardListener() {
@@ -146,14 +161,53 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         }
     }
 
-    private void seedSampleTrips() {
-        int ph = R.drawable.sampleplace;
-        allTrips.add(new Trip("1", "Đà Lạt", "Đà Lạt", "31/3/2026 - 5/4/2026", "10.000.000 đ", TripStatus.UPCOMING, ph));
-        allTrips.add(new Trip("2", "Hội An", "Hội An", "15/3/2026 - 22/3/2026", null, TripStatus.ONGOING, ph));
-        allTrips.add(new Trip("3", "Sapa", "Sapa", "1/3/2026 - 8/3/2026", "8.500.000 đ", TripStatus.ONGOING, ph));
-        allTrips.add(new Trip("4", "Nha Trang", "Nha Trang", "10/3/2026 - 14/3/2026", null, TripStatus.ONGOING, ph));
-        allTrips.add(new Trip("5", "Phú Quốc", "Phú Quốc", "1/2/2026 - 7/2/2026", "15.000.000 đ", TripStatus.COMPLETED, ph));
-        allTrips.add(new Trip("6", "Huế", "Huế", "20/1/2026 - 25/1/2026", null, TripStatus.COMPLETED, ph));
+    private void loadTripsFromLocal() {
+        allTrips.clear();
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String json = prefs.getString(KEY_MANAGED_TRIPS, null);
+        if (json == null || json.trim().isEmpty()) return;
+        try {
+            JSONArray arr = new JSONArray(json);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject o = arr.getJSONObject(i);
+                String id = o.optString("id", String.valueOf(System.currentTimeMillis() + i));
+                String title = o.optString("title", "");
+                String city = o.optString("city", "");
+                String startPoint = o.optString("startPoint", "");
+                String destination = o.optString("destination", city);
+                String range = o.optString("range", "");
+                String cost = o.optString("cost", null);
+                String statusRaw = o.optString("status", TripStatus.UPCOMING.name());
+                TripStatus status;
+                try {
+                    status = TripStatus.valueOf(statusRaw);
+                } catch (Exception ignored) {
+                    status = TripStatus.UPCOMING;
+                }
+                allTrips.add(new Trip(id, title, startPoint, destination, range, cost, status, R.drawable.sampleplace));
+            }
+        } catch (Exception ignored) { }
+    }
+
+    private void persistTripsToLocal() {
+        JSONArray arr = new JSONArray();
+        for (Trip t : allTrips) {
+            try {
+                JSONObject o = new JSONObject();
+                o.put("id", t.getId());
+                o.put("title", t.getTripTitle());
+                o.put("city", t.getCity());
+                o.put("startPoint", t.getStartPoint());
+                o.put("destination", t.getDestination());
+                o.put("range", t.getDateRange());
+                o.put("cost", t.getCostDisplay());
+                o.put("status", t.getStatus().name());
+                arr.put(o);
+            } catch (Exception ignored) { }
+        }
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                .putString(KEY_MANAGED_TRIPS, arr.toString())
+                .apply();
     }
 
     private List<String> buildChipLabels() {
@@ -240,33 +294,64 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
     }
 
     @Override
-    public void onCreateTripWithAi(
+    public void onTripCreated(
+            @NonNull String tripId,
             @NonNull String tripTitle,
             @NonNull String startPoint,
             @NonNull String destination,
             boolean roundTrip,
             @NonNull String startDateDisplay,
-            @NonNull String endDateDisplay
+            @NonNull String endDateDisplay,
+            @NonNull String startDateIso,
+            @NonNull String endDateIso
     ) {
+        pendingTripTitle = tripTitle;
+        pendingTripId = tripId;
+        pendingStartPoint = startPoint;
+        pendingDestination = destination;
+        pendingRoundTrip = roundTrip;
+        pendingStartDateDisplay = startDateDisplay;
+        pendingEndDateDisplay = endDateDisplay;
+
+        AddSegmentBottomSheet.newInstance(
+                tripId,
+                tripTitle,
+                startDateIso,
+                endDateIso
+        ).show(getSupportFragmentManager(), "AddSegmentBottomSheet");
+    }
+
+    @Override
+    public void onSegmentAddedAndReadyForAi() {
+        String tripTitle = pendingTripTitle != null ? pendingTripTitle : "Trip mới";
+        String tripId = pendingTripId != null ? pendingTripId : String.valueOf(System.currentTimeMillis());
+        String startPoint = pendingStartPoint != null ? pendingStartPoint : "";
+        String destination = pendingDestination != null ? pendingDestination : "";
+        boolean roundTrip = pendingRoundTrip;
+        String startDateDisplay = pendingStartDateDisplay != null ? pendingStartDateDisplay : "";
+        String endDateDisplay = pendingEndDateDisplay != null ? pendingEndDateDisplay : "";
+
         String range = roundTrip
                 ? (startDateDisplay + " - " + endDateDisplay)
                 : (startDateDisplay + " · 1 chiều");
         int ph = R.drawable.sampleplace;
         allTrips.add(0, new Trip(
-                String.valueOf(System.currentTimeMillis()),
+                tripId,
                 tripTitle,
+                startPoint,
                 destination,
                 range,
                 null,
                 TripStatus.UPCOMING,
                 ph
         ));
+        persistTripsToLocal();
         refreshStatusTabLabels();
         applyTabVisualState();
         applyFiltersAndRefresh();
         Toast.makeText(
                 this,
-                "Đã tạo chuyến với AI (demo): " + tripTitle + (roundTrip ? "" : " (1 chiều)"),
+                "Đã tạo trip + segment. AI đang tạo itinerary: " + tripTitle,
                 Toast.LENGTH_SHORT
         ).show();
     }

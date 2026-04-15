@@ -42,13 +42,16 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
     public static final int TRIP_TYPE_ROUND_TRIP = 1;
 
     public interface Listener {
-        void onCreateTripWithAi(
+        void onTripCreated(
+                @NonNull String tripId,
                 @NonNull String tripTitle,
                 @NonNull String startPoint,
                 @NonNull String destination,
                 boolean roundTrip,
                 @NonNull String startDateDisplay,
-                @NonNull String endDateDisplay
+                @NonNull String endDateDisplay,
+                @NonNull String startDateIso,
+                @NonNull String endDateIso
         );
     }
 
@@ -243,10 +246,25 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
                 }
                 // Response body có thể null (ví dụ: 204/empty body)
                 TripResponse resp = response.body();
+                String createdTripId = resp != null ? resp.getTripId() : null;
+                if (createdTripId == null || createdTripId.trim().isEmpty()) {
+                    Toast.makeText(requireContext(), "Create trip thành công nhưng thiếu tripId", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 Toast.makeText(requireContext(), "Đã tạo chuyến đi", Toast.LENGTH_SHORT).show();
 
                 if (listener != null) {
-                    listener.onCreateTripWithAi(tripTitle, startPoint, destination, roundTrip, startStr, endStr);
+                    listener.onTripCreated(
+                            createdTripId.trim(),
+                            tripTitle,
+                            startPoint,
+                            destination,
+                            roundTrip,
+                            startStr,
+                            endStr,
+                            startIso,
+                            endIso
+                    );
                 }
                 dismiss();
             }
