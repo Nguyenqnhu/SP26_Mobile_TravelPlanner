@@ -40,7 +40,14 @@ import retrofit2.Response;
 public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
 
     public interface Listener {
-        void onSegmentAddedAndReadyForAi();
+        void onSegmentAddedAndReadyForAi(
+                @NonNull String tripId,
+                @NonNull String locationName,
+                @NonNull String startDate,
+                @NonNull String endDate,
+                double latitude,
+                double longitude
+        );
     }
 
     private static final String ARG_TRIP_ID = "arg_trip_id";
@@ -217,7 +224,16 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
                 isSubmitting = false;
                 if (response.isSuccessful()) {
                     Toast.makeText(requireContext(), "Đã add segment. AI đang tạo itinerary...", Toast.LENGTH_SHORT).show();
-                    if (listener != null) listener.onSegmentAddedAndReadyForAi();
+                    if (listener != null) {
+                        listener.onSegmentAddedAndReadyForAi(
+                                tripId,
+                                selected.getLocationName() != null ? selected.getLocationName() : "",
+                                start,
+                                end,
+                                selected.getLatitude(),
+                                selected.getLongitude()
+                        );
+                    }
                     dismiss();
                     return;
                 }
@@ -235,7 +251,16 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
                             "Segment đã được lưu (BE lỗi mapping response). Tiếp tục tạo itinerary...",
                             Toast.LENGTH_LONG
                     ).show();
-                    if (listener != null) listener.onSegmentAddedAndReadyForAi();
+                    if (listener != null) {
+                        listener.onSegmentAddedAndReadyForAi(
+                                tripId,
+                                selected.getLocationName() != null ? selected.getLocationName() : "",
+                                start,
+                                end,
+                                selected.getLatitude(),
+                                selected.getLongitude()
+                        );
+                    }
                     dismiss();
                     return;
                 }
