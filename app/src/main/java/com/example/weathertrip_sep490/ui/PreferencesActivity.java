@@ -21,7 +21,6 @@ import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.model.Preference;
-import com.example.weathertrip_sep490.model.UserPreferencesRequest;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -194,7 +193,7 @@ public class PreferencesActivity extends AppCompatActivity {
                 : "Bearer " + accessToken.trim();
         Call<Void> call = api.updateUserPreferences(
                 authHeader,
-                new UserPreferencesRequest(new ArrayList<>(selectedIds))
+                new ArrayList<>(selectedIds)
         );
 
         call.enqueue(new Callback<Void>() {

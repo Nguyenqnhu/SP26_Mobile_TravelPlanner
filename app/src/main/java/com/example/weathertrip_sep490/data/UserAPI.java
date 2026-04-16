@@ -31,7 +31,7 @@ public interface UserAPI {
 
     @POST("api/user/update-preference")
     Call<Void> updateUserPreferences(@Header("Authorization") String authorization,
-                                     @Body UserPreferencesRequest body);
+                                     @Body java.util.List<String> preferenceIds);
 
     // Get user by Id
     @GET("api/user/{id}")
