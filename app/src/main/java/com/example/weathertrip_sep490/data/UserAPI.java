@@ -4,6 +4,7 @@ import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.Preference;
 import com.example.weathertrip_sep490.model.AddSegmentRequest;
 import com.example.weathertrip_sep490.model.LocationOption;
+import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.TripCreateRequest;
 import com.example.weathertrip_sep490.model.TripResponse;
 import com.example.weathertrip_sep490.model.User;
@@ -67,5 +68,8 @@ public interface UserAPI {
             @Query("insertAt") int insertAt,
             @Body List<AddSegmentRequest> body
     );
+
+    @POST("api/planner/{tripId}/generate")
+    Call<PlannerGenerateResponse> generatePlanner(@Path("tripId") String tripId);
 
 }

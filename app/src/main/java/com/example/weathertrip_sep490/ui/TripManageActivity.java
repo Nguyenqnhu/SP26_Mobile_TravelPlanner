@@ -21,6 +21,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.adapter.TripCardAdapter;
+import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.data.UserAPI;
+import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.Trip;
 import com.example.weathertrip_sep490.model.TripStatus;
 
@@ -30,6 +33,10 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener, AddSegmentBottomSheet.Listener {
 
@@ -83,6 +90,9 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 Intent intent = new Intent(TripManageActivity.this, TripDetailActivity.class);
                 intent.putExtra(TripDetailActivity.EXTRA_CITY, trip.getCity());
                 intent.putExtra(TripDetailActivity.EXTRA_DATES, trip.getDateRange());
+                intent.putExtra(TripDetailActivity.EXTRA_START_POINT, trip.getStartPoint());
+                intent.putExtra(TripDetailActivity.EXTRA_DESTINATION, trip.getDestination());
+                intent.putExtra(TripDetailActivity.EXTRA_ROUTE, buildRouteLabel(trip.getStartPoint(), trip.getDestination()));
                 startActivity(intent);
             }
 
@@ -293,6 +303,13 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         });
     }
 
+    @NonNull
+    private static String buildRouteLabel(@Nullable String startPoint, @Nullable String destination) {
+        String start = startPoint != null && !startPoint.trim().isEmpty() ? startPoint.trim() : "Hồ Chí Minh";
+        String end = destination != null && !destination.trim().isEmpty() ? destination.trim() : "Đà Nẵng";
+        return start + " → " + end;
+    }
+
     @Override
     public void onTripCreated(
             @NonNull String tripId,
@@ -322,9 +339,16 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
     }
 
     @Override
-    public void onSegmentAddedAndReadyForAi() {
+    public void onSegmentAddedAndReadyForAi(
+            @NonNull String tripId,
+            @NonNull String locationName,
+            @NonNull String segmentStartDate,
+            @NonNull String segmentEndDate,
+            double latitude,
+            double longitude
+    ) {
         String tripTitle = pendingTripTitle != null ? pendingTripTitle : "Trip mới";
-        String tripId = pendingTripId != null ? pendingTripId : String.valueOf(System.currentTimeMillis());
+        String safeTripId = pendingTripId != null ? pendingTripId : tripId;
         String startPoint = pendingStartPoint != null ? pendingStartPoint : "";
         String destination = pendingDestination != null ? pendingDestination : "";
         boolean roundTrip = pendingRoundTrip;
@@ -336,7 +360,7 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 : (startDateDisplay + " · 1 chiều");
         int ph = R.drawable.sampleplace;
         allTrips.add(0, new Trip(
-                tripId,
+                safeTripId,
                 tripTitle,
                 startPoint,
                 destination,
@@ -349,10 +373,38 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         refreshStatusTabLabels();
         applyTabVisualState();
         applyFiltersAndRefresh();
-        Toast.makeText(
-                this,
-                "Đã tạo trip + segment. AI đang tạo itinerary: " + tripTitle,
-                Toast.LENGTH_SHORT
-        ).show();
+
+        Toast.makeText(this, "Đang tạo lịch trình AI...", Toast.LENGTH_SHORT).show();
+        UserAPI api = RetrofitClient.getInstance().getUserAPI();
+        api.generatePlanner(safeTripId).enqueue(new Callback<PlannerGenerateResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<PlannerGenerateResponse> call, @NonNull Response<PlannerGenerateResponse> response) {
+                if (!response.isSuccessful()) {
+                    Toast.makeText(TripManageActivity.this, "AI generate thất bại (" + response.code() + ")", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Toast.makeText(TripManageActivity.this, "AI đã tạo lịch trình xong", Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(TripManageActivity.this, TripDetailActivity.class);
+                intent.putExtra(TripDetailActivity.EXTRA_CITY, destination);
+                intent.putExtra(TripDetailActivity.EXTRA_DATES, range);
+                intent.putExtra(TripDetailActivity.EXTRA_ROUTE, startPoint + " → " + destination);
+                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_LOCATION, locationName);
+                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_START, segmentStartDate);
+                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_END, segmentEndDate);
+                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_LAT, latitude);
+                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_LNG, longitude);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<PlannerGenerateResponse> call, @NonNull Throwable t) {
+                Toast.makeText(
+                        TripManageActivity.this,
+                        "Lỗi mạng khi gọi AI: " + (t.getMessage() != null ? t.getMessage() : "unknown"),
+                        Toast.LENGTH_LONG
+                ).show();
+            }
+        });
     }
 }
