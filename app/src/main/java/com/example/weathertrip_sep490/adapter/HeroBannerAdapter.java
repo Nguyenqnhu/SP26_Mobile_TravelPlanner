@@ -12,10 +12,22 @@ import com.example.weathertrip_sep490.R;
 
 public class HeroBannerAdapter extends RecyclerView.Adapter<HeroBannerAdapter.VH> {
 
-    private final int[] slideDrawables;
+    public static class Slide {
+        final int imageResId;
+        final String title;
+        final String subtitle;
 
-    public HeroBannerAdapter(int[] slideDrawables) {
-        this.slideDrawables = slideDrawables != null ? slideDrawables : new int[0];
+        public Slide(int imageResId, String title, String subtitle) {
+            this.imageResId = imageResId;
+            this.title = title;
+            this.subtitle = subtitle;
+        }
+    }
+
+    private final Slide[] slides;
+
+    public HeroBannerAdapter(Slide[] slides) {
+        this.slides = slides != null ? slides : new Slide[0];
     }
 
     @NonNull
@@ -28,21 +40,27 @@ public class HeroBannerAdapter extends RecyclerView.Adapter<HeroBannerAdapter.VH
 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
-        int res = slideDrawables[position % slideDrawables.length];
-        holder.image.setImageResource(res);
+        Slide slide = slides[position % slides.length];
+        holder.image.setImageResource(slide.imageResId);
+        holder.title.setText(slide.title);
+        holder.subtitle.setText(slide.subtitle);
     }
 
     @Override
     public int getItemCount() {
-        return slideDrawables.length;
+        return slides.length;
     }
 
     static class VH extends RecyclerView.ViewHolder {
         final ImageView image;
+        final android.widget.TextView title;
+        final android.widget.TextView subtitle;
 
         VH(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.ivHeroSlide);
+            title = itemView.findViewById(R.id.tvHeroTitle);
+            subtitle = itemView.findViewById(R.id.tvHeroSubtitle);
         }
     }
 }

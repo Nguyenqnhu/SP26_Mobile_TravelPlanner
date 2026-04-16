@@ -18,7 +18,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -61,15 +60,14 @@
                         android:background="@drawable/bg_dot_orange" />
                 </FrameLayout>
             </LinearLayout>
-            <!-- Search + quick actions -->
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="20dp"
                 android:text="Bạn muốn đi đâu hôm nay?"
-                android:textColor="#111827"
+                android:textColor="#064E3B"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -134,8 +132,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
                         android:text="Tạo trip"
                         android:textColor="@color/slate_800"
                         android:textSize="12sp" />
@@ -168,8 +164,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
                         android:text="Xem thời tiết"
                         android:textColor="@color/slate_800"
                         android:textSize="12sp" />
@@ -202,14 +196,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
                         android:text="Khám phá"
                         android:textColor="@color/slate_800"
                         android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
-            <!-- Hero -->
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -288,7 +280,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Banner carousel -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -309,24 +300,14 @@
                     android:layout_marginBottom="16dp"
                     android:orientation="horizontal">
 
-                    <View
-                        android:id="@+id/dotHero0"
-                        android:layout_width="8dp"
-                        android:layout_height="8dp"
-                        android:layout_marginEnd="6dp"
-                        android:background="@drawable/bg_carousel_dot_selected" />
-
-                    <View
-                        android:id="@+id/dotHero1"
-                        android:layout_width="8dp"
-                        android:layout_height="8dp"
-                        android:background="@drawable/bg_carousel_dot_unselected" />
+                    <View android:id="@+id/dotHero0" android:layout_width="8dp" android:layout_height="8dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_carousel_dot_selected" />
+                    <View android:id="@+id/dotHero1" android:layout_width="8dp" android:layout_height="8dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_carousel_dot_unselected" />
+                    <View android:id="@+id/dotHero2" android:layout_width="8dp" android:layout_height="8dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_carousel_dot_unselected" />
+                    <View android:id="@+id/dotHero3" android:layout_width="8dp" android:layout_height="8dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_carousel_dot_unselected" />
+                    <View android:id="@+id/dotHero4" android:layout_width="8dp" android:layout_height="8dp" android:background="@drawable/bg_carousel_dot_unselected" />
                 </LinearLayout>
             </FrameLayout>
 
-
-
-            <!-- Về chúng tôi -->
             <LinearLayout
                 android:id="@+id/sectionAbout"
                 android:layout_width="match_parent"
@@ -336,12 +317,10 @@
                 android:paddingTop="8dp"
                 android:paddingBottom="20dp">
 
-
-
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:text="Chào mừng đến TravelGo"
                     android:textColor="@color/text_title"
                     android:textSize="22sp"
@@ -430,276 +409,203 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
+                        android:gravity="center_horizontal"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="50+"
-                            android:textColor="@color/text_title"
-                            android:textSize="18sp"
+                            android:text="20+"
+                            android:textColor="@color/green_primary"
+                            android:textSize="24sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
+                            android:layout_marginTop="4dp"
                             android:text="Đối tác"
-                            android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textColor="#6B7280"
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
+                        android:gravity="center_horizontal"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="1K+"
-                            android:textColor="@color/text_title"
-                            android:textSize="18sp"
+                            android:text="300+"
+                            android:textColor="@color/green_primary"
+                            android:textSize="24sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
+                            android:layout_marginTop="4dp"
                             android:text="Lộ trình"
-                            android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textColor="#6B7280"
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
+                        android:gravity="center_horizontal"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="10K+"
-                            android:textColor="@color/text_title"
-                            android:textSize="18sp"
+                            android:text="100+"
+                            android:textColor="@color/green_primary"
+                            android:textSize="24sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
+                            android:layout_marginTop="4dp"
                             android:text="Người dùng"
-                            android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textColor="#6B7280"
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
+                        android:gravity="center_horizontal"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="24/7"
-                            android:textColor="@color/text_title"
-                            android:textSize="18sp"
+                            android:textColor="@color/green_primary"
+                            android:textSize="24sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
+                            android:layout_marginTop="4dp"
                             android:text="Hỗ trợ"
-                            android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textColor="#6B7280"
+                            android:textSize="13sp" />
                     </LinearLayout>
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="2dp"
-                        app:strokeWidth="0dp">
-
-                        <ImageView
-                            android:layout_width="match_parent"
-                            android:layout_height="200dp"
-                            android:contentDescription="@null"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/sampleplace" />
-                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Quảng cáo / đối tác -->
+            <TextView
+                android:id="@+id/tvFeaturedEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvPopularSeeAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Xem tất cả"
+                android:visibility="gone" />
+
             <LinearLayout
-                android:id="@+id/sectionPromo"
+                android:id="@+id/sectionFeaturedDestinations"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingBottom="8dp">
+                android:paddingHorizontal="20dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="12dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="20dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Ưu đãi &amp; quảng cáo"
+                        android:text="Địa điểm nổi bật"
                         android:textColor="@color/text_title"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/tvPartnerSeeAll"
+                        android:id="@+id/tvPopularSeeAllVisible"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Xem tất cả"
-                        android:textColor="@color/emerald_700"
-                        android:textSize="12sp"
+                        android:textColor="@color/emerald_600"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvPopularDestinations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/sectionPartners"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Đối tác"
+                        android:textColor="@color/text_title"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvPartnerSeeAllVisible"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Xem tất cả"
+                        android:textColor="@color/emerald_600"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvPartners"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:nestedScrollingEnabled="false"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp" />
+                    android:layout_marginTop="10dp"
+                    android:nestedScrollingEnabled="false" />
             </LinearLayout>
 
-            <!-- Địa điểm nổi bật -->
-            <LinearLayout
-                android:id="@+id/sectionFeaturedDestinations"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="8dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:paddingHorizontal="24dp"
-                    android:text="Địa điểm nổi bật"
-                    android:textColor="@color/text_title"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center"
-                    android:paddingHorizontal="24dp"
-                    android:text="Gợi ý dành riêng cho bạn dựa trên sở thích và xu hướng."
-                    android:textColor="@color/slate_500"
-                    android:textSize="13sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical|end"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="20dp"
-                    android:paddingTop="8dp">
-
-                    <TextView
-                        android:id="@+id/tvPopularSeeAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Xem tất cả"
-                        android:textColor="@color/emerald_700"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvFeaturedEmpty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:paddingHorizontal="32dp"
-                    android:paddingTop="24dp"
-                    android:paddingBottom="8dp"
-                    android:text="Chưa có địa điểm gợi ý. Vui lòng thử lại sau."
-                    android:textColor="@color/slate_500"
-                    android:textSize="13sp"
-                    android:visibility="gone" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvPopularDestinations"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:nestedScrollingEnabled="false"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp" />
-            </LinearLayout>
-
-            <!-- Đã xem gần đây -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="20dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="8dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Đã xem gần đây"
-                    android:textColor="@color/text_title"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvRecentSeeAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
-                    android:textColor="@color/emerald_700"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvRecentlyViewed"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipToPadding="false"
-                android:nestedScrollingEnabled="false"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp" />
-
-            <!-- Tại sao chọn chúng tôi -->
             <LinearLayout
                 android:id="@+id/sectionWhyUs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="24dp"
                 android:orientation="vertical"
-                android:paddingHorizontal="20dp">
+                android:paddingHorizontal="20dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="24dp">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -707,7 +613,7 @@
                     android:gravity="center"
                     android:text="Tại sao chọn chúng tôi"
                     android:textColor="@color/text_title"
-                    android:textSize="18sp"
+                    android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -715,7 +621,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:gravity="center"
-                    android:paddingHorizontal="8dp"
                     android:text="Những lợi ích giúp bạn lên kế hoạch gọn mà vẫn trọn vẹn."
                     android:textColor="@color/slate_500"
                     android:textSize="13sp" />
@@ -723,81 +628,80 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="16dp"
                     android:orientation="horizontal">
 
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="6dp"
+                        android:layout_height="180dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_outline_rounded"
-                        android:gravity="center_horizontal"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_card_white"
+                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="14dp">
 
                         <ImageView
                             android:layout_width="28dp"
                             android:layout_height="28dp"
                             android:src="@drawable/ic_trip"
-                            app:tint="@color/emerald_600" />
+                            app:tint="@color/green_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"
+                            android:layout_marginTop="12dp"
                             android:text="AI thông minh"
-                            android:textColor="@color/slate_800"
-                            android:textSize="13sp"
+                            android:textColor="@color/text_title"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:lineSpacingMultiplier="1.15"
-                            android:text="Gợi ý lịch trình bằng tiếng Việt, tối ưu theo gu và ngân sách."
+                            android:lineSpacingMultiplier="1.2"
+                            android:text="Gợi ý lịch trình bằng tiếng Việt, tối ưu theo gu và ngân sách — bạn chỉ cần nói điều mình muốn."
                             android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
+                        android:layout_height="180dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_outline_rounded"
-                        android:gravity="center_horizontal"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_card_white"
+                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="14dp">
 
                         <ImageView
                             android:layout_width="28dp"
                             android:layout_height="28dp"
-                            android:src="@drawable/ic_explore"
-                            app:tint="@color/emerald_600" />
+                            android:src="@drawable/ic_pin"
+                            app:tint="@color/green_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"
+                            android:layout_marginTop="12dp"
                             android:text="Bản đồ trực quan"
-                            android:textColor="@color/slate_800"
-                            android:textSize="13sp"
+                            android:textColor="@color/text_title"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:lineSpacingMultiplier="1.15"
-                            android:text="Nhìn một cái là thấy cả hành trình, dễ chỉnh tay trên bản đồ."
+                            android:lineSpacingMultiplier="1.2"
+                            android:text="Nhìn một cái là thấy cả hành trình: từ chỗ cần đến đến nơi nên dừng chân."
                             android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -809,78 +713,130 @@
 
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="6dp"
+                        android:layout_height="180dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_outline_rounded"
-                        android:gravity="center_horizontal"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_card_white"
+                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="14dp">
 
                         <ImageView
                             android:layout_width="28dp"
                             android:layout_height="28dp"
-                            android:src="@android:drawable/ic_menu_share"
-                            app:tint="@color/emerald_600" />
+                            android:src="@drawable/ic_share"
+                            app:tint="@color/green_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"
+                            android:layout_marginTop="12dp"
                             android:text="Chia sẻ dễ dàng"
-                            android:textColor="@color/slate_800"
-                            android:textSize="13sp"
+                            android:textColor="@color/text_title"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:lineSpacingMultiplier="1.15"
-                            android:text="Gửi link hoặc ảnh đẹp cho cả nhà cùng xem chuyến đi."
+                            android:lineSpacingMultiplier="1.2"
+                            android:text="Gửi link hoặc ảnh đẹp cho anh chị em, cả nhà cùng xem chuyến đi."
                             android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
+                        android:layout_height="180dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_outline_rounded"
-                        android:gravity="center_horizontal"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_card_white"
+                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="14dp">
 
                         <ImageView
                             android:layout_width="28dp"
                             android:layout_height="28dp"
-                            android:src="@drawable/ic_cloud"
-                            app:tint="@color/emerald_600" />
+                            android:src="@drawable/ic_sun"
+                            app:tint="@color/green_primary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:gravity="center"
+                            android:layout_marginTop="12dp"
                             android:text="Thời tiết &amp; mùa đẹp"
-                            android:textColor="@color/slate_800"
-                            android:textSize="13sp"
+                            android:textColor="@color/text_title"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="8dp"
                             android:gravity="center"
-                            android:lineSpacingMultiplier="1.15"
-                            android:text="Gợi ý theo mùa mưa nắng để khỏi bất ngờ."
+                            android:lineSpacingMultiplier="1.2"
+                            android:text="Gợi ý theo mùa mưa nắng để khỏi định nhầm thời điểm khởi hành."
                             android:textColor="@color/slate_500"
-                            android:textSize="11sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvFeaturedEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvPopularSeeAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Xem tất cả"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/sectionRecentViewed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Đã xem gần đây"
+                        android:textColor="@color/text_title"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvRecentSeeAllVisible"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Xem tất cả"
+                        android:textColor="@color/emerald_600"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecentlyViewed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:nestedScrollingEnabled="false" />
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

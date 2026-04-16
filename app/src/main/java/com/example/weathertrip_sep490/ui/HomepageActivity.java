@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewParent;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -40,10 +42,15 @@ import retrofit2.Response;
 
 public class HomepageActivity extends AppCompatActivity {
 
+    private static final long HERO_AUTO_SLIDE_MS = 5000L;
+
     private TextView tvUserNameHome;
     private EditText etSearchHome;
     private TextView tvFeaturedEmpty;
     private NestedScrollView nestedHomeScroll;
+    private ViewPager2 vpHeroBanner;
+    private final Handler heroHandler = new Handler(Looper.getMainLooper());
+    private Runnable heroAutoSlideTask;
     private PoiGridAdapter popularAdapter;
     private PoiRecentAdapter recentAdapter;
     private final List<POI> popularAll = new ArrayList<>();
@@ -62,6 +69,7 @@ public class HomepageActivity extends AppCompatActivity {
         loadUserNameFromApi();
         setupHeaderAvatar();
         setupHeroBanner();
+        setupHeroAutoSlide();
         setupHeroAndSectionScroll();
         setupSeeAllLinks();
         setupActionButtons();
@@ -76,36 +84,71 @@ public class HomepageActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshRecentFromLocal();
+        if (heroAutoSlideTask != null) {
+            heroHandler.removeCallbacks(heroAutoSlideTask);
+            heroHandler.postDelayed(heroAutoSlideTask, HERO_AUTO_SLIDE_MS);
+        }
     }
 
     private void setupHeroBanner() {
-        ViewPager2 vp = findViewById(R.id.vpHeroBanner);
-        if (vp == null) return;
+        vpHeroBanner = findViewById(R.id.vpHeroBanner);
+        if (vpHeroBanner == null) return;
 
         View dot0 = findViewById(R.id.dotHero0);
         View dot1 = findViewById(R.id.dotHero1);
-        int[] slides = new int[]{R.drawable.sampleplace3, R.drawable.sampleplace};
-        vp.setAdapter(new HeroBannerAdapter(slides));
+        View dot2 = findViewById(R.id.dotHero2);
+        View dot3 = findViewById(R.id.dotHero3);
+        View dot4 = findViewById(R.id.dotHero4);
+
+        HeroBannerAdapter.Slide[] slides = new HeroBannerAdapter.Slide[]{
+                new HeroBannerAdapter.Slide(R.drawable.hagiang, "Hà Giang mùa đẹp nhất", "Những cung đường đá và ruộng bậc thang xanh mướt."),
+                new HeroBannerAdapter.Slide(R.drawable.hagiang2, "Màu xanh của núi rừng", "Trải nghiệm bình yên giữa cao nguyên đá."),
+                new HeroBannerAdapter.Slide(R.drawable.travel1, "Hành trình Việt Nam", "Lên kế hoạch chuyến đi thật dễ dàng và trực quan."),
+                new HeroBannerAdapter.Slide(R.drawable.sondoong, "Khám phá Sơn Đoòng", "Một trong những kỳ quan thiên nhiên ấn tượng nhất."),
+                new HeroBannerAdapter.Slide(R.drawable.sampleplace3, "Đi và cảm nhận", "Mỗi chuyến đi là một kỷ niệm đáng nhớ.")
+        };
+        vpHeroBanner.setAdapter(new HeroBannerAdapter(slides));
+        vpHeroBanner.setOffscreenPageLimit(2);
 
         ViewPager2.OnPageChangeCallback cb = new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                if (dot0 != null) {
-                    dot0.setBackgroundResource(
-                            position == 0
-                                    ? R.drawable.bg_carousel_dot_selected
-                                    : R.drawable.bg_carousel_dot_unselected);
-                }
-                if (dot1 != null) {
-                    dot1.setBackgroundResource(
-                            position == 1
-                                    ? R.drawable.bg_carousel_dot_selected
-                                    : R.drawable.bg_carousel_dot_unselected);
+                View[] dots = new View[]{dot0, dot1, dot2, dot3, dot4};
+                for (int i = 0; i < dots.length; i++) {
+                    View dot = dots[i];
+                    if (dot != null) {
+                        dot.setBackgroundResource(
+                                i == position
+                                        ? R.drawable.bg_carousel_dot_selected
+                                        : R.drawable.bg_carousel_dot_unselected);
+                    }
                 }
             }
         };
-        vp.registerOnPageChangeCallback(cb);
+        vpHeroBanner.registerOnPageChangeCallback(cb);
         cb.onPageSelected(0);
+    }
+
+    private void setupHeroAutoSlide() {
+        if (vpHeroBanner == null || vpHeroBanner.getAdapter() == null) return;
+        heroAutoSlideTask = new Runnable() {
+            @Override
+            public void run() {
+                if (vpHeroBanner.getAdapter() == null || vpHeroBanner.getAdapter().getItemCount() == 0) return;
+                int next = (vpHeroBanner.getCurrentItem() + 1) % vpHeroBanner.getAdapter().getItemCount();
+                vpHeroBanner.setCurrentItem(next, true);
+                heroHandler.postDelayed(this, HERO_AUTO_SLIDE_MS);
+            }
+        };
+        heroHandler.postDelayed(heroAutoSlideTask, HERO_AUTO_SLIDE_MS);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (heroAutoSlideTask != null) {
+            heroHandler.removeCallbacks(heroAutoSlideTask);
+        }
     }
 
     private void setupHeroAndSectionScroll() {
@@ -124,7 +167,7 @@ public class HomepageActivity extends AppCompatActivity {
         }
         View btnAboutLearnMore = findViewById(R.id.btnAboutLearnMore);
         if (btnAboutLearnMore != null) {
-            btnAboutLearnMore.setOnClickListener(v -> scrollToSection(R.id.sectionWhyUs));
+            btnAboutLearnMore.setOnClickListener(v -> scrollToSection(R.id.sectionAbout));
         }
     }
 
@@ -146,11 +189,14 @@ public class HomepageActivity extends AppCompatActivity {
     private void setupSeeAllLinks() {
         View.OnClickListener openExplore = v ->
                 startActivity(new Intent(this, ExploreActivity.class));
-        TextView tvPopular = findViewById(R.id.tvPopularSeeAll);
+
+        TextView tvPopular = findViewById(R.id.tvPopularSeeAllVisible);
         if (tvPopular != null) tvPopular.setOnClickListener(openExplore);
-        TextView tvRecent = findViewById(R.id.tvRecentSeeAll);
+
+        TextView tvRecent = findViewById(R.id.tvRecentSeeAllVisible);
         if (tvRecent != null) tvRecent.setOnClickListener(openExplore);
-        TextView tvPartner = findViewById(R.id.tvPartnerSeeAll);
+
+        TextView tvPartner = findViewById(R.id.tvPartnerSeeAllVisible);
         if (tvPartner != null) tvPartner.setOnClickListener(openExplore);
     }
 
