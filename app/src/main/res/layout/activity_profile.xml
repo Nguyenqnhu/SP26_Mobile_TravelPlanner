@@ -144,15 +144,11 @@
                         layout="@layout/setting_item" />
                     <View style="@style/Divider" />
                     <include
-                        android:id="@+id/itemLanguage"
-                        layout="@layout/setting_item" />
-                    <View style="@style/Divider" />
-                    <include
-                        android:id="@+id/itemSecurity"
-                        layout="@layout/setting_item" />
-                    <View style="@style/Divider" />
-                    <include
                         android:id="@+id/itemChangePassword"
+                        layout="@layout/setting_item" />
+                    <View style="@style/Divider" />
+                    <include
+                        android:id="@+id/itemUpdatePreference"
                         layout="@layout/setting_item" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -221,12 +217,18 @@
                             android:thumbTint="@color/green_primary"
                             android:trackTint="@color/green_soft" />
                     </RelativeLayout>
+
+                    <View style="@style/Divider" />
+
+                    <include
+                        android:id="@+id/itemLanguage"
+                        layout="@layout/setting_item" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 style="@style/SectionHeader"
-                android:text="CÀI ĐẶT" />
+                android:text="KHÁC" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -245,19 +247,11 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <include android:id="@+id/itemPersonalData" layout="@layout/setting_item" />
+                    <include
+                        android:id="@+id/itemHelp"
+                        layout="@layout/setting_item" />
                     <View style="@style/Divider" />
-                    <include android:id="@+id/itemSettings" layout="@layout/setting_item" />
-                    <View style="@style/Divider" />
-                    <include android:id="@+id/itemEStatement" layout="@layout/setting_item" />
-                    <View style="@style/Divider" />
-                    <include android:id="@+id/itemReferralCode" layout="@layout/setting_item" />
-                    <View style="@style/Divider" />
-                    <include android:id="@+id/itemFaqs" layout="@layout/setting_item" />
-                    <View style="@style/Divider" />
-                    <include android:id="@+id/itemHandbook" layout="@layout/setting_item" />
-                    <View style="@style/Divider" />
-                    <include android:id="@+id/itemCommunity" layout="@layout/setting_item" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
