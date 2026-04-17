@@ -5,8 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+
+import com.example.weathertrip_sep490.util.LanguageManager;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -79,7 +85,13 @@ public class ProfileActivity extends AppCompatActivity {
         ivAvatar = findViewById(R.id.ivAvatar);
         switchNotify = findViewById(R.id.switchNotifications);
         switchDark = findViewById(R.id.switchDarkMode);
-        // Text sẽ được set sau khi gọi API
+
+        setSettingItemText(R.id.itemPersonalInfo, "Thông tin cá nhân", R.drawable.ic_user);
+        setSettingItemText(R.id.itemChangePassword, "Đổi mật khẩu", R.drawable.ic_lock_outline);
+        setSettingItemText(R.id.itemUpdatePreference, "Cập nhật preference", R.drawable.ic_preferences);
+        setSettingItemText(R.id.itemLanguage, "Ngôn ngữ", R.drawable.ic_language);
+        setSettingItemText(R.id.itemHelp, "Trợ giúp", R.drawable.ic_help_outline);
+
     }
 
     private void setupClickListeners() {
@@ -93,10 +105,26 @@ public class ProfileActivity extends AppCompatActivity {
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
-        // Thông tin cá nhân: vào màn chỉnh sửa thông tin
         findViewById(R.id.itemPersonalInfo).setOnClickListener(v -> {
             startActivity(new Intent(this, EditProfileActivity.class));
         });
+
+        findViewById(R.id.itemChangePassword).setOnClickListener(v -> {
+            startActivity(new Intent(this, ResetPasswordActivity.class));
+        });
+
+        findViewById(R.id.itemUpdatePreference).setOnClickListener(v -> {
+            startActivity(new Intent(this, PreferencesActivity.class));
+        });
+
+        findViewById(R.id.itemLanguage).setOnClickListener(v -> {
+            LanguageManager.showLanguageDialog(this, this::recreate);
+        });
+
+        findViewById(R.id.itemHelp).setOnClickListener(v -> {
+            Toast.makeText(this, "Mở Help", Toast.LENGTH_SHORT).show();
+        });
+
 
         //  Switch (DarkMode / Notifications)
         switchNotify.setOnCheckedChangeListener((button, isChecked) -> {
@@ -110,6 +138,19 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Logout
         findViewById(R.id.btnLogout).setOnClickListener(v -> showLogoutDialog());
+    }
+
+    private void setSettingItemText(int viewId, String text, int iconResId) {
+        View root = findViewById(viewId);
+        if (root == null) return;
+        TextView label = root.findViewById(R.id.itemLabel);
+        ImageView icon = root.findViewById(R.id.itemIcon);
+        if (label != null) {
+            label.setText(text);
+        }
+        if (icon != null) {
+            icon.setImageResource(iconResId);
+        }
     }
 
     private void applyTheme(boolean isDark) {
