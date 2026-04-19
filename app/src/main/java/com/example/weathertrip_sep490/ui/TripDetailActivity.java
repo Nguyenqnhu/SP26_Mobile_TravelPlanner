@@ -17,11 +17,17 @@ import androidx.recyclerview.widget.SnapHelper;
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.adapter.ItineraryListAdapter;
 import com.example.weathertrip_sep490.adapter.TripDateRibbonAdapter;
-import com.example.weathertrip_sep490.ui.decoration.ItineraryTimelineLineDecoration;
+import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.ItineraryRow;
 import com.example.weathertrip_sep490.model.ItinerarySegmentRow;
 import com.example.weathertrip_sep490.model.ItineraryStopRow;
+import com.example.weathertrip_sep490.model.PlannerDayResponse;
+import com.example.weathertrip_sep490.model.PlannerItemResponse;
+import com.example.weathertrip_sep490.model.PlannerTripResponse;
+import com.example.weathertrip_sep490.model.TripSegmentResponse;
 import com.example.weathertrip_sep490.model.TripRibbonDay;
+import com.example.weathertrip_sep490.ui.decoration.ItineraryTimelineLineDecoration;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -36,10 +42,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
-public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback, AddSegmentBottomSheet.Listener {
 
     public static final String EXTRA_CITY = "extra_city";
     public static final String EXTRA_DATES = "extra_dates";
@@ -68,12 +80,23 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
     private TextView tvRibbonMonthTitle;
     private TextView tvMapPlaceCount;
+    private String startPointLabel;
+    private String destinationLabel;
 
-    /** true: sau khi AI generate — ribbon theo ngày thật của trip, timeline từ segment */
-    private boolean useGeneratedItineraryMode;
+    /** true: dùng planner thật từ BE */
+    private boolean usePlannerApiMode;
+    private String plannerTripId;
+    private PlannerTripResponse plannerResponse;
     private String generatedLocationName;
     private double generatedLat;
     private double generatedLng;
+    private String pendingDates;
+    private String pendingSegStart;
+    private String pendingSegEnd;
+    private TextView tvStatDays;
+    private TextView tvStatPlaces;
+    private TextView btnGenerateAi;
+    private TextView btnAddSegment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,29 +107,41 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         String dates = getIntent().getStringExtra(EXTRA_DATES);
         String startPoint = getIntent().getStringExtra(EXTRA_START_POINT);
         String destination = getIntent().getStringExtra(EXTRA_DESTINATION);
+        startPointLabel = startPoint;
+        destinationLabel = destination;
         String route = getIntent().getStringExtra(EXTRA_ROUTE);
         String segLocation = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_LOCATION);
         String segStart = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_START);
         String segEnd = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_END);
         double segLat = getIntent().getDoubleExtra(EXTRA_GENERATED_SEGMENT_LAT, 10.8231);
         double segLng = getIntent().getDoubleExtra(EXTRA_GENERATED_SEGMENT_LNG, 106.6297);
+        plannerTripId = getIntent().getStringExtra("planner_trip_id");
+        boolean hasPlannerId = plannerTripId != null && !plannerTripId.trim().isEmpty();
         boolean hasGeneratedData = segLocation != null && !segLocation.trim().isEmpty();
+        pendingDates = dates;
+        pendingSegStart = segStart;
+        pendingSegEnd = segEnd;
 
         ImageView btnBack = findViewById(R.id.btnBackTripDetail);
         TextView tvJourneyTitle = findViewById(R.id.tvTripJourneyTitle);
         TextView tvDates = findViewById(R.id.tvTripDetailDates);
         TextView tvRoute = findViewById(R.id.tvTripRouteBreadcrumb);
-        TextView tvStatDays = findViewById(R.id.tvTripStatDays);
-        TextView tvStatPlaces = findViewById(R.id.tvTripStatPlaces);
+        tvStatDays = findViewById(R.id.tvTripStatDays);
+        tvStatPlaces = findViewById(R.id.tvTripStatPlaces);
         tvRibbonMonthTitle = findViewById(R.id.tvRibbonMonthTitle);
         tvMapPlaceCount = findViewById(R.id.tvMapPlaceCount);
+        btnAddSegment = findViewById(R.id.btnAddSegment);
+        btnGenerateAi = findViewById(R.id.btnTripInvite);
+        if (btnAddSegment != null) btnAddSegment.setOnClickListener(v -> openAddSegment());
+        if (btnGenerateAi != null) btnGenerateAi.setText("Generate AI");
 
         tvJourneyTitle.setText(getString(R.string.trip_journey_at, primaryDestination(city)));
         tvDates.setText(dates != null && !dates.isEmpty() ? dates : "5/4/2026 – 12/4/2026");
         tvRoute.setText(resolveRouteLabel(route, startPoint, destination, city));
         btnBack.setOnClickListener(v -> finish());
-        findViewById(R.id.btnTripInvite).setOnClickListener(v ->
-                Toast.makeText(this, "Mời bạn bè cùng xem chuyến đi", Toast.LENGTH_SHORT).show());
+        if (btnGenerateAi != null) {
+            btnGenerateAi.setOnClickListener(v -> generatePlannerAndReload());
+        }
 
         initMapView(savedInstanceState);
 
@@ -116,7 +151,13 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         rvTimeline.setAdapter(itineraryAdapter);
         rvTimeline.addItemDecoration(new ItineraryTimelineLineDecoration(itineraryAdapter, getResources()));
 
-        if (hasGeneratedData) {
+        if (hasPlannerId) {
+            usePlannerApiMode = true;
+            generatedLocationName = segLocation != null ? segLocation.trim() : "";
+            generatedLat = segLat;
+            generatedLng = segLng;
+            loadPlannerData(plannerTripId);
+        } else if (hasGeneratedData) {
             generatedLocationName = segLocation.trim();
             generatedLat = segLat;
             generatedLng = segLng;
@@ -126,7 +167,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 days.add(new TripRibbonDay(normalizeDayStart(today), weekdayVnShort(today)));
             }
             tvStatDays.setText(days.size() + " ngày");
-            setupDayRibbon(days, true);
+            setupDayRibbon(days, false);
             seedGeneratedItinerary(0, days.size());
             updateMonthTitle(0);
         } else {
@@ -137,14 +178,11 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             tvStatDays.setText(days.size() + " ngày");
             tvStatPlaces.setText("0 địa điểm");
             setupDayRibbon(days, false);
-            seedItinerary(0, days.size());
+            seedDefaultRouteSegment();
             updateMonthTitle(0);
         }
     }
 
-    /**
-     * Lịch trình theo ngày (vuốt ribbon) — dùng segment + địa điểm; nội dung gợi ý theo ngày.
-     */
     private void seedGeneratedItinerary(int dayIndex, int totalDays) {
         if (dayRibbonAdapter == null || generatedLocationName == null) return;
         currentRows.clear();
@@ -173,13 +211,205 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         itineraryAdapter.updateData(new ArrayList<>(currentRows));
         rvTimeline.invalidateItemDecorations();
         tvMapPlaceCount.setText(countStops(currentRows) + " hoạt động");
-        TextView tvSp = findViewById(R.id.tvTripStatPlaces);
-        if (tvSp != null) {
-            tvSp.setText(countStops(currentRows) + " hoạt động");
+        if (tvStatPlaces != null) {
+            tvStatPlaces.setText(countStops(currentRows) + " hoạt động");
         }
         applyMapMarkers();
     }
 
+    private void seedDefaultRouteSegment() {
+        currentRows.clear();
+        String from = startPointLabel != null && !startPointLabel.trim().isEmpty() ? startPointLabel.trim() : "Điểm đi";
+        String to = destinationLabel != null && !destinationLabel.trim().isEmpty() ? destinationLabel.trim() : "Điểm đến";
+
+        currentRows.add(new ItinerarySegmentRow("Chặng gốc", from, "--"));
+        currentRows.add(new ItineraryStopRow(
+                "--:-- – --:--",
+                "--:--",
+                "--:--",
+                "Chặng khởi tạo",
+                from,
+                "Sẵn từ lúc tạo trip",
+                "--",
+                to,
+                "--",
+                R.drawable.bg_image_placeholder,
+                10.8231,
+                106.6297,
+                1
+        ));
+
+        itineraryAdapter.updateData(new ArrayList<>(currentRows));
+        rvTimeline.invalidateItemDecorations();
+        tvMapPlaceCount.setText(countStops(currentRows) + " địa điểm");
+        if (tvStatPlaces != null) {
+            tvStatPlaces.setText(countStops(currentRows) + " địa điểm");
+        }
+        applyMapMarkers();
+    }
+
+    private void loadPlannerData(@NonNull String tripId) {
+        UserAPI api = RetrofitClient.getInstance().getUserAPI();
+        api.getPlanner(tripId).enqueue(new Callback<PlannerTripResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<PlannerTripResponse> call, @NonNull Response<PlannerTripResponse> response) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    Toast.makeText(TripDetailActivity.this, "Không tải được planner", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                plannerResponse = response.body();
+                List<TripRibbonDay> days = buildDaysFromPlanner(plannerResponse, pendingDates, pendingSegStart, pendingSegEnd);
+                if (days.isEmpty()) {
+                    days = buildRibbonDaysForTrip(pendingDates, pendingSegStart, pendingSegEnd);
+                }
+                if (days.isEmpty()) {
+                    Calendar today = Calendar.getInstance();
+                    days.add(new TripRibbonDay(normalizeDayStart(today), weekdayVnShort(today)));
+                }
+                tvStatDays.setText(days.size() + " ngày");
+                setupDayRibbon(days, true);
+                seedFromPlanner(0);
+                updateMonthTitle(0);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<PlannerTripResponse> call, @NonNull Throwable t) {
+                Toast.makeText(TripDetailActivity.this, "Lỗi mạng khi tải planner: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private List<TripRibbonDay> buildDaysFromPlanner(@Nullable PlannerTripResponse response, @Nullable String datesDisplay, @Nullable String segStart, @Nullable String segEnd) {
+        List<TripRibbonDay> out = new ArrayList<>();
+        if (response == null || response.getSegments() == null) return out;
+        for (TripSegmentResponse segment : response.getSegments()) {
+            if (segment == null) continue;
+            if (segment.getStartDate() != null) {
+                Calendar c = calendarFromDate(segment.getStartDate());
+                if (c != null) out.add(new TripRibbonDay(c, weekdayVnShort(c)));
+            }
+            if (segment.getEndDate() != null) {
+                Calendar c = calendarFromDate(segment.getEndDate());
+                if (c != null) out.add(new TripRibbonDay(c, weekdayVnShort(c)));
+            }
+        }
+        if (!out.isEmpty()) return out;
+        return buildRibbonDaysForTrip(datesDisplay, segStart, segEnd);
+    }
+
+    @Nullable
+    private Calendar calendarFromDate(@Nullable Date date) {
+        if (date == null) return null;
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return normalizeDayStart(c);
+    }
+
+    private void seedFromPlanner(int dayIndex) {
+        currentRows.clear();
+        if (plannerResponse == null || plannerResponse.getSegments() == null || plannerResponse.getSegments().isEmpty()) {
+            seedDefaultRouteSegment();
+            return;
+        }
+        int globalStopOrder = 1;
+        for (TripSegmentResponse segment : plannerResponse.getSegments()) {
+            if (segment == null) continue;
+            String segmentLabel = "Chặng " + segment.getOrderIndex();
+            String cityName = generatedLocationName != null && !generatedLocationName.isEmpty() ? generatedLocationName : "Chặng đã chọn";
+            currentRows.add(new ItinerarySegmentRow(segmentLabel, cityName, segment.getDistanceKm() != null ? String.format(Locale.getDefault(), "%.1f km", segment.getDistanceKm()) : "--"));
+            if (segment.getStartDate() != null || segment.getEndDate() != null) {
+                String startTxt = segment.getStartDate() != null ? new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(segment.getStartDate()) : "--";
+                String endTxt = segment.getEndDate() != null ? new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(segment.getEndDate()) : "--";
+                currentRows.add(new ItineraryStopRow(
+                        startTxt + " – " + endTxt,
+                        startTxt,
+                        endTxt,
+                        "Segment " + segment.getOrderIndex(),
+                        cityName,
+                        "Khoảng ngày",
+                        "--",
+                        "--",
+                        "--",
+                        R.drawable.bg_image_placeholder,
+                        generatedLat,
+                        generatedLng,
+                        globalStopOrder++
+                ));
+            }
+        }
+        itineraryAdapter.updateData(new ArrayList<>(currentRows));
+        rvTimeline.invalidateItemDecorations();
+        tvMapPlaceCount.setText(countStops(currentRows) + " địa điểm");
+        if (tvStatPlaces != null) tvStatPlaces.setText(countStops(currentRows) + " địa điểm");
+        applyMapMarkers();
+    }
+
+    private void generatePlannerAndReload() {
+        if (plannerTripId == null || plannerTripId.trim().isEmpty()) {
+            Toast.makeText(this, "Thiếu tripId planner", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Toast.makeText(this, "Đang generate AI...", Toast.LENGTH_SHORT).show();
+        UserAPI api = RetrofitClient.getInstance().getUserAPI();
+        api.generatePlanner(plannerTripId).enqueue(new Callback<com.example.weathertrip_sep490.model.PlannerGenerateResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<com.example.weathertrip_sep490.model.PlannerGenerateResponse> call, @NonNull Response<com.example.weathertrip_sep490.model.PlannerGenerateResponse> response) {
+                if (!response.isSuccessful()) {
+                    String details = "";
+                    try {
+                        okhttp3.ResponseBody eb = response.errorBody();
+                        if (eb != null) details = eb.string();
+                    } catch (Exception ignored) {}
+                    Toast.makeText(TripDetailActivity.this, "Generate thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : ": " + details), Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Toast.makeText(TripDetailActivity.this, "AI đã tạo xong lịch trình", Toast.LENGTH_SHORT).show();
+                reloadPlanner();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<com.example.weathertrip_sep490.model.PlannerGenerateResponse> call, @NonNull Throwable t) {
+                Toast.makeText(TripDetailActivity.this, "Lỗi mạng khi generate AI: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void reloadPlanner() {
+        if (plannerTripId == null || plannerTripId.trim().isEmpty()) return;
+        loadPlannerData(plannerTripId);
+    }
+
+    private void openAddSegment() {
+        if (plannerTripId == null || plannerTripId.trim().isEmpty()) {
+            Toast.makeText(this, "Thiếu tripId", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        AddSegmentBottomSheet.newInstance(
+                plannerTripId,
+                destinationLabel != null ? destinationLabel : "Trip",
+                pendingSegStart != null ? pendingSegStart : "",
+                pendingSegEnd != null ? pendingSegEnd : ""
+        ).show(getSupportFragmentManager(), "AddSegmentBottomSheet");
+    }
+
+    @Override
+    public void onSegmentAddedAndReadyForAi(@NonNull String tripId, @NonNull String locationName, @NonNull String segmentStartDate, @NonNull String segmentEndDate, double latitude, double longitude) {
+        reloadPlanner();
+    }
+
+    private static String safeText(@Nullable String s) { return s == null || s.trim().isEmpty() ? "--" : s.trim(); }
+    private static String safeTime(@Nullable String s) { return s == null || s.trim().isEmpty() ? "--:--" : s.trim(); }
+    private static String formatRisk(double risk) { return String.format(Locale.getDefault(), "%.1f", risk); }
+    private static String joinLocation(@Nullable String locationName, @Nullable String address) {
+        String ln = locationName == null ? "" : locationName.trim();
+        String ad = address == null ? "" : address.trim();
+        if (ln.isEmpty()) return ad.isEmpty() ? "--" : ad;
+        if (ad.isEmpty()) return ln;
+        return ln + " · " + ad;
+    }
+    private static String formatTimeRange(@Nullable String start, @Nullable String end) {
+        return safeTime(start) + " – " + safeTime(end);
+    }
     private List<TripRibbonDay> buildRibbonDaysForTrip(
             @Nullable String datesDisplay,
             @Nullable String segmentStartIso,
@@ -292,7 +522,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     private void setupDayRibbon(@NonNull List<TripRibbonDay> days, boolean generatedMode) {
-        useGeneratedItineraryMode = generatedMode;
+        usePlannerApiMode = generatedMode;
         rvDays = findViewById(R.id.rvTripDetailDays);
         if (rvDays != null) {
             rvDays.setVisibility(View.VISIBLE);
@@ -331,8 +561,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
     private void seedForRibbonDay(int pos) {
         int totalDays = dayRibbonAdapter != null ? dayRibbonAdapter.getItemCount() : 1;
-        if (useGeneratedItineraryMode) {
-            seedGeneratedItinerary(pos, totalDays);
+        if (usePlannerApiMode) {
+            seedFromPlanner(pos);
         } else {
             seedItinerary(pos, totalDays);
         }
@@ -392,14 +622,14 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         currentRows.clear();
         int img = R.drawable.bg_image_placeholder;
 
-        String startSegment = getRouteSegmentLabel(0);
-        String endSegment = totalDays > 1 ? getRouteSegmentLabel(totalDays - 1) : startSegment;
+        String startSegment = startPointLabel != null && !startPointLabel.trim().isEmpty() ? startPointLabel.trim() : "Điểm đi";
+        String endSegment = destinationLabel != null && !destinationLabel.trim().isEmpty() ? destinationLabel.trim() : "Điểm đến";
 
         currentRows.add(new ItinerarySegmentRow(String.format(Locale.getDefault(), "Chặng %d", dayIndex + 1), startSegment, "27°"));
         currentRows.add(new ItineraryStopRow(
                 "08:30 – 09:30", "08:30", "09:30",
                 "Điểm tham quan tại " + startSegment,
-                startSegment + " · Chặng user đã chọn",
+                startSegment + " · Chặng gốc",
                 "Cả ngày",
                 "Miễn phí",
                 "Điểm gợi ý tiếp theo",
@@ -413,7 +643,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             currentRows.add(new ItineraryStopRow(
                     "14:00 – 16:00", "14:00", "16:00",
                     "Điểm tham quan tại " + endSegment,
-                    endSegment + " · Chặng user đã chọn",
+                    endSegment + " · Chặng gốc",
                     "Cả ngày",
                     "Miễn phí",
                     "Điểm gợi ý tiếp theo",
@@ -427,6 +657,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         itineraryAdapter.updateData(new ArrayList<>(currentRows));
         rvTimeline.invalidateItemDecorations();
         tvMapPlaceCount.setText(countStops(currentRows) + " địa điểm");
+        if (tvStatPlaces != null) tvStatPlaces.setText(countStops(currentRows) + " địa điểm");
         applyMapMarkers();
     }
 
@@ -447,6 +678,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
         boolean has = false;
+        int index = 1;
         for (ItineraryRow r : currentRows) {
             if (r instanceof ItineraryStopRow) {
                 ItineraryStopRow s = (ItineraryStopRow) r;
@@ -455,7 +687,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 has = true;
                 Marker marker = googleMap.addMarker(new MarkerOptions()
                         .position(ll)
-                        .title(String.valueOf(s.getMarkerOrder()))
+                        .title(String.valueOf(index++))
                         .snippet(s.getTitle())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
                 if (marker != null) {
@@ -489,6 +721,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         return c;
     }
 
+
     @NonNull
     private static String resolveRouteLabel(@Nullable String route, @Nullable String startPoint, @Nullable String destination, @Nullable String city) {
         if (route != null && !route.trim().isEmpty()) {
@@ -501,20 +734,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             return city;
         }
         return "Hồ Chí Minh → Hội An → Đà Nẵng";
-    }
-
-    @NonNull
-    private String getRouteSegmentLabel(int index) {
-        String route = getIntent().getStringExtra(EXTRA_ROUTE);
-        if (route == null || route.trim().isEmpty()) {
-            return "Chặng user đã chọn";
-        }
-        String[] parts = route.split("→");
-        if (parts.length == 0) {
-            return route.trim();
-        }
-        int safeIndex = Math.max(0, Math.min(index, parts.length - 1));
-        return parts[safeIndex].trim();
     }
 
     @Override

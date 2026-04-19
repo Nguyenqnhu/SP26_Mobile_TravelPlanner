@@ -82,8 +82,10 @@ public class RetrofitClient {
                 .addInterceptor(authInterceptor)
                 .addInterceptor(urlLog)
                 .addInterceptor(logging)
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .callTimeout(120, TimeUnit.SECONDS)
                 .build();
 
         Type listPOIType = new TypeToken<List<POI>>() {}.getType();
