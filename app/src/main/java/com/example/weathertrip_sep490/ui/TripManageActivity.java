@@ -38,7 +38,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener, AddSegmentBottomSheet.Listener {
+public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener, AddSegmentBottomSheet.Listener, SegmentManagerBottomSheet.Listener {
 
     private static final String PREFS_NAME = "TravelGoPrefs";
     private static final String KEY_MANAGED_TRIPS = "managed_trips_json";
@@ -62,6 +62,8 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
     private boolean pendingRoundTrip;
     private String pendingStartDateDisplay;
     private String pendingEndDateDisplay;
+    private String pendingStartDateIso;
+    private String pendingEndDateIso;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -329,82 +331,28 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         pendingRoundTrip = roundTrip;
         pendingStartDateDisplay = startDateDisplay;
         pendingEndDateDisplay = endDateDisplay;
+        pendingStartDateIso = startDateIso;
+        pendingEndDateIso = endDateIso;
 
-        AddSegmentBottomSheet.newInstance(
+        SegmentManagerBottomSheet.newInstance(
                 tripId,
-                tripTitle,
-                startDateIso,
-                endDateIso
-        ).show(getSupportFragmentManager(), "AddSegmentBottomSheet");
-    }
-
-    @Override
-    public void onSegmentAddedAndReadyForAi(
-            @NonNull String tripId,
-            @NonNull String locationName,
-            @NonNull String segmentStartDate,
-            @NonNull String segmentEndDate,
-            double latitude,
-            double longitude
-    ) {
-        String tripTitle = pendingTripTitle != null ? pendingTripTitle : "Trip mới";
-        String safeTripId = pendingTripId != null ? pendingTripId : tripId;
-        String startPoint = pendingStartPoint != null ? pendingStartPoint : "";
-        String destination = pendingDestination != null ? pendingDestination : "";
-        boolean roundTrip = pendingRoundTrip;
-        String startDateDisplay = pendingStartDateDisplay != null ? pendingStartDateDisplay : "";
-        String endDateDisplay = pendingEndDateDisplay != null ? pendingEndDateDisplay : "";
-
-        String range = roundTrip
-                ? (startDateDisplay + " - " + endDateDisplay)
-                : (startDateDisplay + " · 1 chiều");
-        int ph = R.drawable.sampleplace;
-        allTrips.add(0, new Trip(
-                safeTripId,
                 tripTitle,
                 startPoint,
                 destination,
-                range,
-                null,
-                TripStatus.UPCOMING,
-                ph
-        ));
-        persistTripsToLocal();
-        refreshStatusTabLabels();
-        applyTabVisualState();
-        applyFiltersAndRefresh();
+                startDateIso,
+                endDateIso
+        ).show(getSupportFragmentManager(), "SegmentManagerBottomSheet");
+    }
 
-        Toast.makeText(this, "Đang tạo lịch trình AI...", Toast.LENGTH_SHORT).show();
-        UserAPI api = RetrofitClient.getInstance().getUserAPI();
-        api.generatePlanner(safeTripId).enqueue(new Callback<PlannerGenerateResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<PlannerGenerateResponse> call, @NonNull Response<PlannerGenerateResponse> response) {
-                if (!response.isSuccessful()) {
-                    Toast.makeText(TripManageActivity.this, "AI generate thất bại (" + response.code() + ")", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                Toast.makeText(TripManageActivity.this, "AI đã tạo lịch trình xong", Toast.LENGTH_SHORT).show();
+    @Override
+    public void onSegmentAddedAndReadyForAi(@NonNull String tripId, @NonNull String locationName, @NonNull String segmentStartDate, @NonNull String segmentEndDate, double latitude, double longitude) {
+        // handled inside SegmentManagerBottomSheet via reloadPlanner()
+    }
 
-                Intent intent = new Intent(TripManageActivity.this, TripDetailActivity.class);
-                intent.putExtra(TripDetailActivity.EXTRA_CITY, destination);
-                intent.putExtra(TripDetailActivity.EXTRA_DATES, range);
-                intent.putExtra(TripDetailActivity.EXTRA_ROUTE, startPoint + " → " + destination);
-                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_LOCATION, locationName);
-                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_START, segmentStartDate);
-                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_END, segmentEndDate);
-                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_LAT, latitude);
-                intent.putExtra(TripDetailActivity.EXTRA_GENERATED_SEGMENT_LNG, longitude);
-                startActivity(intent);
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<PlannerGenerateResponse> call, @NonNull Throwable t) {
-                Toast.makeText(
-                        TripManageActivity.this,
-                        "Lỗi mạng khi gọi AI: " + (t.getMessage() != null ? t.getMessage() : "unknown"),
-                        Toast.LENGTH_LONG
-                ).show();
-            }
-        });
+    @Override
+    public void onGenerateCompleted(@NonNull String tripId) {
+        Intent intent = new Intent(this, TripDetailActivity.class);
+        intent.putExtra("planner_trip_id", tripId);
+        startActivity(intent);
     }
 }

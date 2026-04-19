@@ -33,14 +33,35 @@
             android:layout_weight="1" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnTripInvite"
+            android:id="@+id/btnAddSegment"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:minWidth="0dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:text="Mời"
+            android:text="+ Segment"
+            android:textAllCaps="false"
+            android:textColor="@color/itinerary_header_green"
+            android:textSize="13sp"
+            app:cornerRadius="20dp"
+            app:icon="@drawable/ic_pin"
+            app:iconGravity="textStart"
+            app:iconPadding="4dp"
+            app:iconTint="@color/itinerary_header_green"
+            app:strokeColor="@color/itinerary_header_green"
+            app:strokeWidth="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTripInvite"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:minWidth="0dp"
+            android:layout_marginStart="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="Generate AI"
             android:textAllCaps="false"
             android:textColor="@color/itinerary_header_green"
             android:textSize="13sp"

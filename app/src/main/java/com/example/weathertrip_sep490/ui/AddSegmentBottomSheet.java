@@ -60,6 +60,7 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
     private EditText etInsertAt;
     private TextView tvStartDate;
     private TextView tvEndDate;
+    private TextView tvDebug;
 
     private final List<LocationOption> allLocations = new ArrayList<>();
     private final Calendar startCal = Calendar.getInstance();
@@ -85,7 +86,9 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (context instanceof Listener) {
+        if (getParentFragment() instanceof Listener) {
+            listener = (Listener) getParentFragment();
+        } else if (context instanceof Listener) {
             listener = (Listener) context;
         }
     }
@@ -104,6 +107,7 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
         etInsertAt = view.findViewById(R.id.etSegmentInsertAt);
         tvStartDate = view.findViewById(R.id.tvSegmentStartDate);
         tvEndDate = view.findViewById(R.id.tvSegmentEndDate);
+        tvDebug = view.findViewById(R.id.tvAddSegmentDebug);
         TextView tvTitle = view.findViewById(R.id.tvAddSegmentTripTitle);
 
         String tripTitle = getArguments() != null ? getArguments().getString(ARG_TRIP_TITLE, "") : "";
@@ -211,10 +215,22 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
         }
 
         LocationOption selected = (LocationOption) spLocations.getSelectedItem();
-        String start = toDateOnly(startCal);
-        String end = toDateOnly(endCal);
+        String start = toIsoUtc(startCal);
+        String end = toIsoUtc(endCal);
         List<AddSegmentRequest> req = new ArrayList<>();
         req.add(new AddSegmentRequest(selected.getLocationId(), start, end));
+
+        String debugText = "tripId=" + tripId
+                + "\nlocationId=" + selected.getLocationId()
+                + "\nlocationName=" + selected.getLocationName()
+                + "\ninsertAt=" + insertAt
+                + "\nstartDate=" + start
+                + "\nendDate=" + end;
+        if (tvDebug != null) {
+            tvDebug.setVisibility(View.VISIBLE);
+            tvDebug.setText(debugText);
+        }
+        android.util.Log.d("AddSegmentBottomSheet", debugText);
 
         isSubmitting = true;
         UserAPI api = RetrofitClient.getInstance().getUserAPI();
@@ -223,7 +239,7 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 isSubmitting = false;
                 if (response.isSuccessful()) {
-                    Toast.makeText(requireContext(), "Đã add segment. AI đang tạo itinerary...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Đã add segment", Toast.LENGTH_SHORT).show();
                     if (listener != null) {
                         listener.onSegmentAddedAndReadyForAi(
                                 tripId,
@@ -243,12 +259,22 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
                     if (eb != null) details = eb.string();
                 } catch (Exception ignored) {}
 
-                // BE hiện có case đã insert DB thành công nhưng fail ở bước map response DTO
-                // -> trả 400 "Error mapping types". Với case này coi như add segment thành công logic.
+                String requestInfo = "\ntripId=" + tripId
+                        + "\ninsertAt=" + insertAt
+                        + "\nlocationId=" + (selected.getLocationId() != null ? selected.getLocationId() : "null")
+                        + "\nstartDate=" + start
+                        + "\nendDate=" + end;
+
+                android.util.Log.e("AddSegmentBottomSheet", "Add segment failed code=" + response.code() + " body=" + details + requestInfo);
+                if (tvDebug != null) {
+                    tvDebug.setVisibility(View.VISIBLE);
+                    tvDebug.setText("ERROR " + response.code() + requestInfo + "\n\n" + details);
+                }
+
                 if (response.code() == 400 && looksLikeResponseMappingFailure(details)) {
                     Toast.makeText(
                             requireContext(),
-                            "Segment đã được lưu (BE lỗi mapping response). Tiếp tục tạo itinerary...",
+                            "Segment đã được lưu. Đang refresh planner...",
                             Toast.LENGTH_LONG
                     ).show();
                     if (listener != null) {
@@ -267,7 +293,7 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
 
                 Toast.makeText(
                         requireContext(),
-                        "Add segment thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : ": " + details),
+                        "Add segment thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : ": " + details) + requestInfo,
                         Toast.LENGTH_LONG
                 ).show();
             }
@@ -292,10 +318,15 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
         } catch (Exception ignored) { }
     }
 
-    private static String toDateOnly(@NonNull Calendar calendar) {
-        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+    private static String toIsoUtc(@NonNull Calendar calendar) {
+        Calendar c = (Calendar) calendar.clone();
+        c.set(Calendar.HOUR_OF_DAY, 16);
+        c.set(Calendar.MINUTE, 55);
+        c.set(Calendar.SECOND, 53);
+        c.set(Calendar.MILLISECOND, 922);
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
         f.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return f.format(calendar.getTime());
+        return f.format(c.getTime());
     }
 
     private static boolean looksLikeResponseMappingFailure(@Nullable String details) {

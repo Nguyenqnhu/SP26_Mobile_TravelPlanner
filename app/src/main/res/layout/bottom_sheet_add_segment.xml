@@ -197,13 +197,24 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tvAddSegmentDebug"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_round_white_stroke"
+                android:padding="12dp"
+                android:textColor="@color/slate_500"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddSegment"
                 style="@style/Widget.Material3.Button.UnelevatedButton"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="18dp"
-                android:text="Thêm chặng và tạo lịch trình"
+                android:text="Thêm chặng"
                 android:textAllCaps="false"
                 app:backgroundTint="@color/green_primary"
                 app:cornerRadius="14dp" />
