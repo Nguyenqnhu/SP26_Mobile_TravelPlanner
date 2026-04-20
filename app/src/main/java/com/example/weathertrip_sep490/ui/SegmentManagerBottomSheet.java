@@ -232,7 +232,12 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
                     Toast.makeText(requireContext(), "Generate thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : (": " + details)), Toast.LENGTH_LONG).show();
                     return;
                 }
-                if (listener != null) listener.onGenerateCompleted(tripId);
+                PlannerGenerateResponse body = response.body();
+                String generatedTripId = body != null && body.getTripId() != null && !body.getTripId().trim().isEmpty()
+                        ? body.getTripId().trim()
+                        : tripId;
+                Toast.makeText(requireContext(), "AI đã tạo lịch trình thành công", Toast.LENGTH_SHORT).show();
+                if (listener != null) listener.onGenerateCompleted(generatedTripId);
                 dismiss();
             }
 

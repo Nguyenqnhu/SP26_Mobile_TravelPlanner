@@ -25,7 +25,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import okhttp3.ResponseBody;
 import android.util.Log;
@@ -210,10 +209,10 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
             }
         }
 
-        // Backend thống nhất dùng DateTime: gửi ISO-8601 (UTC) để bind ổn định
+        // Gửi DateTime theo ngày local đã chọn, tránh lệch ngày do đổi múi giờ UTC.
         String typeQuery = roundTrip ? "1" : "0";
-        String startIso = toIsoUtc(startCal);
-        String endIso = roundTrip ? toIsoUtc(endCal) : startIso;
+        String startIso = toApiDateTime(startCal);
+        String endIso = roundTrip ? toApiDateTime(endCal) : startIso;
         TripCreateRequest body = new TripCreateRequest(tripTitle, startPoint, destination, startIso, endIso);
 
         isSubmitting = true;
@@ -277,14 +276,13 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         });
     }
 
-    private static String toIsoUtc(@NonNull Calendar calendar) {
+    private static String toApiDateTime(@NonNull Calendar calendar) {
         Calendar c = (Calendar) calendar.clone();
         c.set(Calendar.HOUR_OF_DAY, 0);
         c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);
-        java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-        iso.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return iso.format(c.getTime());
+        java.text.SimpleDateFormat apiFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+        return apiFormat.format(c.getTime());
     }
 }

@@ -2,7 +2,9 @@ package com.example.weathertrip_sep490.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class TripSegmentResponse {
     @SerializedName(value = "segmentId", alternate = {"SegmentId"})
@@ -29,6 +31,9 @@ public class TripSegmentResponse {
     @SerializedName(value = "createdAt", alternate = {"CreatedAt"})
     private Date createdAt;
 
+    @SerializedName(value = "days", alternate = {"Days"})
+    private List<PlannerDayResponse> days = new ArrayList<>();
+
     public String getSegmentId() { return segmentId; }
     public String getTripId() { return tripId; }
     public String getLocationId() { return locationId; }
@@ -37,4 +42,5 @@ public class TripSegmentResponse {
     public Date getEndDate() { return endDate; }
     public Double getDistanceKm() { return distanceKm; }
     public Date getCreatedAt() { return createdAt; }
+    public List<PlannerDayResponse> getDays() { return days; }
 }
