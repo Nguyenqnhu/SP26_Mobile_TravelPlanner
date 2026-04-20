@@ -3,10 +3,14 @@ package com.example.weathertrip_sep490.data;
 import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.Preference;
 import com.example.weathertrip_sep490.model.AddSegmentRequest;
+import com.example.weathertrip_sep490.model.InviteLinkResponse;
+import com.example.weathertrip_sep490.model.InviteQrResponse;
+import com.example.weathertrip_sep490.model.JoinParticipantResponse;
 import com.example.weathertrip_sep490.model.LocationOption;
 import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.PlannerTripResponse;
 import com.example.weathertrip_sep490.model.TripCreateRequest;
+import com.example.weathertrip_sep490.model.TripSegmentResponse;
 import com.example.weathertrip_sep490.model.TripResponse;
 import com.example.weathertrip_sep490.model.User;
 import com.example.weathertrip_sep490.model.UserPreferencesRequest;
@@ -64,7 +68,7 @@ public interface UserAPI {
     Call<List<LocationOption>> getAllLocations();
 
     @POST("api/trip/{tripId}/segments")
-    Call<Void> addTripSegments(
+    Call<List<TripSegmentResponse>> addTripSegments(
             @Path("tripId") String tripId,
             @Query("insertAt") int insertAt,
             @Body List<AddSegmentRequest> body
@@ -75,5 +79,14 @@ public interface UserAPI {
 
     @GET("api/planner/{tripId}/get")
     Call<PlannerTripResponse> getPlanner(@Path("tripId") String tripId);
+
+    @GET("api/trip/{tripId}/invite-link")
+    Call<InviteLinkResponse> getTripInviteLink(@Path("tripId") String tripId);
+
+    @GET("api/trip/{tripId}/generate-qr")
+    Call<InviteQrResponse> getTripInviteQr(@Path("tripId") String tripId);
+
+    @POST("api/invites/join")
+    Call<JoinParticipantResponse> joinTrip(@Query("tripId") String tripId);
 
 }

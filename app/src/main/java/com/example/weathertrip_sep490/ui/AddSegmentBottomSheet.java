@@ -22,6 +22,7 @@ import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.AddSegmentRequest;
 import com.example.weathertrip_sep490.model.LocationOption;
+import com.example.weathertrip_sep490.model.TripSegmentResponse;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.text.SimpleDateFormat;
@@ -60,7 +61,6 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
     private EditText etInsertAt;
     private TextView tvStartDate;
     private TextView tvEndDate;
-    private TextView tvDebug;
 
     private final List<LocationOption> allLocations = new ArrayList<>();
     private final Calendar startCal = Calendar.getInstance();
@@ -107,7 +107,6 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
         etInsertAt = view.findViewById(R.id.etSegmentInsertAt);
         tvStartDate = view.findViewById(R.id.tvSegmentStartDate);
         tvEndDate = view.findViewById(R.id.tvSegmentEndDate);
-        tvDebug = view.findViewById(R.id.tvAddSegmentDebug);
         TextView tvTitle = view.findViewById(R.id.tvAddSegmentTripTitle);
 
         String tripTitle = getArguments() != null ? getArguments().getString(ARG_TRIP_TITLE, "") : "";
@@ -220,26 +219,20 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
         List<AddSegmentRequest> req = new ArrayList<>();
         req.add(new AddSegmentRequest(selected.getLocationId(), start, end));
 
-        String debugText = "tripId=" + tripId
-                + "\nlocationId=" + selected.getLocationId()
-                + "\nlocationName=" + selected.getLocationName()
-                + "\ninsertAt=" + insertAt
-                + "\nstartDate=" + start
-                + "\nendDate=" + end;
-        if (tvDebug != null) {
-            tvDebug.setVisibility(View.VISIBLE);
-            tvDebug.setText(debugText);
-        }
-        android.util.Log.d("AddSegmentBottomSheet", debugText);
 
         isSubmitting = true;
         UserAPI api = RetrofitClient.getInstance().getUserAPI();
-        api.addTripSegments(tripId, insertAt, req).enqueue(new Callback<Void>() {
+        api.addTripSegments(tripId, insertAt, req).enqueue(new Callback<List<TripSegmentResponse>>() {
             @Override
-            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+            public void onResponse(@NonNull Call<List<TripSegmentResponse>> call, @NonNull Response<List<TripSegmentResponse>> response) {
                 isSubmitting = false;
                 if (response.isSuccessful()) {
-                    Toast.makeText(requireContext(), "Đã add segment", Toast.LENGTH_SHORT).show();
+                    Double distanceKm = null;
+                    List<TripSegmentResponse> body = response.body();
+                    if (body != null && !body.isEmpty()) {
+                        distanceKm = body.get(0).getDistanceKm();
+                    }
+                    Toast.makeText(requireContext(), distanceKm != null ? "Đã add segment · " + String.format(Locale.getDefault(), "%.1f km", distanceKm) : "Đã add segment", Toast.LENGTH_SHORT).show();
                     if (listener != null) {
                         listener.onSegmentAddedAndReadyForAi(
                                 tripId,
@@ -259,47 +252,15 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
                     if (eb != null) details = eb.string();
                 } catch (Exception ignored) {}
 
-                String requestInfo = "\ntripId=" + tripId
-                        + "\ninsertAt=" + insertAt
-                        + "\nlocationId=" + (selected.getLocationId() != null ? selected.getLocationId() : "null")
-                        + "\nstartDate=" + start
-                        + "\nendDate=" + end;
-
-                android.util.Log.e("AddSegmentBottomSheet", "Add segment failed code=" + response.code() + " body=" + details + requestInfo);
-                if (tvDebug != null) {
-                    tvDebug.setVisibility(View.VISIBLE);
-                    tvDebug.setText("ERROR " + response.code() + requestInfo + "\n\n" + details);
-                }
-
-                if (response.code() == 400 && looksLikeResponseMappingFailure(details)) {
-                    Toast.makeText(
-                            requireContext(),
-                            "Segment đã được lưu. Đang refresh planner...",
-                            Toast.LENGTH_LONG
-                    ).show();
-                    if (listener != null) {
-                        listener.onSegmentAddedAndReadyForAi(
-                                tripId,
-                                selected.getLocationName() != null ? selected.getLocationName() : "",
-                                start,
-                                end,
-                                selected.getLatitude(),
-                                selected.getLongitude()
-                        );
-                    }
-                    dismiss();
-                    return;
-                }
-
                 Toast.makeText(
                         requireContext(),
-                        "Add segment thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : ": " + details) + requestInfo,
+                        "Không thể thêm chặng, vui lòng thử lại sau",
                         Toast.LENGTH_LONG
                 ).show();
             }
 
             @Override
-            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<TripSegmentResponse>> call, @NonNull Throwable t) {
                 isSubmitting = false;
                 Toast.makeText(requireContext(), "Lỗi mạng: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
             }

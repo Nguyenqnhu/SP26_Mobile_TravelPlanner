@@ -95,6 +95,7 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 intent.putExtra(TripDetailActivity.EXTRA_START_POINT, trip.getStartPoint());
                 intent.putExtra(TripDetailActivity.EXTRA_DESTINATION, trip.getDestination());
                 intent.putExtra(TripDetailActivity.EXTRA_ROUTE, buildRouteLabel(trip.getStartPoint(), trip.getDestination()));
+                intent.putExtra("planner_trip_id", trip.getId());
                 startActivity(intent);
             }
 
@@ -353,6 +354,19 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
     public void onGenerateCompleted(@NonNull String tripId) {
         Intent intent = new Intent(this, TripDetailActivity.class);
         intent.putExtra("planner_trip_id", tripId);
+        String city = (pendingDestination != null && !pendingDestination.trim().isEmpty()) ? pendingDestination.trim() : (pendingTripTitle != null ? pendingTripTitle : "");
+        String dates = "";
+        if (pendingStartDateDisplay != null && !pendingStartDateDisplay.trim().isEmpty()) {
+            dates = pendingStartDateDisplay.trim();
+            if (pendingEndDateDisplay != null && !pendingEndDateDisplay.trim().isEmpty()) {
+                dates += " – " + pendingEndDateDisplay.trim();
+            }
+        }
+        intent.putExtra(TripDetailActivity.EXTRA_CITY, city);
+        intent.putExtra(TripDetailActivity.EXTRA_DATES, dates);
+        intent.putExtra(TripDetailActivity.EXTRA_START_POINT, pendingStartPoint);
+        intent.putExtra(TripDetailActivity.EXTRA_DESTINATION, pendingDestination);
+        intent.putExtra(TripDetailActivity.EXTRA_ROUTE, buildRouteLabel(pendingStartPoint, pendingDestination));
         startActivity(intent);
     }
 }

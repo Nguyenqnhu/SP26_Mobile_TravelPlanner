@@ -1,7 +1,18 @@
 package com.example.weathertrip_sep490.ui;
 
+import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Base64;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,6 +34,7 @@ import com.example.weathertrip_sep490.model.ItineraryRow;
 import com.example.weathertrip_sep490.model.ItinerarySegmentRow;
 import com.example.weathertrip_sep490.model.ItineraryStopRow;
 import com.example.weathertrip_sep490.model.PlannerDayResponse;
+import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.PlannerItemResponse;
 import com.example.weathertrip_sep490.model.PlannerTripResponse;
 import com.example.weathertrip_sep490.model.TripSegmentResponse;
@@ -51,7 +63,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback, AddSegmentBottomSheet.Listener {
+public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback, AddSegmentBottomSheet.Listener, TripInviteDialogFragment.Listener {
 
     public static final String EXTRA_CITY = "extra_city";
     public static final String EXTRA_DATES = "extra_dates";
@@ -80,6 +92,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
     private TextView tvRibbonMonthTitle;
     private TextView tvMapPlaceCount;
+    private String tripTitleLabel;
     private String startPointLabel;
     private String destinationLabel;
 
@@ -97,6 +110,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private TextView tvStatPlaces;
     private TextView btnGenerateAi;
     private TextView btnAddSegment;
+    private TextView btnInvite;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,9 +121,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         String dates = getIntent().getStringExtra(EXTRA_DATES);
         String startPoint = getIntent().getStringExtra(EXTRA_START_POINT);
         String destination = getIntent().getStringExtra(EXTRA_DESTINATION);
+        String route = getIntent().getStringExtra(EXTRA_ROUTE);
         startPointLabel = startPoint;
         destinationLabel = destination;
-        String route = getIntent().getStringExtra(EXTRA_ROUTE);
+        tripTitleLabel = city != null && !city.trim().isEmpty() ? city.trim() : resolveRouteLabel(route, startPoint, destination, city);
         String segLocation = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_LOCATION);
         String segStart = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_START);
         String segEnd = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_END);
@@ -133,14 +148,14 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         btnAddSegment = findViewById(R.id.btnAddSegment);
         btnGenerateAi = findViewById(R.id.btnTripInvite);
         if (btnAddSegment != null) btnAddSegment.setOnClickListener(v -> openAddSegment());
-        if (btnGenerateAi != null) btnGenerateAi.setText("Generate AI");
+        if (btnGenerateAi != null) btnGenerateAi.setText("Mời bạn tham gia");
 
         tvJourneyTitle.setText(getString(R.string.trip_journey_at, primaryDestination(city)));
         tvDates.setText(dates != null && !dates.isEmpty() ? dates : "5/4/2026 – 12/4/2026");
         tvRoute.setText(resolveRouteLabel(route, startPoint, destination, city));
         btnBack.setOnClickListener(v -> finish());
         if (btnGenerateAi != null) {
-            btnGenerateAi.setOnClickListener(v -> generatePlannerAndReload());
+            btnGenerateAi.setOnClickListener(v -> showInviteDialog());
         }
 
         initMapView(savedInstanceState);
@@ -284,6 +299,13 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         if (response == null || response.getSegments() == null) return out;
         for (TripSegmentResponse segment : response.getSegments()) {
             if (segment == null) continue;
+            if (segment.getDays() != null && !segment.getDays().isEmpty()) {
+                for (PlannerDayResponse day : segment.getDays()) {
+                    if (day == null || day.getDate() == null) continue;
+                    Calendar c = calendarFromDate(day.getDate());
+                    if (c != null) out.add(new TripRibbonDay(c, weekdayVnShort(c)));
+                }
+            }
             if (segment.getStartDate() != null) {
                 Calendar c = calendarFromDate(segment.getStartDate());
                 if (c != null) out.add(new TripRibbonDay(c, weekdayVnShort(c)));
@@ -311,13 +333,51 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             seedDefaultRouteSegment();
             return;
         }
+        Calendar selectedDay = null;
+        if (dayRibbonAdapter != null && dayIndex >= 0 && dayIndex < dayRibbonAdapter.getItemCount()) {
+            selectedDay = dayRibbonAdapter.getDayAt(dayIndex).getCalendar();
+        }
         int globalStopOrder = 1;
         for (TripSegmentResponse segment : plannerResponse.getSegments()) {
             if (segment == null) continue;
             String segmentLabel = "Chặng " + segment.getOrderIndex();
             String cityName = generatedLocationName != null && !generatedLocationName.isEmpty() ? generatedLocationName : "Chặng đã chọn";
             currentRows.add(new ItinerarySegmentRow(segmentLabel, cityName, segment.getDistanceKm() != null ? String.format(Locale.getDefault(), "%.1f km", segment.getDistanceKm()) : "--"));
-            if (segment.getStartDate() != null || segment.getEndDate() != null) {
+            List<PlannerDayResponse> days = segment.getDays();
+            if (days != null && !days.isEmpty()) {
+                for (PlannerDayResponse day : days) {
+                    if (day == null) continue;
+                    if (selectedDay != null && day.getDate() != null && !isSameDay(day.getDate(), selectedDay)) {
+                        continue;
+                    }
+                    List<PlannerItemResponse> items = day.getItems();
+                    if (items == null || items.isEmpty()) continue;
+                    for (PlannerItemResponse item : items) {
+                        if (item == null) continue;
+                        String startTime = normalizeApiTime(item.getStartTime());
+                        String endTime = normalizeApiTime(item.getEndTime());
+                        String title = safeText(item.getPoiName());
+                        String locationLine = joinLocation(item.getLocationName(), item.getAddress());
+                        String indoorText = item.isIndoor() ? "Trong nhà" : "Ngoài trời";
+                        String weather = "Risk " + formatRisk(item.getWeatherRiskScore());
+                        currentRows.add(new ItineraryStopRow(
+                                formatTimeRange(startTime, endTime),
+                                safeTime(startTime),
+                                safeTime(endTime),
+                                title,
+                                locationLine,
+                                indoorText,
+                                safeText(item.getType()),
+                                "Theo lịch AI",
+                                weather,
+                                R.drawable.bg_image_placeholder,
+                                generatedLat,
+                                generatedLng,
+                                globalStopOrder++
+                        ));
+                    }
+                }
+            } else if (segment.getStartDate() != null || segment.getEndDate() != null) {
                 String startTxt = segment.getStartDate() != null ? new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(segment.getStartDate()) : "--";
                 String endTxt = segment.getEndDate() != null ? new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(segment.getEndDate()) : "--";
                 currentRows.add(new ItineraryStopRow(
@@ -336,6 +396,10 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                         globalStopOrder++
                 ));
             }
+        }
+        if (countStops(currentRows) == 0) {
+            seedDefaultRouteSegment();
+            return;
         }
         itineraryAdapter.updateData(new ArrayList<>(currentRows));
         rvTimeline.invalidateItemDecorations();
@@ -392,9 +456,34 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         ).show(getSupportFragmentManager(), "AddSegmentBottomSheet");
     }
 
+    private void showInviteDialog() {
+        if (plannerTripId == null || plannerTripId.trim().isEmpty()) {
+            Toast.makeText(this, "Thiếu tripId để tạo link mời", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String title = tripTitleLabel != null && !tripTitleLabel.trim().isEmpty()
+                ? tripTitleLabel.trim()
+                : (destinationLabel != null ? destinationLabel : "Chuyến đi");
+        TripInviteDialogFragment
+                .newInstance(plannerTripId, title)
+                .show(getSupportFragmentManager(), "TripInviteDialogFragment");
+    }
+
     @Override
     public void onSegmentAddedAndReadyForAi(@NonNull String tripId, @NonNull String locationName, @NonNull String segmentStartDate, @NonNull String segmentEndDate, double latitude, double longitude) {
         reloadPlanner();
+    }
+
+    @Override
+    public void onInviteJoined(@NonNull String tripId) {
+        Toast.makeText(this, "Đã tham gia chuyến đi", Toast.LENGTH_SHORT).show();
+        reloadPlanner();
+    }
+
+    @Override
+    public void onInviteAuthRequired(@NonNull String tripId) {
+        Toast.makeText(this, "Vui lòng đăng nhập để tham gia", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this, LoginActivity.class));
     }
 
     private static String safeText(@Nullable String s) { return s == null || s.trim().isEmpty() ? "--" : s.trim(); }
@@ -409,6 +498,20 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     }
     private static String formatTimeRange(@Nullable String start, @Nullable String end) {
         return safeTime(start) + " – " + safeTime(end);
+    }
+
+    private static String normalizeApiTime(@Nullable String value) {
+        if (value == null || value.trim().isEmpty()) return "--:--";
+        String v = value.trim();
+        if (v.length() >= 5 && v.charAt(2) == ':') return v.substring(0, 5);
+        return v;
+    }
+
+    private static boolean isSameDay(@NonNull Date date, @NonNull Calendar selectedDay) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return c.get(Calendar.YEAR) == selectedDay.get(Calendar.YEAR)
+                && c.get(Calendar.DAY_OF_YEAR) == selectedDay.get(Calendar.DAY_OF_YEAR);
     }
     private List<TripRibbonDay> buildRibbonDaysForTrip(
             @Nullable String datesDisplay,
