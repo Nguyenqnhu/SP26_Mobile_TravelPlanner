@@ -1,6 +1,7 @@
 package com.example.weathertrip_sep490.adapter;
 
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.Color;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +11,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -129,32 +129,37 @@ public class TripCardAdapter extends RecyclerView.Adapter<TripCardAdapter.Holder
         }
 
         private void applyStatusBadge(TripStatus status) {
-            int bg;
-            int fg;
+            int bgColor;
+            int textColor;
+            int borderColor;
             String label;
             switch (status) {
                 case UPCOMING:
                     label = "Sắp tới";
-                    bg = R.color.orange_pastel;
-                    fg = R.color.slate_800;
+                    bgColor = Color.parseColor("#2EF59E0B");
+                    textColor = Color.parseColor("#B45309");
+                    borderColor = Color.parseColor("#5CF59E0B");
                     break;
                 case ONGOING:
                     label = "Đang diễn ra";
-                    bg = R.color.light_green_pastel;
-                    fg = R.color.emerald_700;
+                    bgColor = Color.parseColor("#29DC2626");
+                    textColor = Color.parseColor("#B91C1C");
+                    borderColor = Color.parseColor("#52DC2626");
                     break;
                 case COMPLETED:
                 default:
                     label = "Đã hoàn thành";
-                    bg = R.color.slate_500;
-                    fg = R.color.white;
+                    bgColor = Color.parseColor("#2916A34A");
+                    textColor = Color.parseColor("#15803D");
+                    borderColor = Color.parseColor("#5716A34A");
                     break;
             }
             tvBadge.setText(label);
-            tvBadge.setTextColor(ContextCompat.getColor(itemView.getContext(), fg));
+            tvBadge.setTextColor(textColor);
             GradientDrawable d = new GradientDrawable();
             d.setCornerRadius(dp(14));
-            d.setColor(ContextCompat.getColor(itemView.getContext(), bg));
+            d.setColor(bgColor);
+            d.setStroke((int) dp(1), borderColor);
             tvBadge.setBackground(d);
         }
 

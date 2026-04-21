@@ -49,6 +49,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -66,6 +67,7 @@ import retrofit2.Response;
 public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback, AddSegmentBottomSheet.Listener, TripInviteDialogFragment.Listener {
 
     public static final String EXTRA_CITY = "extra_city";
+    public static final String EXTRA_TRIP_TITLE = "extra_trip_title";
     public static final String EXTRA_DATES = "extra_dates";
     public static final String EXTRA_START_POINT = "extra_start_point";
     public static final String EXTRA_DESTINATION = "extra_destination";
@@ -118,13 +120,14 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         setContentView(R.layout.activity_trip_detail);
 
         String city = getIntent().getStringExtra(EXTRA_CITY);
+        String tripTitle = getIntent().getStringExtra(EXTRA_TRIP_TITLE);
         String dates = getIntent().getStringExtra(EXTRA_DATES);
         String startPoint = getIntent().getStringExtra(EXTRA_START_POINT);
         String destination = getIntent().getStringExtra(EXTRA_DESTINATION);
         String route = getIntent().getStringExtra(EXTRA_ROUTE);
         startPointLabel = startPoint;
         destinationLabel = destination;
-        tripTitleLabel = city != null && !city.trim().isEmpty() ? city.trim() : resolveRouteLabel(route, startPoint, destination, city);
+        tripTitleLabel = normalizeTripTitle(tripTitle, city, route, startPoint, destination);
         String segLocation = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_LOCATION);
         String segStart = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_START);
         String segEnd = getIntent().getStringExtra(EXTRA_GENERATED_SEGMENT_END);
@@ -150,7 +153,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         if (btnAddSegment != null) btnAddSegment.setOnClickListener(v -> openAddSegment());
         if (btnGenerateAi != null) btnGenerateAi.setText("Mời bạn tham gia");
 
-        tvJourneyTitle.setText(getString(R.string.trip_journey_at, primaryDestination(city)));
+        tvJourneyTitle.setText(tripTitleLabel);
         tvDates.setText(dates != null && !dates.isEmpty() ? dates : "5/4/2026 – 12/4/2026");
         tvRoute.setText(resolveRouteLabel(route, startPoint, destination, city));
         btnBack.setOnClickListener(v -> finish());
@@ -295,28 +298,45 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     private List<TripRibbonDay> buildDaysFromPlanner(@Nullable PlannerTripResponse response, @Nullable String datesDisplay, @Nullable String segStart, @Nullable String segEnd) {
+        List<TripRibbonDay> fixedRange = buildRibbonDaysForTrip(datesDisplay, segStart, segEnd);
+        if (!fixedRange.isEmpty()) {
+            return fixedRange;
+        }
         List<TripRibbonDay> out = new ArrayList<>();
         if (response == null || response.getSegments() == null) return out;
+        Calendar minDay = null;
+        Calendar maxDay = null;
         for (TripSegmentResponse segment : response.getSegments()) {
             if (segment == null) continue;
             if (segment.getDays() != null && !segment.getDays().isEmpty()) {
                 for (PlannerDayResponse day : segment.getDays()) {
                     if (day == null || day.getDate() == null) continue;
                     Calendar c = calendarFromDate(day.getDate());
-                    if (c != null) out.add(new TripRibbonDay(c, weekdayVnShort(c)));
+                    if (c != null) {
+                        if (minDay == null || c.before(minDay)) minDay = (Calendar) c.clone();
+                        if (maxDay == null || c.after(maxDay)) maxDay = (Calendar) c.clone();
+                    }
                 }
             }
             if (segment.getStartDate() != null) {
                 Calendar c = calendarFromDate(segment.getStartDate());
-                if (c != null) out.add(new TripRibbonDay(c, weekdayVnShort(c)));
+                if (c != null) {
+                    if (minDay == null || c.before(minDay)) minDay = (Calendar) c.clone();
+                    if (maxDay == null || c.after(maxDay)) maxDay = (Calendar) c.clone();
+                }
             }
             if (segment.getEndDate() != null) {
                 Calendar c = calendarFromDate(segment.getEndDate());
-                if (c != null) out.add(new TripRibbonDay(c, weekdayVnShort(c)));
+                if (c != null) {
+                    if (minDay == null || c.before(minDay)) minDay = (Calendar) c.clone();
+                    if (maxDay == null || c.after(maxDay)) maxDay = (Calendar) c.clone();
+                }
             }
         }
-        if (!out.isEmpty()) return out;
-        return buildRibbonDaysForTrip(datesDisplay, segStart, segEnd);
+        if (minDay != null) {
+            return buildRibbonDaysFromRange(minDay, maxDay != null ? maxDay : minDay);
+        }
+        return out;
     }
 
     @Nullable
@@ -424,7 +444,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                         okhttp3.ResponseBody eb = response.errorBody();
                         if (eb != null) details = eb.string();
                     } catch (Exception ignored) {}
-                    Toast.makeText(TripDetailActivity.this, "Generate thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : ": " + details), Toast.LENGTH_LONG).show();
+                    Toast.makeText(TripDetailActivity.this, buildGenerateErrorMessage(response.code(), details), Toast.LENGTH_LONG).show();
                     return;
                 }
                 Toast.makeText(TripDetailActivity.this, "AI đã tạo xong lịch trình", Toast.LENGTH_SHORT).show();
@@ -487,6 +507,24 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     }
 
     private static String safeText(@Nullable String s) { return s == null || s.trim().isEmpty() ? "--" : s.trim(); }
+    private static String buildGenerateErrorMessage(int code, @Nullable String rawError) {
+        if (rawError == null || rawError.trim().isEmpty()) {
+            return "Generate thất bại (" + code + ")";
+        }
+        try {
+            JSONObject obj = new JSONObject(rawError);
+            String message = obj.optString("message", "").trim();
+            String detail = obj.optString("detail", "").trim();
+            if (!detail.isEmpty()) {
+                return "Generate thất bại (" + code + "): " + detail;
+            }
+            if (!message.isEmpty()) {
+                return "Generate thất bại (" + code + "): " + message;
+            }
+        } catch (Exception ignored) {
+        }
+        return "Generate thất bại (" + code + "): " + rawError;
+    }
     private static String safeTime(@Nullable String s) { return s == null || s.trim().isEmpty() ? "--:--" : s.trim(); }
     private static String formatRisk(double risk) { return String.format(Locale.getDefault(), "%.1f", risk); }
     private static String joinLocation(@Nullable String locationName, @Nullable String address) {
@@ -572,15 +610,25 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     @Nullable
     private static Calendar parseIsoDateOnly(@Nullable String s) {
         if (s == null || s.trim().isEmpty()) return null;
-        try {
-            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            f.setLenient(false);
-            Calendar c = Calendar.getInstance();
-            c.setTime(f.parse(s.trim()));
-            return normalizeDayStart(c);
-        } catch (ParseException e) {
-            return null;
+        String raw = s.trim();
+        String[] patterns = new String[]{
+                "yyyy-MM-dd",
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        };
+        for (String pattern : patterns) {
+            try {
+                SimpleDateFormat f = new SimpleDateFormat(pattern, Locale.US);
+                f.setLenient(false);
+                Calendar c = Calendar.getInstance();
+                c.setTime(f.parse(raw));
+                return normalizeDayStart(c);
+            } catch (Exception ignored) {
+            }
         }
+        return null;
     }
 
     @NonNull
@@ -814,14 +862,21 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
-    private static String primaryDestination(@Nullable String city) {
-        if (city == null || city.trim().isEmpty()) return "Việt Nam";
-        String c = city.trim();
-        int idx = c.lastIndexOf('→');
-        if (idx >= 0 && idx < c.length() - 1) {
-            return c.substring(idx + 1).trim();
+    @NonNull
+    private static String normalizeTripTitle(
+            @Nullable String tripTitle,
+            @Nullable String city,
+            @Nullable String route,
+            @Nullable String startPoint,
+            @Nullable String destination
+    ) {
+        if (tripTitle != null && !tripTitle.trim().isEmpty()) {
+            return tripTitle.trim();
         }
-        return c;
+        if (city != null && !city.trim().isEmpty()) {
+            return city.trim();
+        }
+        return resolveRouteLabel(route, startPoint, destination, city);
     }
 
 

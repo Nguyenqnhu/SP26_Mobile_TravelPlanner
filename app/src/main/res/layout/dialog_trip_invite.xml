@@ -8,207 +8,170 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
+        android:layout_margin="0dp"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="24dp"
-        app:cardElevation="10dp"
-        app:strokeColor="@color/emerald_100"
-        app:strokeWidth="1dp">
+        app:cardElevation="10dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="20dp">
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="20dp">
 
-            <TextView
-                android:id="@+id/tvInviteDialogTitle"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/btnInviteCloseIcon"
-                android:layout_marginEnd="12dp"
-                android:text="Chia sẻ"
-                android:textColor="@color/text_title"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/btnInviteCloseIcon"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_alignParentEnd="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@null"
-                android:padding="6dp"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
-                app:tint="@color/text_body" />
+                <TextView
+                    android:id="@+id/tvInviteDialogTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mời bạn bè"
+                    android:textColor="@color/text_title"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/btnInviteCloseIcon"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/bg_circle_action"
+                    android:contentDescription="@null"
+                    android:padding="10dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:tint="@color/green_primary" />
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/tvInviteDialogSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tvInviteDialogTitle"
                 android:layout_marginTop="8dp"
-                android:layout_toStartOf="@+id/btnInviteCloseIcon"
-                android:text="Thêm người bằng email, sao chép liên kết hoặc quét QR để mời tham gia"
+                android:text="Chia sẻ link mời hoặc gửi email để mời bạn vào chuyến đi"
                 android:textColor="@color/slate_500"
                 android:textSize="13sp" />
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardInviteEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tvInviteDialogSubtitle"
-                android:layout_marginTop="16dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/emerald_100"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Mời qua email"
-                        android:textColor="@color/slate_800"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <EditText
-                        android:id="@+id/etInviteEmail"
-                        android:layout_width="match_parent"
-                        android:layout_height="20dp"
-                        android:layout_marginTop="10dp"
-                        android:background="@drawable/bg_input_auth"
-                        android:hint="Nhập email người được mời"
-                        android:inputType="textEmailAddress"
-                        android:paddingStart="14dp"
-                        android:paddingEnd="14dp"
-                        android:textColor="@color/slate_400"
-                        android:textColorHint="@color/slate_400" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnInviteEmail"
-                        style="@style/Widget.Material3.Button.UnelevatedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="46dp"
-                        android:layout_marginTop="12dp"
-                        android:text="Mời qua email"
-                        android:textAllCaps="false"
-                        app:backgroundTint="@color/green_primary"
-                        app:cornerRadius="14dp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <TextView
-                android:id="@+id/tvAccessTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/cardInviteEmail"
-                android:layout_marginTop="18dp"
-                android:text="Những người có quyền truy cập"
-                android:textColor="@color/slate_400"
-                android:textSize="15sp"
+                android:layout_marginTop="14dp"
+                android:text="Link mời"
+                android:textColor="@color/slate_800"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <LinearLayout
-                android:id="@+id/rowInviteActions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tvAccessTitle"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal"
-                android:weightSum="2">
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/tvInviteLink"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input_auth"
+                    android:enabled="false"
+                    android:gravity="center_vertical"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="Đang tải liên kết..."
+                    android:textColor="@color/slate_800"
+                    android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnInviteCopy"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="Sao chép liên kết"
+                    style="@style/Widget.Material3.Button.UnelevatedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="10dp"
+                    android:text="Copy"
                     android:textAllCaps="false"
-                    app:cornerRadius="14dp"
-                    app:strokeColor="@color/green_primary"
-                    android:textColor="@color/text_title"
-                    app:strokeWidth="1dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnInviteQr"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:text="Quét QR"
-                    android:textAllCaps="false"
-                    app:cornerRadius="14dp"
-                    app:strokeColor="@color/green_primary"
-                    android:textColor="@color/text_title"
-                    app:strokeWidth="1dp" />
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/green_primary"
+                    app:cornerRadius="18dp" />
             </LinearLayout>
 
             <TextView
-                android:id="@+id/tvInviteLink"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/rowInviteActions"
-                android:layout_marginTop="12dp"
-                android:maxLines="3"
-                android:text="Đang tải liên kết..."
-                android:textColor="@color/slate_400"
-                android:textSize="13sp" />
+                android:layout_marginTop="14dp"
+                android:text="Gửi qua mail"
+                android:textColor="@color/slate_800"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/etInviteEmail"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input_auth"
+                    android:hint="Nhập email người được mời"
+                    android:inputType="textEmailAddress"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:textColor="@color/slate_800"
+                    android:textColorHint="@color/slate_400"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnInviteEmail"
+                    style="@style/Widget.Material3.Button.UnelevatedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="10dp"
+                    android:text="Gửi"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/green_primary"
+                    app:cornerRadius="18dp" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInviteQr"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="46dp"
+                android:layout_marginTop="14dp"
+                android:text="Quét QR"
+                android:textAllCaps="false"
+                android:textColor="@color/text_title"
+                app:cornerRadius="14dp"
+                app:strokeColor="@color/green_primary"
+                app:strokeWidth="1dp" />
 
             <TextView
                 android:id="@+id/tvInviteStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tvInviteLink"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:text=""
                 android:textColor="@color/green_primary"
                 android:textSize="12sp" />
 
             <ImageView
                 android:id="@+id/ivInviteQr"
-                android:layout_width="180dp"
-                android:layout_height="180dp"
-                android:layout_below="@id/tvInviteStatus"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="16dp"
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
                 android:contentDescription="@null"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_share" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnInviteJoin"
-                style="@style/Widget.Material3.Button.UnelevatedButton"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_below="@id/ivInviteQr"
-                android:layout_marginTop="16dp"
-                android:text="Tham gia chuyến đi"
-                android:textAllCaps="false"
-                app:backgroundTint="@color/green_primary"
-                app:cornerRadius="14dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnInviteClose"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_below="@id/btnInviteJoin"
-                android:layout_marginTop="6dp"
-                android:text="Đóng"
-                android:textAllCaps="false"
                 android:visibility="gone" />
-        </RelativeLayout>
+        </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
 </FrameLayout>

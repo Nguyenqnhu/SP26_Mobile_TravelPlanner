@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Khám phá những địa điểm thú vị"
-                    android:textColor="#111827"
+                    android:textColor="#064E3B"
                     android:textSize="20sp"
                     android:textStyle="bold" />
             </LinearLayout>

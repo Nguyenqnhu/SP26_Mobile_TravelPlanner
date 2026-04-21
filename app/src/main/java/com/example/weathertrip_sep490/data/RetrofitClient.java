@@ -3,14 +3,24 @@ package com.example.weathertrip_sep490.data;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.weathertrip_sep490.BuildConfig;
 import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.POIListResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
@@ -21,7 +31,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    private static final String BASE_URL = "http://10.0.2.2:5131/";
+    private static final String BASE_URL = normalizeBaseUrl(BuildConfig.API_BASE_URL);
     private static final String PREFS_NAME = "TravelGoPrefs";
     private static final String KEY_ACCESS_TOKEN = "access_token";
 
@@ -31,6 +41,14 @@ public class RetrofitClient {
     private AuthAPI authAPI;
     private UserAPI userAPI;
     private WeatherAPI weatherAPI;
+
+    private static String normalizeBaseUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            throw new IllegalStateException("API_BASE_URL is empty");
+        }
+        String normalized = url.trim();
+        return normalized.endsWith("/") ? normalized : normalized + "/";
+    }
 
 
     public static void init(Context context) {
@@ -89,9 +107,42 @@ public class RetrofitClient {
                 .build();
 
         Type listPOIType = new TypeToken<List<POI>>() {}.getType();
+        JsonDeserializer<Date> multiFormatDateDeserializer = new JsonDeserializer<Date>() {
+            @Override
+            public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                if (json == null || json.isJsonNull()) {
+                    return null;
+                }
+                String raw = json.getAsString();
+                if (raw == null || raw.trim().isEmpty()) {
+                    return null;
+                }
+                String value = raw.trim();
+                String[] patterns = new String[]{
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                        "yyyy-MM-dd'T'HH:mm:ss",
+                        "yyyy-MM-dd"
+                };
+                for (String pattern : patterns) {
+                    try {
+                        SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.US);
+                        sdf.setLenient(false);
+                        if (pattern.contains("'Z'")) {
+                            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        }
+                        return sdf.parse(value);
+                    } catch (ParseException ignored) {
+                    }
+                }
+                throw new JsonParseException("Unparseable date: " + value);
+            }
+        };
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                 .setLenient()
+                .registerTypeAdapter(Date.class, multiFormatDateDeserializer)
                 .registerTypeAdapter(listPOIType, new POIListResponse.Deserializer())
                 .create();
 

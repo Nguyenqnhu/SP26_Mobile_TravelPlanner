@@ -12,14 +12,18 @@ import android.widget.TextView;
 import androidx.appcompat.widget.SwitchCompat;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.AuthAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.LoginRequest;
 import com.example.weathertrip_sep490.model.LoginResponse;
+import com.example.weathertrip_sep490.model.JoinParticipantResponse;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 
 import android.util.Base64;
@@ -149,12 +153,17 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     editor.commit();
                     Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
-                    if (token != null && !token.isEmpty()) {
-                        intent.putExtra("access_token", token);
+                    String pendingJoinTripId = getIntent() != null ? getIntent().getStringExtra("pending_join_trip_id") : null;
+                    if (pendingJoinTripId != null && !pendingJoinTripId.trim().isEmpty()) {
+                        joinPendingInviteAfterLogin(pendingJoinTripId.trim(), token);
+                    } else {
+                        Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
+                        if (token != null && !token.isEmpty()) {
+                            intent.putExtra("access_token", token);
+                        }
+                        startActivity(intent);
+                        finish();
                     }
-                    startActivity(intent);
-                    finish();
                 } else {
                     Toast.makeText(LoginActivity.this, "Email hoặc mật khẩu không đúng", Toast.LENGTH_SHORT).show();
                 }
@@ -164,6 +173,37 @@ public class LoginActivity extends AppCompatActivity {
             public void onFailure(Call<LoginResponse> call, Throwable t) {
                 setLoading(false);
                 Toast.makeText(LoginActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void joinPendingInviteAfterLogin(@NonNull String tripId, @Nullable String token) {
+        UserAPI userAPI = RetrofitClient.getInstance().getUserAPI();
+        userAPI.joinTrip(tripId).enqueue(new Callback<JoinParticipantResponse>() {
+            @Override
+            public void onResponse(Call<JoinParticipantResponse> call, Response<JoinParticipantResponse> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(LoginActivity.this, "Đã tham gia chuyến đi từ link mời", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Không thể join trip mời (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                }
+                Intent intent = new Intent(LoginActivity.this, TripManageActivity.class);
+                if (token != null && !token.isEmpty()) {
+                    intent.putExtra("access_token", token);
+                }
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onFailure(Call<JoinParticipantResponse> call, Throwable t) {
+                Toast.makeText(LoginActivity.this, "Lỗi mạng khi join trip mời", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(LoginActivity.this, TripManageActivity.class);
+                if (token != null && !token.isEmpty()) {
+                    intent.putExtra("access_token", token);
+                }
+                startActivity(intent);
+                finish();
             }
         });
     }

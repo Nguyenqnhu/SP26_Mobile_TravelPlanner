@@ -22,6 +22,7 @@ import com.example.weathertrip_sep490.model.PlannerTripResponse;
 import com.example.weathertrip_sep490.model.TripSegmentResponse;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.button.MaterialButton;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -118,6 +119,7 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
         btnGenerate.setOnClickListener(v -> generateAi());
 
         renderIntroState();
+        reloadPlanner();
     }
 
     private void openAddSegment() {
@@ -212,6 +214,10 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
 
     private void generateAi() {
         if (TextUtils.isEmpty(tripId)) return;
+        if (lastKnownSegmentCount < 2) {
+            Toast.makeText(requireContext(), "Cần tối thiểu 2 segment để tạo lịch trình AI", Toast.LENGTH_LONG).show();
+            return;
+        }
         btnGenerate.setEnabled(false);
         showLoading(true);
         android.util.Log.d("SegmentManagerBottomSheet", "generate tripId=" + tripId);
@@ -229,7 +235,7 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
                         if (eb != null) details = eb.string();
                     } catch (Exception ignored) {}
                     android.util.Log.e("SegmentManagerBottomSheet", "generate failed code=" + response.code() + " body=" + details + " tripId=" + tripId);
-                    Toast.makeText(requireContext(), "Generate thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : (": " + details)), Toast.LENGTH_LONG).show();
+                    Toast.makeText(requireContext(), buildGenerateErrorMessage(response.code(), details), Toast.LENGTH_LONG).show();
                     return;
                 }
                 PlannerGenerateResponse body = response.body();
@@ -260,5 +266,25 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
     @Override
     public void onSegmentAddedAndReadyForAi(@NonNull String tripId, @NonNull String locationName, @NonNull String segmentStartDate, @NonNull String segmentEndDate, double latitude, double longitude) {
         reloadPlanner();
+    }
+
+    @NonNull
+    private String buildGenerateErrorMessage(int code, @Nullable String rawError) {
+        if (rawError == null || rawError.trim().isEmpty()) {
+            return "Generate thất bại (" + code + ")";
+        }
+        try {
+            JSONObject obj = new JSONObject(rawError);
+            String message = obj.optString("message", "").trim();
+            String detail = obj.optString("detail", "").trim();
+            if (!detail.isEmpty()) {
+                return "Generate thất bại (" + code + "): " + detail;
+            }
+            if (!message.isEmpty()) {
+                return "Generate thất bại (" + code + "): " + message;
+            }
+        } catch (Exception ignored) {
+        }
+        return "Generate thất bại (" + code + "): " + rawError;
     }
 }
