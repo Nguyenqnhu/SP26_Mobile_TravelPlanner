@@ -29,9 +29,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -214,8 +214,8 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
         }
 
         LocationOption selected = (LocationOption) spLocations.getSelectedItem();
-        String start = toIsoUtc(startCal);
-        String end = toIsoUtc(endCal);
+        String start = toApiDateTime(startCal);
+        String end = toApiDateTime(endCal);
         List<AddSegmentRequest> req = new ArrayList<>();
         req.add(new AddSegmentRequest(selected.getLocationId(), start, end));
 
@@ -262,32 +262,59 @@ public class AddSegmentBottomSheet extends BottomSheetDialogFragment {
             @Override
             public void onFailure(@NonNull Call<List<TripSegmentResponse>> call, @NonNull Throwable t) {
                 isSubmitting = false;
-                Toast.makeText(requireContext(), "Lỗi mạng: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
+                String rawMessage = t.getMessage() != null ? t.getMessage().trim() : "";
+                boolean looksLikeDateParse = rawMessage.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z?");
+                String msg;
+                if (looksLikeDateParse) {
+                    msg = "Lỗi parse dữ liệu ngày từ server, vui lòng thử lại";
+                } else {
+                    msg = "Lỗi mạng: " + (rawMessage.isEmpty() ? "unknown" : rawMessage);
+                }
+                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private static void parseIsoToCalendar(@NonNull String iso, @NonNull Calendar out) {
-        try {
-            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-            f.setTimeZone(TimeZone.getTimeZone("UTC"));
-            out.setTime(f.parse(iso));
-            out.set(Calendar.HOUR_OF_DAY, 0);
-            out.set(Calendar.MINUTE, 0);
-            out.set(Calendar.SECOND, 0);
-            out.set(Calendar.MILLISECOND, 0);
-        } catch (Exception ignored) { }
+        if (iso.trim().isEmpty()) return;
+        String[] patterns = new String[]{
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd"
+        };
+        for (String pattern : patterns) {
+            try {
+                SimpleDateFormat f = new SimpleDateFormat(pattern, Locale.US);
+                f.setLenient(false);
+                Date parsed = f.parse(iso.trim());
+                if (parsed == null) continue;
+                out.setTime(parsed);
+                out.set(Calendar.HOUR_OF_DAY, 0);
+                out.set(Calendar.MINUTE, 0);
+                out.set(Calendar.SECOND, 0);
+                out.set(Calendar.MILLISECOND, 0);
+                return;
+            } catch (Exception ignored) {
+            }
+        }
     }
 
-    private static String toIsoUtc(@NonNull Calendar calendar) {
+    private static String toApiDateTime(@NonNull Calendar calendar) {
         Calendar c = (Calendar) calendar.clone();
-        c.set(Calendar.HOUR_OF_DAY, 16);
-        c.set(Calendar.MINUTE, 55);
-        c.set(Calendar.SECOND, 53);
-        c.set(Calendar.MILLISECOND, 922);
-        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-        f.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return f.format(c.getTime());
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+            f.setLenient(false);
+            return f.format(c.getTime());
+        } catch (Exception ignored) {
+            SimpleDateFormat fallback = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            return fallback.format(c.getTime());
+        }
     }
 
     private static boolean looksLikeResponseMappingFailure(@Nullable String details) {

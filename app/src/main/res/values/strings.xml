@@ -33,7 +33,7 @@
     <string name="fill_all_fields">Vui lòng điền đầy đủ thông tin</string>
 
     <string-array name="trip_type_choices">
-        <item>1 chiều</item>
+        <item>Một chiều</item>
         <item>Khứ hồi</item>
     </string-array>
 

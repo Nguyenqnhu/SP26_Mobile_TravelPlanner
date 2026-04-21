@@ -12,6 +12,10 @@ public class Trip {
     private final String city;
     private final String dateRange;
     @Nullable
+    private final String startDateIso;
+    @Nullable
+    private final String endDateIso;
+    @Nullable
     private final String costDisplay;
     private final TripStatus status;
     private final int imageResId;
@@ -24,7 +28,7 @@ public class Trip {
             @Nullable String costDisplay,
             TripStatus status,
             int imageResId) {
-        this(id, tripTitle, "", city, dateRange, costDisplay, status, imageResId);
+        this(id, tripTitle, "", city, dateRange, null, null, costDisplay, status, imageResId);
     }
 
     public Trip(
@@ -33,6 +37,8 @@ public class Trip {
             String startPoint,
             String destination,
             String dateRange,
+            @Nullable String startDateIso,
+            @Nullable String endDateIso,
             @Nullable String costDisplay,
             TripStatus status,
             int imageResId) {
@@ -42,6 +48,8 @@ public class Trip {
         this.destination = destination;
         this.city = destination;
         this.dateRange = dateRange;
+        this.startDateIso = startDateIso;
+        this.endDateIso = endDateIso;
         this.costDisplay = costDisplay;
         this.status = status;
         this.imageResId = imageResId;
@@ -69,6 +77,16 @@ public class Trip {
 
     public String getDateRange() {
         return dateRange;
+    }
+
+    @Nullable
+    public String getStartDateIso() {
+        return startDateIso;
+    }
+
+    @Nullable
+    public String getEndDateIso() {
+        return endDateIso;
     }
 
     @Nullable

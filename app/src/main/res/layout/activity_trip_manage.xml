@@ -54,25 +54,22 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCreateTrip"
-                    style="@style/Widget.MaterialComponents.Button"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="0dp"
                     android:minWidth="0dp"
-                    android:paddingStart="12dp"
-                    android:paddingTop="8dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="8dp"
+                    android:paddingStart="13dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="13dp"
+                    android:paddingBottom="10dp"
                     android:text="Tạo chuyến đi"
                     android:textStyle="bold"
                     android:textAllCaps="false"
-                    android:textSize="12sp"
-                    app:backgroundTint="@color/text_title"
-                    app:cornerRadius="22dp"
-                    app:icon="@android:drawable/ic_input_add"
-                    app:iconGravity="textStart"
-                    app:iconPadding="4dp"
-                    app:iconTint="@color/white" />
+                    android:textColor="@color/white"
+                    android:textSize="13sp"
+                    app:backgroundTint="@color/emerald_600"
+                    app:cornerRadius="100dp" />
             </LinearLayout>
 
             <!-- Tìm kiếm (hàng trên) + segmented trạng thái (hàng dưới, full width) -->

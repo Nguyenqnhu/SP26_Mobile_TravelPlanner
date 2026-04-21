@@ -18,11 +18,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5131/\"")
+        // Fallback default, specific buildTypes below will override this value.
+        buildConfigField("String", "API_BASE_URL", "\"https://travelplanner-e8afamefddf8bwc7.southeastasia-01.azurewebsites.net/\"")
     }
 
     buildTypes {
+        debug {
+            // Cloud backend for development/testing
+            buildConfigField("String", "API_BASE_URL", "\"https://travelplanner-e8afamefddf8bwc7.southeastasia-01.azurewebsites.net/\"")
+        }
         release {
+            // Cloud backend for production
+            buildConfigField("String", "API_BASE_URL", "\"https://travelplanner-e8afamefddf8bwc7.southeastasia-01.azurewebsites.net/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

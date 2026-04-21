@@ -21,27 +21,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.adapter.TripCardAdapter;
-import com.example.weathertrip_sep490.data.RetrofitClient;
-import com.example.weathertrip_sep490.data.UserAPI;
-import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.Trip;
 import com.example.weathertrip_sep490.model.TripStatus;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener, AddSegmentBottomSheet.Listener, SegmentManagerBottomSheet.Listener {
 
     private static final String PREFS_NAME = "TravelGoPrefs";
-    private static final String KEY_MANAGED_TRIPS = "managed_trips_json";
+    private static final String KEY_MANAGED_TRIPS_PREFIX = "managed_trips_json_";
 
     private final List<Trip> allTrips = new ArrayList<>();
     private EditText etSearch;
@@ -91,6 +87,7 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
             public void onViewDetails(Trip trip) {
                 Intent intent = new Intent(TripManageActivity.this, TripDetailActivity.class);
                 intent.putExtra(TripDetailActivity.EXTRA_CITY, trip.getCity());
+                intent.putExtra(TripDetailActivity.EXTRA_TRIP_TITLE, trip.getTripTitle());
                 intent.putExtra(TripDetailActivity.EXTRA_DATES, trip.getDateRange());
                 intent.putExtra(TripDetailActivity.EXTRA_START_POINT, trip.getStartPoint());
                 intent.putExtra(TripDetailActivity.EXTRA_DESTINATION, trip.getDestination());
@@ -135,6 +132,15 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         setupBottomNav();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshTripsWithCurrentStatus();
+        refreshStatusTabLabels();
+        applyTabVisualState();
+        applyFiltersAndRefresh();
+    }
+
     private void refreshStatusTabLabels() {
         List<String> labels = buildChipLabels();
         tabAll.setText(labels.get(0));
@@ -174,10 +180,18 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         }
     }
 
+    private String getManagedTripsKey() {
+        String userId = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString("current_user_id", "");
+        if (userId == null || userId.trim().isEmpty()) {
+            return KEY_MANAGED_TRIPS_PREFIX + "anonymous";
+        }
+        return KEY_MANAGED_TRIPS_PREFIX + userId.trim();
+    }
+
     private void loadTripsFromLocal() {
         allTrips.clear();
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String json = prefs.getString(KEY_MANAGED_TRIPS, null);
+        String json = prefs.getString(getManagedTripsKey(), null);
         if (json == null || json.trim().isEmpty()) return;
         try {
             JSONArray arr = new JSONArray(json);
@@ -189,6 +203,8 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 String startPoint = o.optString("startPoint", "");
                 String destination = o.optString("destination", city);
                 String range = o.optString("range", "");
+                String startIso = o.optString("startDateIso", "");
+                String endIso = o.optString("endDateIso", "");
                 String cost = o.optString("cost", null);
                 String statusRaw = o.optString("status", TripStatus.UPCOMING.name());
                 TripStatus status;
@@ -197,7 +213,8 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 } catch (Exception ignored) {
                     status = TripStatus.UPCOMING;
                 }
-                allTrips.add(new Trip(id, title, startPoint, destination, range, cost, status, R.drawable.sampleplace));
+                TripStatus computedStatus = computeStatusFromDate(startIso, endIso, status);
+                allTrips.add(new Trip(id, title, startPoint, destination, range, startIso, endIso, cost, computedStatus, R.drawable.sampleplace));
             }
         } catch (Exception ignored) { }
     }
@@ -213,14 +230,102 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
                 o.put("startPoint", t.getStartPoint());
                 o.put("destination", t.getDestination());
                 o.put("range", t.getDateRange());
+                o.put("startDateIso", t.getStartDateIso());
+                o.put("endDateIso", t.getEndDateIso());
                 o.put("cost", t.getCostDisplay());
                 o.put("status", t.getStatus().name());
                 arr.put(o);
             } catch (Exception ignored) { }
         }
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
-                .putString(KEY_MANAGED_TRIPS, arr.toString())
+                .putString(getManagedTripsKey(), arr.toString())
                 .apply();
+    }
+
+    private void refreshTripsWithCurrentStatus() {
+        if (allTrips.isEmpty()) {
+            return;
+        }
+        List<Trip> normalized = new ArrayList<>();
+        for (Trip trip : allTrips) {
+            TripStatus computed = computeStatusFromDate(trip.getStartDateIso(), trip.getEndDateIso(), trip.getStatus());
+            normalized.add(new Trip(
+                    trip.getId(),
+                    trip.getTripTitle(),
+                    trip.getStartPoint(),
+                    trip.getDestination(),
+                    trip.getDateRange(),
+                    trip.getStartDateIso(),
+                    trip.getEndDateIso(),
+                    trip.getCostDisplay(),
+                    computed,
+                    trip.getImageResId()
+            ));
+        }
+        allTrips.clear();
+        allTrips.addAll(normalized);
+        persistTripsToLocal();
+    }
+
+    @NonNull
+    private TripStatus computeStatusFromDate(@Nullable String startIso, @Nullable String endIso, @Nullable TripStatus fallback) {
+        Date startDate = parseIsoDate(startIso);
+        Date endDate = parseIsoDate(endIso);
+        if (startDate == null || endDate == null) {
+            return fallback != null ? fallback : TripStatus.UPCOMING;
+        }
+
+        Calendar now = Calendar.getInstance();
+        Calendar start = Calendar.getInstance();
+        start.setTime(startDate);
+        resetStartOfDay(start);
+
+        Calendar end = Calendar.getInstance();
+        end.setTime(endDate);
+        setEndOfDay(end);
+
+        if (now.before(start)) {
+            return TripStatus.UPCOMING;
+        }
+        if (now.after(end)) {
+            return TripStatus.COMPLETED;
+        }
+        return TripStatus.ONGOING;
+    }
+
+    @Nullable
+    private Date parseIsoDate(@Nullable String iso) {
+        if (iso == null || iso.trim().isEmpty()) return null;
+        String text = iso.trim();
+        String[] patterns = new String[]{
+                "yyyy-MM-dd'T'HH:mm:ss",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd"
+        };
+        for (String pattern : patterns) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.US);
+                sdf.setLenient(false);
+                return sdf.parse(text);
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    private void resetStartOfDay(@NonNull Calendar calendar) {
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+    }
+
+    private void setEndOfDay(@NonNull Calendar calendar) {
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
     }
 
     private List<String> buildChipLabels() {
@@ -352,21 +457,60 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
 
     @Override
     public void onGenerateCompleted(@NonNull String tripId) {
+        String city = (pendingDestination != null && !pendingDestination.trim().isEmpty()) ? pendingDestination.trim() : (pendingTripTitle != null ? pendingTripTitle : "");
+        String dates = buildDateRangeDisplay(pendingStartDateDisplay, pendingEndDateDisplay, pendingRoundTrip);
+        TripStatus status = computeStatusFromDate(pendingStartDateIso, pendingEndDateIso, TripStatus.UPCOMING);
+
+        upsertManagedTrip(new Trip(
+                tripId,
+                pendingTripTitle != null ? pendingTripTitle : city,
+                pendingStartPoint != null ? pendingStartPoint : "",
+                pendingDestination != null ? pendingDestination : city,
+                dates,
+                pendingStartDateIso,
+                pendingEndDateIso,
+                null,
+                status,
+                R.drawable.sampleplace
+        ));
+
+        refreshStatusTabLabels();
+        applyTabVisualState();
+        applyFiltersAndRefresh();
+
         Intent intent = new Intent(this, TripDetailActivity.class);
         intent.putExtra("planner_trip_id", tripId);
-        String city = (pendingDestination != null && !pendingDestination.trim().isEmpty()) ? pendingDestination.trim() : (pendingTripTitle != null ? pendingTripTitle : "");
-        String dates = "";
-        if (pendingStartDateDisplay != null && !pendingStartDateDisplay.trim().isEmpty()) {
-            dates = pendingStartDateDisplay.trim();
-            if (pendingEndDateDisplay != null && !pendingEndDateDisplay.trim().isEmpty()) {
-                dates += " – " + pendingEndDateDisplay.trim();
-            }
-        }
         intent.putExtra(TripDetailActivity.EXTRA_CITY, city);
+        intent.putExtra(TripDetailActivity.EXTRA_TRIP_TITLE, pendingTripTitle);
         intent.putExtra(TripDetailActivity.EXTRA_DATES, dates);
         intent.putExtra(TripDetailActivity.EXTRA_START_POINT, pendingStartPoint);
         intent.putExtra(TripDetailActivity.EXTRA_DESTINATION, pendingDestination);
         intent.putExtra(TripDetailActivity.EXTRA_ROUTE, buildRouteLabel(pendingStartPoint, pendingDestination));
         startActivity(intent);
+    }
+
+    private void upsertManagedTrip(@NonNull Trip trip) {
+        int existingIndex = -1;
+        for (int i = 0; i < allTrips.size(); i++) {
+            if (trip.getId().equals(allTrips.get(i).getId())) {
+                existingIndex = i;
+                break;
+            }
+        }
+        if (existingIndex >= 0) {
+            allTrips.set(existingIndex, trip);
+        } else {
+            allTrips.add(0, trip);
+        }
+        persistTripsToLocal();
+    }
+
+    @NonNull
+    private String buildDateRangeDisplay(@Nullable String startDisplay, @Nullable String endDisplay, boolean roundTrip) {
+        String start = startDisplay != null ? startDisplay.trim() : "";
+        String end = endDisplay != null ? endDisplay.trim() : "";
+        if (start.isEmpty()) return "—";
+        if (!roundTrip || end.isEmpty()) return start + " · 1 chiều";
+        return start + " - " + end;
     }
 }

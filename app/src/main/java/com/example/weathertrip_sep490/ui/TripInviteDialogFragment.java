@@ -1,38 +1,45 @@
 package com.example.weathertrip_sep490.ui;
 
-import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
+import android.app.Dialog;
+
+import androidx.annotation.NonNull;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
+import com.example.weathertrip_sep490.model.AddParticipantRequest;
 import com.example.weathertrip_sep490.model.InviteLinkResponse;
 import com.example.weathertrip_sep490.model.InviteQrResponse;
-import com.example.weathertrip_sep490.model.JoinParticipantResponse;
 import com.google.android.material.button.MaterialButton;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class TripInviteDialogFragment extends DialogFragment {
+public class TripInviteDialogFragment extends BottomSheetDialogFragment {
 
     public interface Listener {
         void onInviteJoined(@NonNull String tripId);
@@ -55,13 +62,15 @@ public class TripInviteDialogFragment extends DialogFragment {
     private String tripTitle = "";
     private TextView tvLink;
     private TextView tvStatus;
+    private EditText etEmail;
     private ImageView ivQr;
     private MaterialButton btnCopy;
     private MaterialButton btnQr;
-    private MaterialButton btnJoin;
     private MaterialButton btnEmail;
     private ImageView btnCloseIcon;
     private String inviteUrl = "";
+    private boolean qrLoaded = false;
+    private boolean qrLoading = false;
     private Listener listener;
 
     @Override
@@ -76,6 +85,26 @@ public class TripInviteDialogFragment extends DialogFragment {
         return inflater.inflate(R.layout.dialog_trip_invite, container, false);
     }
 
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
+        dialog.setOnShowListener(d -> {
+            BottomSheetDialog bs = (BottomSheetDialog) d;
+            View bottomSheet = bs.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet == null) return;
+            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            behavior.setSkipCollapsed(true);
+
+            // đảm bảo wrapContent, không bị ép chiều cao
+            CoordinatorLayout.LayoutParams lp = (CoordinatorLayout.LayoutParams) bottomSheet.getLayoutParams();
+            lp.height = CoordinatorLayout.LayoutParams.WRAP_CONTENT;
+            bottomSheet.setLayoutParams(lp);
+        });
+        return dialog;
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -84,24 +113,23 @@ public class TripInviteDialogFragment extends DialogFragment {
 
         tvLink = view.findViewById(R.id.tvInviteLink);
         tvStatus = view.findViewById(R.id.tvInviteStatus);
+        etEmail = view.findViewById(R.id.etInviteEmail);
         ivQr = view.findViewById(R.id.ivInviteQr);
         btnCopy = view.findViewById(R.id.btnInviteCopy);
         btnQr = view.findViewById(R.id.btnInviteQr);
-        btnJoin = view.findViewById(R.id.btnInviteJoin);
         btnEmail = view.findViewById(R.id.btnInviteEmail);
         btnCloseIcon = view.findViewById(R.id.btnInviteCloseIcon);
 
-        ((TextView) view.findViewById(R.id.tvInviteDialogTitle)).setText("Chia sẻ chuyến đi");
-        ((TextView) view.findViewById(R.id.tvInviteDialogSubtitle)).setText("Thêm người bằng email, sao chép liên kết hoặc quét QR để mời tham gia");
+        ((TextView) view.findViewById(R.id.tvInviteDialogTitle)).setText("Mời bạn bè");
+        ((TextView) view.findViewById(R.id.tvInviteDialogSubtitle)).setText("Chia sẻ link mời hoặc gửi email để mời bạn vào chuyến đi");
 
         btnCopy.setEnabled(false);
         btnQr.setEnabled(false);
-        btnJoin.setEnabled(false);
+        btnEmail.setEnabled(false);
 
         btnCloseIcon.setOnClickListener(v -> dismiss());
         btnCopy.setOnClickListener(v -> copyLink());
         btnQr.setOnClickListener(v -> showQr());
-        btnJoin.setOnClickListener(v -> joinTrip());
         btnEmail.setOnClickListener(v -> inviteByEmail());
 
         loadInviteData();
@@ -121,7 +149,8 @@ public class TripInviteDialogFragment extends DialogFragment {
                 tvLink.setText(inviteUrl.isEmpty() ? "Chưa có link" : inviteUrl);
                 btnCopy.setEnabled(!inviteUrl.isEmpty());
                 btnQr.setEnabled(!inviteUrl.isEmpty());
-                loadQr();
+                btnEmail.setEnabled(true);
+                tvStatus.setText("Sẵn sàng để mời bạn bè");
             }
 
             @Override
@@ -133,13 +162,18 @@ public class TripInviteDialogFragment extends DialogFragment {
     }
 
     private void loadQr() {
+        if (qrLoading) return;
+        qrLoading = true;
+        btnQr.setEnabled(false);
+        tvStatus.setText("Đang tải mã QR...");
         UserAPI api = RetrofitClient.getInstance().getUserAPI();
         api.getTripInviteQr(tripId).enqueue(new Callback<InviteQrResponse>() {
             @Override
             public void onResponse(@NonNull Call<InviteQrResponse> call, @NonNull Response<InviteQrResponse> response) {
+                qrLoading = false;
+                btnQr.setEnabled(true);
                 if (!response.isSuccessful() || response.body() == null) {
                     tvStatus.setText("Không tải được QR");
-                    btnJoin.setEnabled(true);
                     return;
                 }
                 String base64 = response.body().getQrCode();
@@ -148,18 +182,20 @@ public class TripInviteDialogFragment extends DialogFragment {
                         byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
                         Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                         ivQr.setImageBitmap(bmp);
+                        ivQr.setVisibility(View.VISIBLE);
+                        qrLoaded = true;
                     } catch (Exception e) {
                         tvStatus.setText("QR không hợp lệ");
                     }
                 }
-                btnJoin.setEnabled(true);
                 tvStatus.setText("Sẵn sàng để mời bạn bè");
             }
 
             @Override
             public void onFailure(@NonNull Call<InviteQrResponse> call, @NonNull Throwable t) {
+                qrLoading = false;
+                btnQr.setEnabled(true);
                 tvStatus.setText("Lỗi mạng khi tải QR");
-                btnJoin.setEnabled(true);
             }
         });
     }
@@ -173,54 +209,50 @@ public class TripInviteDialogFragment extends DialogFragment {
 
     private void showQr() {
         if (inviteUrl == null || inviteUrl.trim().isEmpty()) return;
-        tvStatus.setText("QR đã sẵn sàng bên dưới");
-    }
-
-    private void shareLink() {
-        if (inviteUrl == null || inviteUrl.trim().isEmpty()) return;
-        Intent send = new Intent(Intent.ACTION_SEND);
-        send.setType("text/plain");
-        send.putExtra(Intent.EXTRA_SUBJECT, tripTitle);
-        send.putExtra(Intent.EXTRA_TEXT, inviteUrl);
-        try {
-            startActivity(Intent.createChooser(send, "Chia sẻ link mời"));
-        } catch (ActivityNotFoundException ignored) { }
+        if (qrLoaded) {
+            ivQr.setVisibility(ivQr.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+            tvStatus.setText(ivQr.getVisibility() == View.VISIBLE ? "Đã hiển thị mã QR" : "Đã ẩn mã QR");
+            return;
+        }
+        loadQr();
     }
 
     private void inviteByEmail() {
-        Toast.makeText(requireContext(), "Tính năng mời qua email sẽ được nối theo API participants", Toast.LENGTH_SHORT).show();
-    }
-
-    private void joinTrip() {
-        String token = requireContext().getSharedPreferences("TravelGoPrefs", Context.MODE_PRIVATE)
-                .getString("access_token", "");
-        if (token == null || token.trim().isEmpty()) {
-            if (listener != null) listener.onInviteAuthRequired(tripId);
-            dismiss();
+        String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
+        if (email.isEmpty()) {
+            etEmail.setError("Vui lòng nhập email");
             return;
         }
-
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Email không hợp lệ");
+            return;
+        }
+        btnEmail.setEnabled(false);
+        tvStatus.setText("Đang gửi lời mời...");
+        AddParticipantRequest request = new AddParticipantRequest(null, email, null, true);
         UserAPI api = RetrofitClient.getInstance().getUserAPI();
-        api.joinTrip(tripId).enqueue(new Callback<JoinParticipantResponse>() {
+        api.addTripParticipant(tripId, request).enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(@NonNull Call<JoinParticipantResponse> call, @NonNull Response<JoinParticipantResponse> response) {
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                btnEmail.setEnabled(true);
                 if (!response.isSuccessful()) {
                     String details = "";
                     try {
                         okhttp3.ResponseBody eb = response.errorBody();
                         if (eb != null) details = eb.string();
-                    } catch (Exception ignored) {}
-                    tvStatus.setText("Join thất bại: " + response.code() + (details.isEmpty() ? "" : " · " + details));
+                    } catch (Exception ignored) { }
+                    tvStatus.setText("Gửi mời thất bại: " + response.code() + (details.isEmpty() ? "" : " · " + details));
                     return;
                 }
-                Toast.makeText(requireContext(), "Đã tham gia chuyến đi", Toast.LENGTH_SHORT).show();
-                if (listener != null) listener.onInviteJoined(tripId);
-                dismiss();
+                etEmail.setText("");
+                tvStatus.setText("Đã gửi lời mời thành công");
+                Toast.makeText(requireContext(), "Đã mời người dùng vào chuyến đi", Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public void onFailure(@NonNull Call<JoinParticipantResponse> call, @NonNull Throwable t) {
-                tvStatus.setText("Lỗi mạng khi join: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                btnEmail.setEnabled(true);
+                tvStatus.setText("Lỗi mạng khi gửi mời: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });
     }

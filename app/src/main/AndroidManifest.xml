@@ -79,6 +79,20 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.InviteJoinActivity"
+            android:exported="true">
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="travelplanner-e8afamefddf8bwc7.southeastasia-01.azurewebsites.net"
+                    android:path="/join" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".ui.ExplorePOIDetailActivity"
             android:exported="false" />
 
