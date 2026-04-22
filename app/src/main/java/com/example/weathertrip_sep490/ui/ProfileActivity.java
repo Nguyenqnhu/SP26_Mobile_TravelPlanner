@@ -15,7 +15,6 @@ import androidx.appcompat.app.AlertDialog;
 import com.example.weathertrip_sep490.util.LanguageManager;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
@@ -89,6 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
         setSettingItemText(R.id.itemPersonalInfo, "Thông tin cá nhân", R.drawable.ic_user);
         setSettingItemText(R.id.itemChangePassword, "Đổi mật khẩu", R.drawable.ic_lock_outline);
         setSettingItemText(R.id.itemUpdatePreference, "Cập nhật preference", R.drawable.ic_preferences);
+        setSettingItemText(R.id.itemSavedPromotions, "Các ưu đãi đã lưu", R.drawable.ic_heart);
         setSettingItemText(R.id.itemLanguage, "Ngôn ngữ", R.drawable.ic_language);
         setSettingItemText(R.id.itemHelp, "Trợ giúp", R.drawable.ic_help_outline);
 
@@ -115,6 +115,10 @@ public class ProfileActivity extends AppCompatActivity {
 
         findViewById(R.id.itemUpdatePreference).setOnClickListener(v -> {
             startActivity(new Intent(this, PreferencesActivity.class));
+        });
+
+        findViewById(R.id.itemSavedPromotions).setOnClickListener(v -> {
+            startActivity(new Intent(this, SavedPromotionsActivity.class));
         });
 
         findViewById(R.id.itemLanguage).setOnClickListener(v -> {

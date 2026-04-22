@@ -29,6 +29,7 @@ import com.example.weathertrip_sep490.adapter.PoiRecentAdapter;
 import com.example.weathertrip_sep490.data.RecentPoiStorage;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
+import com.example.weathertrip_sep490.model.AdvertisementItem;
 import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.Partner;
 import com.example.weathertrip_sep490.model.User;
@@ -197,7 +198,8 @@ public class HomepageActivity extends AppCompatActivity {
         if (tvRecent != null) tvRecent.setOnClickListener(openExplore);
 
         TextView tvPartner = findViewById(R.id.tvPartnerSeeAllVisible);
-        if (tvPartner != null) tvPartner.setOnClickListener(openExplore);
+        if (tvPartner != null) tvPartner.setOnClickListener(v ->
+                startActivity(new Intent(this, AdsFeedActivity.class)));
     }
 
     private void setupActionButtons() {
@@ -306,14 +308,31 @@ public class HomepageActivity extends AppCompatActivity {
         RecyclerView rv = findViewById(R.id.rvPartners);
         rv.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        UserAPI api = RetrofitClient.getInstance().getUserAPI();
+        api.getActiveAdvertisements().enqueue(new Callback<List<AdvertisementItem>>() {
+            @Override
+            public void onResponse(Call<List<AdvertisementItem>> call, Response<List<AdvertisementItem>> response) {
+                List<Partner> list = new ArrayList<>();
+                if (response.isSuccessful() && response.body() != null) {
+                    int limit = Math.min(10, response.body().size());
+                    for (int i = 0; i < limit; i++) {
+                        AdvertisementItem ad = response.body().get(i);
+                        if (ad == null) continue;
+                        String name = ad.getTitle() != null && !ad.getTitle().trim().isEmpty() ? ad.getTitle().trim() : "Ưu đãi nổi bật";
+                        String subtitle = (ad.getPromotion() != null && ad.getPromotion().getTitle() != null && !ad.getPromotion().getTitle().trim().isEmpty())
+                                ? ad.getPromotion().getTitle().trim()
+                                : "Khuyến mãi";
+                        list.add(new Partner(name, subtitle, ad.getImageUrl()));
+                    }
+                }
+                rv.setAdapter(new PartnerAdapter(list));
+            }
 
-        List<Partner> list = new ArrayList<>();
-        list.add(new Partner("Vietravel", "Tour du lịch chất lượng cao", "30%", R.drawable.sampleplace));
-        list.add(new Partner("VietJet Air", "Ưu đãi giá vé máy bay", "20%", R.drawable.sampleplace));
-        list.add(new Partner("Booking.com", "Đặt phòng hoàn tiền 10%", "10%", R.drawable.sampleplace));
-        list.add(new Partner("Grab", "Giảm 30k cho chuyến đầu", "30K", R.drawable.sampleplace));
-
-        rv.setAdapter(new PartnerAdapter(list));
+            @Override
+            public void onFailure(Call<List<AdvertisementItem>> call, Throwable t) {
+                rv.setAdapter(new PartnerAdapter(new ArrayList<>()));
+            }
+        });
     }
 
     private void setupSearch() {

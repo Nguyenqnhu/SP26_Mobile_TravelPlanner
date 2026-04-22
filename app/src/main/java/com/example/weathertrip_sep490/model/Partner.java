@@ -2,30 +2,24 @@ package com.example.weathertrip_sep490.model;
 
 public class Partner {
     private final String name;
-    private final String description;
-    private final String discount;
-    private final int imageResId;
+    private final String subtitle;
+    private final String imageUrl;
 
-    public Partner(String name, String description, String discount, int imageResId) {
+    public Partner(String name, String subtitle, String imageUrl) {
         this.name = name;
-        this.description = description;
-        this.discount = discount;
-        this.imageResId = imageResId;
+        this.subtitle = subtitle;
+        this.imageUrl = imageUrl;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getSubtitle() {
+        return subtitle;
     }
 
-    public String getDiscount() {
-        return discount;
-    }
-
-    public int getImageResId() {
-        return imageResId;
+    public String getImageUrl() {
+        return imageUrl;
     }
 }

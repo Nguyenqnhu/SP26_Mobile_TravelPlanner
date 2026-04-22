@@ -139,8 +139,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Địa điểm nổi bật"
-                    android:textColor="#111827"
-                    android:textSize="22sp"
+                    android:textColor="@color/emerald_700"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -177,8 +177,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Khám phá thêm"
-                    android:textColor="#111827"
-                    android:textSize="22sp"
+                    android:textColor="@color/emerald_700"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
