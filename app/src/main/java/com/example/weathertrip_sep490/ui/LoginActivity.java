@@ -157,12 +157,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (pendingJoinTripId != null && !pendingJoinTripId.trim().isEmpty()) {
                         joinPendingInviteAfterLogin(pendingJoinTripId.trim(), token);
                     } else {
-                        Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
-                        if (token != null && !token.isEmpty()) {
-                            intent.putExtra("access_token", token);
-                        }
-                        startActivity(intent);
-                        finish();
+                        navigateToPreferences(token);
                     }
                 } else {
                     Toast.makeText(LoginActivity.this, "Email hoặc mật khẩu không đúng", Toast.LENGTH_SHORT).show();
@@ -175,6 +170,15 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void navigateToPreferences(@Nullable String token) {
+        Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
+        if (token != null && !token.isEmpty()) {
+            intent.putExtra("access_token", token);
+        }
+        startActivity(intent);
+        finish();
     }
 
     private void joinPendingInviteAfterLogin(@NonNull String tripId, @Nullable String token) {

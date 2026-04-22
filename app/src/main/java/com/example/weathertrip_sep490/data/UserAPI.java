@@ -16,6 +16,7 @@ import com.example.weathertrip_sep490.model.TripCreateRequest;
 import com.example.weathertrip_sep490.model.TripSegmentResponse;
 import com.example.weathertrip_sep490.model.TripResponse;
 import com.example.weathertrip_sep490.model.User;
+import com.example.weathertrip_sep490.model.UserPreferenceItem;
 import com.example.weathertrip_sep490.model.UserPreferencesRequest;
 
 import java.util.List;
@@ -40,6 +41,9 @@ public interface UserAPI {
     @POST("api/user/update-preference")
     Call<Void> updateUserPreferences(@Header("Authorization") String authorization,
                                      @Body java.util.List<String> preferenceIds);
+
+    @GET("api/user/user-preferences")
+    Call<List<UserPreferenceItem>> getUserPreferences();
 
     // Get user by Id
     @GET("api/user/{id}")

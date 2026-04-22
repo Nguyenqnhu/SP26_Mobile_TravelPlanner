@@ -21,6 +21,7 @@ import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.model.Preference;
+import com.example.weathertrip_sep490.model.UserPreferenceItem;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -65,7 +66,9 @@ public class PreferencesActivity extends AppCompatActivity {
         ViewAnimationUtil.setTouchScaleAnimation(findViewById(R.id.btnContinue));
         ViewAnimationUtil.setTouchScaleAnimation(tvSkip);
 
+        preloadSelectedPreferencesFromLocal();
         fetchPreferencesFromServer();
+        fetchSelectedPreferencesFromServer();
 
         findViewById(R.id.btnContinue).setOnClickListener(v -> {
             if (selectedIds.isEmpty()) {
@@ -107,6 +110,53 @@ public class PreferencesActivity extends AppCompatActivity {
                 Toast.makeText(PreferencesActivity.this, "Lỗi kết nối server", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void fetchSelectedPreferencesFromServer() {
+        UserAPI api = RetrofitClient.getInstance().getPreferenceAPI();
+        api.getUserPreferences().enqueue(new Callback<List<UserPreferenceItem>>() {
+            @Override
+            public void onResponse(Call<List<UserPreferenceItem>> call, Response<List<UserPreferenceItem>> response) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    return;
+                }
+                selectedIds.clear();
+                for (UserPreferenceItem item : response.body()) {
+                    if (item != null && item.getPreferenceId() != null && !item.getPreferenceId().trim().isEmpty()) {
+                        selectedIds.add(item.getPreferenceId().trim());
+                    }
+                }
+                persistSelectedPreferencesLocal();
+                filterAndRender(etSearch.getText().toString());
+            }
+
+            @Override
+            public void onFailure(Call<List<UserPreferenceItem>> call, Throwable t) {
+                // Giữ dữ liệu local nếu gọi API lỗi.
+            }
+        });
+    }
+
+    private void preloadSelectedPreferencesFromLocal() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String localSelected = prefs.getString(KEY_SELECTED_PREFERENCES, "");
+        if (localSelected == null || localSelected.trim().isEmpty()) {
+            return;
+        }
+        selectedIds.clear();
+        String[] parts = localSelected.split(",");
+        for (String part : parts) {
+            String id = part == null ? "" : part.trim();
+            if (!id.isEmpty() && !selectedIds.contains(id)) {
+                selectedIds.add(id);
+            }
+        }
+    }
+
+    private void persistSelectedPreferencesLocal() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        String joinedIds = TextUtils.join(",", selectedIds);
+        prefs.edit().putString(KEY_SELECTED_PREFERENCES, joinedIds).apply();
     }
 
     private void filterAndRender(String query) {
@@ -174,7 +224,7 @@ public class PreferencesActivity extends AppCompatActivity {
         // Lưu local để dùng offline
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String joinedIds = TextUtils.join(",", selectedIds);
-        prefs.edit().putString(KEY_SELECTED_PREFERENCES, joinedIds).apply();
+        persistSelectedPreferencesLocal();
 
         // Token: ưu tiên từ Intent (vừa đăng nhập), không có thì đọc SharedPreferences
         String accessToken = (getIntent() != null ? getIntent().getStringExtra("access_token") : null);
