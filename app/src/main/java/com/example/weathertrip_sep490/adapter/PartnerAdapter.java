@@ -4,11 +4,13 @@ package com.example.weathertrip_sep490.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.model.Partner;
 
@@ -34,8 +36,13 @@ public class PartnerAdapter extends RecyclerView.Adapter<PartnerAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Partner item = list.get(position);
         holder.txtName.setText(item.getName());
-        holder.txtDesc.setText(item.getDescription());
-        holder.txtDiscount.setText(item.getDiscount());
+        holder.txtDesc.setText(item.getSubtitle());
+        Glide.with(holder.itemView.getContext())
+                .load(item.getImageUrl())
+                .placeholder(R.drawable.bg_image_placeholder)
+                .error(R.drawable.bg_image_placeholder)
+                .centerCrop()
+                .into(holder.imgPartner);
     }
 
     @Override
@@ -44,13 +51,14 @@ public class PartnerAdapter extends RecyclerView.Adapter<PartnerAdapter.ViewHold
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView txtName, txtDesc, txtDiscount;
+        TextView txtName, txtDesc;
+        ImageView imgPartner;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            imgPartner = itemView.findViewById(R.id.imgPartner);
             txtName = itemView.findViewById(R.id.txtPartnerName);
             txtDesc = itemView.findViewById(R.id.txtPartnerDesc);
-            txtDiscount = itemView.findViewById(R.id.txtPartnerDiscount);
         }
     }
 }

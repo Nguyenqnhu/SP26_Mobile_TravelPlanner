@@ -136,22 +136,22 @@ public class TripCardAdapter extends RecyclerView.Adapter<TripCardAdapter.Holder
             switch (status) {
                 case UPCOMING:
                     label = "Sắp tới";
-                    bgColor = Color.parseColor("#2EF59E0B");
-                    textColor = Color.parseColor("#B45309");
-                    borderColor = Color.parseColor("#5CF59E0B");
+                    bgColor = Color.parseColor("#52F59E0B");
+                    textColor = Color.parseColor("#92400E");
+                    borderColor = Color.parseColor("#80F59E0B");
                     break;
                 case ONGOING:
                     label = "Đang diễn ra";
-                    bgColor = Color.parseColor("#29DC2626");
-                    textColor = Color.parseColor("#B91C1C");
-                    borderColor = Color.parseColor("#52DC2626");
+                    bgColor = Color.parseColor("#4CDC2626");
+                    textColor = Color.parseColor("#991B1B");
+                    borderColor = Color.parseColor("#73DC2626");
                     break;
                 case COMPLETED:
                 default:
                     label = "Đã hoàn thành";
-                    bgColor = Color.parseColor("#2916A34A");
-                    textColor = Color.parseColor("#15803D");
-                    borderColor = Color.parseColor("#5716A34A");
+                    bgColor = Color.parseColor("#4A16A34A");
+                    textColor = Color.parseColor("#166534");
+                    borderColor = Color.parseColor("#7316A34A");
                     break;
             }
             tvBadge.setText(label);

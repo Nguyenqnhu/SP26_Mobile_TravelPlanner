@@ -63,11 +63,19 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.SavedPromotionsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.HomepageActivity"
             android:exported="false" />
 
         <activity
             android:name=".ui.ExploreActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.AdsFeedActivity"
             android:exported="false" />
 
         <activity

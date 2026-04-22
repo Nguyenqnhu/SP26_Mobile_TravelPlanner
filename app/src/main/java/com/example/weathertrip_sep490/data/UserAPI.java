@@ -8,8 +8,10 @@ import com.example.weathertrip_sep490.model.InviteLinkResponse;
 import com.example.weathertrip_sep490.model.InviteQrResponse;
 import com.example.weathertrip_sep490.model.JoinParticipantResponse;
 import com.example.weathertrip_sep490.model.LocationOption;
+import com.example.weathertrip_sep490.model.AdvertisementItem;
 import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.PlannerTripResponse;
+import com.example.weathertrip_sep490.model.SavedPromotionItem;
 import com.example.weathertrip_sep490.model.TripCreateRequest;
 import com.example.weathertrip_sep490.model.TripSegmentResponse;
 import com.example.weathertrip_sep490.model.TripResponse;
@@ -103,5 +105,14 @@ public interface UserAPI {
     
     @POST("api/invites/join")
     Call<JoinParticipantResponse> joinTrip(@Query("tripId") String tripId);
+
+    @GET("api/advertisements/active")
+    Call<List<AdvertisementItem>> getActiveAdvertisements();
+
+    @POST("api/promotions/{promotionId}/save")
+    Call<Void> savePromotion(@Path("promotionId") String promotionId);
+
+    @GET("api/users/me/saved-promotions")
+    Call<List<SavedPromotionItem>> getMySavedPromotions();
 
 }

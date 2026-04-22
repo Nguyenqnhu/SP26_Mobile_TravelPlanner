@@ -150,6 +150,10 @@
                     <include
                         android:id="@+id/itemUpdatePreference"
                         layout="@layout/setting_item" />
+                    <View style="@style/Divider" />
+                    <include
+                        android:id="@+id/itemSavedPromotions"
+                        layout="@layout/setting_item" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
