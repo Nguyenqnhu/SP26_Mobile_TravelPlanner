@@ -40,6 +40,7 @@ import com.example.weathertrip_sep490.model.PlannerTripResponse;
 import com.example.weathertrip_sep490.model.TripSegmentResponse;
 import com.example.weathertrip_sep490.model.TripRibbonDay;
 import com.example.weathertrip_sep490.ui.decoration.ItineraryTimelineLineDecoration;
+import com.example.weathertrip_sep490.util.PlannerSegmentValidation;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -433,6 +434,16 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             Toast.makeText(this, "Thiếu tripId planner", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (plannerResponse != null
+                && plannerResponse.getSegments() != null
+                && !PlannerSegmentValidation.segmentsLookValidForAi(plannerResponse.getSegments())) {
+            Toast.makeText(
+                    this,
+                    "Dữ liệu chặng chưa hợp lệ (thiếu ngày hoặc ngày kết thúc trước ngày bắt đầu). Hãy chỉnh chặng rồi thử lại.",
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
         Toast.makeText(this, "Đang generate AI...", Toast.LENGTH_SHORT).show();
         UserAPI api = RetrofitClient.getInstance().getUserAPI();
         api.generatePlanner(plannerTripId).enqueue(new Callback<com.example.weathertrip_sep490.model.PlannerGenerateResponse>() {
@@ -468,11 +479,16 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             Toast.makeText(this, "Thiếu tripId", Toast.LENGTH_SHORT).show();
             return;
         }
+        int segmentCount = -1;
+        if (plannerResponse != null && plannerResponse.getSegments() != null) {
+            segmentCount = plannerResponse.getSegments().size();
+        }
         AddSegmentBottomSheet.newInstance(
                 plannerTripId,
                 destinationLabel != null ? destinationLabel : "Trip",
                 pendingSegStart != null ? pendingSegStart : "",
-                pendingSegEnd != null ? pendingSegEnd : ""
+                pendingSegEnd != null ? pendingSegEnd : "",
+                segmentCount
         ).show(getSupportFragmentManager(), "AddSegmentBottomSheet");
     }
 

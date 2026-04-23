@@ -32,10 +32,12 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
     private ImageView ivImage;
     private TextView tvName;
     private TextView tvCity;
+    private TextView tvLocationName;
     private TextView tvAddress;
     private TextView tvCost;
     private TextView tvHours;
     private TextView tvIndoor;
+    private TextView tvType;
     private TextView tvRecommendation;
 
     @Override
@@ -46,10 +48,12 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
         ivImage = findViewById(R.id.ivPoiDetailImage);
         tvName = findViewById(R.id.tvPoiDetailName);
         tvCity = findViewById(R.id.tvPoiDetailCity);
+        tvLocationName = findViewById(R.id.tvPoiDetailLocationName);
         tvAddress = findViewById(R.id.tvPoiDetailAddress);
         tvCost = findViewById(R.id.tvPoiDetailCost);
         tvHours = findViewById(R.id.tvPoiDetailHours);
         tvIndoor = findViewById(R.id.tvPoiDetailIndoor);
+        tvType = findViewById(R.id.tvPoiDetailType);
         tvRecommendation = findViewById(R.id.tvPoiDetailRecommendation);
 
         ImageButton btnBack = findViewById(R.id.btnBackDetail);
@@ -101,9 +105,11 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
 
     private void bindPoi(POI poi) {
         tvName.setText(safe(poi.getName()));
-        tvCity.setText(safe(poi.getCity()));
-        tvAddress.setText(safe(poi.getAddress()));
-        tvCost.setText(poi.getApproxCost() == null || poi.getApproxCost().isEmpty() ? "Chưa cập nhật" : poi.getApproxCost());
+        tvAddress.setText(safeWithFallback(poi.getAddress(), "Chưa có địa chỉ"));
+        tvLocationName.setText("Khu vực: " + safeWithFallback(poi.getLocationName(), "Chưa cập nhật"));
+        tvCity.setText("Thành phố: " + safeWithFallback(poi.getCity(), "Chưa cập nhật"));
+        tvType.setText(safeWithFallback(poi.getType(), "Unknown"));
+        tvCost.setText(formatCost(poi.getApproxCost()));
         tvHours.setText(buildOpenHoursText(poi));
         tvIndoor.setText(poi.isIndoor() ? "Trong nhà" : "Ngoài trời");
 
@@ -148,6 +154,18 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
 
     private String safe(String s) {
         return s == null ? "" : s;
+    }
+
+    private String safeWithFallback(String s, String fallback) {
+        String v = safe(s).trim();
+        return v.isEmpty() ? fallback : v;
+    }
+
+    private String formatCost(String rawCost) {
+        String cost = safe(rawCost).trim();
+        if (cost.isEmpty()) return "Chưa cập nhật";
+        if ("0".equals(cost)) return "Miễn phí";
+        return cost + " VND";
     }
 }
 

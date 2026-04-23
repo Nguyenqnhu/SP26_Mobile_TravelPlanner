@@ -72,11 +72,13 @@
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:background="@android:color/transparent"
+                    android:clickable="true"
                     android:contentDescription="@null"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
                     android:padding="6dp"
                     android:scaleType="centerInside"
-                    app:srcCompat="@drawable/not_save_button"
-                    app:tint="@color/green_primary" />
+                    app:srcCompat="@drawable/not_save_button" />
 
             </LinearLayout>
 
@@ -260,6 +262,7 @@
                             android:text="Giảm 10% cho hóa đơn từ 200K..."
                             android:textColor="#6B7280"
                             android:textSize="12sp" />
+
                     </LinearLayout>
                 </LinearLayout>
 

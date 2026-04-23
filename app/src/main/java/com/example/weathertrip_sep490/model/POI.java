@@ -48,8 +48,17 @@ public class POI {
     @SerializedName(value = "LocationId", alternate = {"locationId"})
     private String locationId;
 
+    @SerializedName(value = "LocationName", alternate = {"locationName"})
+    private String locationName;
+
     @SerializedName(value = "POIImgUrl", alternate = {"poiImgUrl", "poiImgURL", "poiImageUrl", "POIImageUrl"})
     private String poiImgUrl;
+
+    @SerializedName(value = "Type", alternate = {"type"})
+    private String type;
+
+    @SerializedName(value = "Status", alternate = {"status"})
+    private String status;
 
     public String getId() {
         return id;
@@ -107,7 +116,19 @@ public class POI {
         return locationId;
     }
 
+    public String getLocationName() {
+        return locationName;
+    }
+
     public String getPoiImgUrl() {
         return poiImgUrl;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getStatus() {
+        return status;
     }
 }

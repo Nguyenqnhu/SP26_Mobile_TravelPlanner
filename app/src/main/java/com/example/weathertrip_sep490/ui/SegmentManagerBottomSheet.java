@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
+import com.example.weathertrip_sep490.util.PlannerSegmentValidation;
 import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.PlannerTripResponse;
 import com.example.weathertrip_sep490.model.TripSegmentResponse;
@@ -25,6 +26,7 @@ import com.google.android.material.button.MaterialButton;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -62,6 +64,8 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
 
     private Listener listener;
     private int lastKnownSegmentCount = 0;
+    /** Bản sao chặng sau lần GET planner gần nhất — dùng kiểm tra trước khi gọi generate. */
+    private final List<TripSegmentResponse> plannerSegmentsSnapshot = new ArrayList<>();
 
     public static SegmentManagerBottomSheet newInstance(
             @NonNull String tripId,
@@ -127,12 +131,14 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
             Toast.makeText(requireContext(), "Thiếu tripId", Toast.LENGTH_SHORT).show();
             return;
         }
-        AddSegmentBottomSheet sheet = AddSegmentBottomSheet.newInstance(tripId, tripTitle, startIso, endIso);
+        AddSegmentBottomSheet sheet = AddSegmentBottomSheet.newInstance(
+                tripId, tripTitle, startIso, endIso, lastKnownSegmentCount);
         sheet.show(getChildFragmentManager(), "AddSegmentBottomSheet");
     }
 
     private void renderIntroState() {
         showLoading(false);
+        plannerSegmentsSnapshot.clear();
         containerSegmentList.removeAllViews();
         lastKnownSegmentCount = 0;
 
@@ -170,10 +176,12 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
 
     private void renderSegments(@Nullable List<TripSegmentResponse> segments) {
         containerSegmentList.removeAllViews();
+        plannerSegmentsSnapshot.clear();
         if (segments == null || segments.isEmpty()) {
             renderIntroState();
             return;
         }
+        plannerSegmentsSnapshot.addAll(segments);
 
         int index = 1;
         for (TripSegmentResponse seg : segments) {
@@ -216,6 +224,14 @@ public class SegmentManagerBottomSheet extends BottomSheetDialogFragment impleme
         if (TextUtils.isEmpty(tripId)) return;
         if (lastKnownSegmentCount < 2) {
             Toast.makeText(requireContext(), "Cần tối thiểu 2 segment để tạo lịch trình AI", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!PlannerSegmentValidation.segmentsLookValidForAi(plannerSegmentsSnapshot)) {
+            Toast.makeText(
+                    requireContext(),
+                    "Dữ liệu chặng chưa hợp lệ (thiếu ngày hoặc ngày kết thúc trước ngày bắt đầu). Hãy thêm lại chặng hoặc chỉnh ngày.",
+                    Toast.LENGTH_LONG
+            ).show();
             return;
         }
         btnGenerate.setEnabled(false);
