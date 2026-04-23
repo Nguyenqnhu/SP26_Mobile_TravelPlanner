@@ -22,7 +22,6 @@ import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,6 +38,7 @@ public class AdsFeedActivity extends AppCompatActivity {
     private MaterialButton chipPromo;
     private MaterialButton chipSaved;
     private TextView tvTitle;
+    private final Set<String> savedPromotionIds = new HashSet<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -89,7 +89,10 @@ public class AdsFeedActivity extends AppCompatActivity {
                         String pid = sp.getPromotionId();
                         if (pid != null && !pid.trim().isEmpty()) ids.add(pid.trim());
                     }
+                    savedPromotionIds.clear();
+                    savedPromotionIds.addAll(ids);
                     adapter.setSavedPromotionIds(ids);
+                    applyFilter();
                 }
                 // nếu 401 hoặc lỗi thì bỏ qua (không toast để khỏi khó chịu)
             }
@@ -150,8 +153,8 @@ public class AdsFeedActivity extends AppCompatActivity {
             } else if (selectedFilter == 1) {
                 if (item.getPromotion() != null) filtered.add(item);
             } else {
-                String promoTitle = item.getPromotion() != null ? item.getPromotion().getTitle() : null;
-                if (promoTitle != null && promoTitle.toLowerCase(Locale.ROOT).contains("giảm")) {
+                String promotionId = item.getPromotion() != null ? item.getPromotion().getPromotionId() : null;
+                if (promotionId != null && savedPromotionIds.contains(promotionId.trim())) {
                     filtered.add(item);
                 }
             }
@@ -174,12 +177,16 @@ public class AdsFeedActivity extends AppCompatActivity {
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(AdsFeedActivity.this, "Mã giảm lưu thành công !", Toast.LENGTH_SHORT).show();
+                    savedPromotionIds.add(promotionId);
                     if (adapter != null) adapter.setPromotionSaved(promotionId, true);
+                    applyFilter();
                     return;
                 }
                 if (response.code() == 409) {
                     Toast.makeText(AdsFeedActivity.this, "Mã giảm đã được lưu trước đó", Toast.LENGTH_SHORT).show();
+                    savedPromotionIds.add(promotionId);
                     if (adapter != null) adapter.setPromotionSaved(promotionId, true);
+                    applyFilter();
                     return;
                 }
                 Toast.makeText(AdsFeedActivity.this, "Không thể lưu mã giảm (" + response.code() + ")", Toast.LENGTH_SHORT).show();

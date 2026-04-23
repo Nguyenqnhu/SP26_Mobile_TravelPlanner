@@ -181,8 +181,10 @@ public class AdsFeedAdapter extends RecyclerView.Adapter<AdsFeedAdapter.Holder> 
             btnSaveIcon.setImageResource(isSaved ? R.drawable.saved_button : R.drawable.not_save_button);
             btnSaveIcon.setEnabled(canSave);
             btnSaveIcon.setAlpha(canSave ? 1f : 0.35f);
+            btnSaveIcon.setFocusable(true);
+            btnSaveIcon.setClickable(true);
 
-            btnSaveIcon.setOnClickListener(v -> {
+            View.OnClickListener saveClick = v -> {
                 if (!canSave) return;
                 String key = promotionId.trim();
                 RecyclerView.Adapter<?> current = getBindingAdapter();
@@ -196,7 +198,8 @@ public class AdsFeedAdapter extends RecyclerView.Adapter<AdsFeedAdapter.Holder> 
                     }
                 }
                 listener.onSaveClicked(item);
-            });
+            };
+            btnSaveIcon.setOnClickListener(saveClick);
             itemView.setOnClickListener(v -> listener.onItemClicked(item));
 
             tvSeeMore.setOnClickListener(v -> {

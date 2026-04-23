@@ -79,6 +79,9 @@ public class RetrofitClient {
                 if (token != null) token = token.trim();
             }
             okhttp3.Request.Builder builder = original.newBuilder();
+            // Workaround for backend culture-sensitive numeric formatting (e.g. lat/lng for Mapbox).
+            // Force a stable culture so server-side string interpolation uses decimal dot.
+            builder.header("Accept-Language", "en-US");
             if (token != null && !token.isEmpty()) {
                 String authValue = token.trim().startsWith("Bearer ") ? token.trim() : "Bearer " + token.trim();
                 builder.addHeader("Authorization", authValue);

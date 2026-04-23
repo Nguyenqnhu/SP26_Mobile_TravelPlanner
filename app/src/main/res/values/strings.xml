@@ -34,7 +34,6 @@
 
     <string-array name="trip_type_choices">
         <item>Một chiều</item>
-        <item>Khứ hồi</item>
     </string-array>
 
     <!-- Thay bằng API key Maps SDK (Console Google Cloud) -->

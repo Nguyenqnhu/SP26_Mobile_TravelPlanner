@@ -18,14 +18,14 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Fallback default, specific buildTypes below will override this value.
+        // Fallback default (buildTypes below can override this value).
         buildConfigField("String", "API_BASE_URL", "\"https://travelplanner-e8afamefddf8bwc7.southeastasia-01.azurewebsites.net/\"")
     }
 
     buildTypes {
         debug {
-            // Cloud backend for development/testing
-            buildConfigField("String", "API_BASE_URL", "\"https://travelplanner-e8afamefddf8bwc7.southeastasia-01.azurewebsites.net/\"")
+            // Local BE (Android emulator -> host machine via 10.0.2.2)
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5131/\"")
         }
         release {
             // Cloud backend for production

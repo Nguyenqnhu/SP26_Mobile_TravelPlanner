@@ -8,6 +8,7 @@ import com.example.weathertrip_sep490.model.InviteLinkResponse;
 import com.example.weathertrip_sep490.model.InviteQrResponse;
 import com.example.weathertrip_sep490.model.JoinParticipantResponse;
 import com.example.weathertrip_sep490.model.LocationOption;
+import com.example.weathertrip_sep490.model.DistrictOption;
 import com.example.weathertrip_sep490.model.AdvertisementItem;
 import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.PlannerTripResponse;
@@ -74,6 +75,10 @@ public interface UserAPI {
     //List all location
     @GET("api/trip/get-all-location")
     Call<List<LocationOption>> getAllLocations();
+
+    // Districts by location
+    @GET("api/districts")
+    Call<List<DistrictOption>> getDistrictsByLocation(@Query("locationId") String locationId);
 
     //Add segment
     @POST("api/trip/{tripId}/segments")
