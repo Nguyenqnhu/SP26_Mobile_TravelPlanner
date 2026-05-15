@@ -11,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,6 +18,7 @@ import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.AuthAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.model.RegistRequest;
+import com.example.weathertrip_sep490.util.AppToast;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 
 import android.util.Log;
@@ -220,7 +220,7 @@ public class RegisterActivity extends AppCompatActivity {
                 btnRegister.setText("Đăng ký");
 
                 if (response.isSuccessful()) {
-                    Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng xác thực OTP", Toast.LENGTH_SHORT).show();
+                    AppToast.showSuccess(RegisterActivity.this, "Đăng ký thành công! Vui lòng xác thực OTP");
 
                     // Navigate to OTP verification screen
                     Intent intent = new Intent(RegisterActivity.this, VerifyOtpActivity.class);
@@ -245,7 +245,7 @@ public class RegisterActivity extends AppCompatActivity {
                     } else {
                         errorMessage = "Đăng ký thất bại (mã " + response.code() + ")";
                     }
-                    Toast.makeText(RegisterActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    AppToast.showError(RegisterActivity.this, errorMessage);
                 }
             }
 
@@ -253,7 +253,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onFailure(Call<Void> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Đăng ký");
-                Toast.makeText(RegisterActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                AppToast.showError(RegisterActivity.this, "Lỗi kết nối: " + t.getMessage());
             }
         });
     }

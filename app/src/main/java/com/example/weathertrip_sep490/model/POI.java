@@ -64,71 +64,143 @@ public class POI {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getAddress() {
         return address;
     }
 
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     public String getCity() {
         return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 
     public String getApproxCost() {
         return approxCost;
     }
 
+    public void setApproxCost(String approxCost) {
+        this.approxCost = approxCost;
+    }
+
     public String getOpenHour() {
         return openHour;
+    }
+
+    public void setOpenHour(String openHour) {
+        this.openHour = openHour;
     }
 
     public String getCloseHour() {
         return closeHour;
     }
 
+    public void setCloseHour(String closeHour) {
+        this.closeHour = closeHour;
+    }
+
     public boolean isIs24Hours() {
         return is24Hours;
+    }
+
+    public void setIs24Hours(boolean is24Hours) {
+        this.is24Hours = is24Hours;
     }
 
     public String getVisitRecommendation() {
         return visitRecommendation;
     }
 
+    public void setVisitRecommendation(String visitRecommendation) {
+        this.visitRecommendation = visitRecommendation;
+    }
+
     public String getGoogleMapLink() {
         return googleMapLink;
+    }
+
+    public void setGoogleMapLink(String googleMapLink) {
+        this.googleMapLink = googleMapLink;
     }
 
     public boolean isIndoor() {
         return isIndoor;
     }
 
+    public void setIndoor(boolean indoor) {
+        isIndoor = indoor;
+    }
+
     public double getLatitude() {
         return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
     }
 
     public double getLongitude() {
         return longitude;
     }
 
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
     public String getLocationId() {
         return locationId;
+    }
+
+    public void setLocationId(String locationId) {
+        this.locationId = locationId;
     }
 
     public String getLocationName() {
         return locationName;
     }
 
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
+    }
+
     public String getPoiImgUrl() {
         return poiImgUrl;
+    }
+
+    public void setPoiImgUrl(String poiImgUrl) {
+        this.poiImgUrl = poiImgUrl;
     }
 
     public String getType() {
         return type;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public String getStatus() {
         return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

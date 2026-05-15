@@ -76,6 +76,11 @@ public class ProfileActivity extends AppCompatActivity {
                 finish();
                 return true;
             }
+            if (id == R.id.nav_coupon) {
+                startActivity(new Intent(this, AdsFeedActivity.class));
+                finish();
+                return true;
+            }
             return false;
         });
     }

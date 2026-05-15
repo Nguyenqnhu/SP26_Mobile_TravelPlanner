@@ -5,11 +5,11 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.AuthAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.util.AppToast;
 import com.example.weathertrip_sep490.model.ForgotPasswordRequest;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -50,7 +50,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             public void onResponse(Call<Void> call, Response<Void> response) {
                 btnSendOtp.setEnabled(true);
                 if (response.isSuccessful()) {
-                    Toast.makeText(ForgotPasswordActivity.this, "Mã OTP đã gửi đến email của bạn", Toast.LENGTH_SHORT).show();
+                    AppToast.showSuccess(ForgotPasswordActivity.this, "Mã OTP đã gửi đến email của bạn");
                     Intent intent = new Intent(ForgotPasswordActivity.this, VerifyOtpActivity.class);
                     intent.putExtra("email", email);
                     intent.putExtra("isResetPassword", true);
@@ -74,13 +74,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                             }
                         }
                     } catch (Exception e) { /* ignore */ }
-                    Toast.makeText(ForgotPasswordActivity.this, msg, Toast.LENGTH_LONG).show();
+                    AppToast.showError(ForgotPasswordActivity.this, msg);
                 }
             }
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 btnSendOtp.setEnabled(true);
-                Toast.makeText(ForgotPasswordActivity.this, "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                AppToast.showError(ForgotPasswordActivity.this, "Lỗi kết nối");
             }
         });
     }

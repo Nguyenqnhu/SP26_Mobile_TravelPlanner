@@ -18,7 +18,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
+            android:value="AIzaSyBJPHevhNkDgaTxaJU5AjJbID6hEiEY658" />
 
         <activity
             android:name=".ui.WelcomeActivity"
@@ -102,6 +102,10 @@
 
         <activity
             android:name=".ui.ExplorePOIDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.ExploreMapActivity"
             android:exported="false" />
 
 
