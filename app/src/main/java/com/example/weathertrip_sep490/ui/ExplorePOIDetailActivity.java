@@ -18,6 +18,7 @@ import com.example.weathertrip_sep490.data.RecentPoiStorage;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.POI;
+import com.google.gson.Gson;
 
 import java.util.List;
 
@@ -28,6 +29,9 @@ import retrofit2.Response;
 public class ExplorePOIDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_POI_ID = "extra_poi_id";
+    public static final String EXTRA_POI_JSON = "extra_poi_json";
+
+    private static final Gson gson = new Gson();
 
     private ImageView ivImage;
     private TextView tvName;
@@ -60,6 +64,18 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         String poiId = getIntent().getStringExtra(EXTRA_POI_ID);
+        String poiJson = getIntent().getStringExtra(EXTRA_POI_JSON);
+        if (poiJson != null && !poiJson.trim().isEmpty()) {
+            try {
+                POI poi = gson.fromJson(poiJson.trim(), POI.class);
+                if (poi != null) {
+                    bindPoi(poi);
+                    return;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
         if (poiId == null || poiId.trim().isEmpty()) {
             Toast.makeText(this, "Không có POI id", Toast.LENGTH_SHORT).show();
             finish();

@@ -7,6 +7,8 @@ public class LoginResponse {
     private String accessToken;
     @SerializedName(value = "refreshToken", alternate = {"RefreshToken", "refresh_token"})
     private String refreshToken;
+    @SerializedName("message")
+    private String message;
 
 
 
@@ -32,5 +34,13 @@ public class LoginResponse {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

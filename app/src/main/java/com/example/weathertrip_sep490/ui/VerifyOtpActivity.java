@@ -10,12 +10,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.weathertrip_sep490.R;
+import com.example.weathertrip_sep490.util.AppToast;
 import com.example.weathertrip_sep490.data.AuthAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.model.ForgotPasswordRequest;
@@ -48,7 +48,7 @@ public class VerifyOtpActivity extends AppCompatActivity {
         isResetPassword = getIntent().getBooleanExtra("isResetPassword", false);
 
         if (email == null || email.isEmpty()) {
-            Toast.makeText(this, "Lỗi: Không tìm thấy email", Toast.LENGTH_SHORT).show();
+            AppToast.showError(this, "Lỗi: Không tìm thấy email");
             finish();
             return;
         }
@@ -113,7 +113,7 @@ public class VerifyOtpActivity extends AppCompatActivity {
         String otpCode = otpBuilder.toString();
 
         if (otpCode.length() < 6) {
-            Toast.makeText(this, "Vui lòng nhập đủ 6 số", Toast.LENGTH_SHORT).show();
+            AppToast.showError(this, "Vui lòng nhập đủ 6 số");
             return;
         }
 
@@ -128,23 +128,23 @@ public class VerifyOtpActivity extends AppCompatActivity {
                     if (response.isSuccessful() && response.body() != null) {
                         String resetToken = response.body().getResetToken();
                         if (resetToken == null || resetToken.isEmpty()) {
-                            Toast.makeText(VerifyOtpActivity.this, "Mã xác thực không hợp lệ", Toast.LENGTH_SHORT).show();
+                            AppToast.showError(VerifyOtpActivity.this, "Mã xác thực không hợp lệ");
                             return;
                         }
-                        Toast.makeText(VerifyOtpActivity.this, "Xác thực thành công! Tạo mật khẩu mới.", Toast.LENGTH_SHORT).show();
+                        AppToast.showSuccess(VerifyOtpActivity.this, "Xác thực thành công! Tạo mật khẩu mới.");
                         Intent intent = new Intent(VerifyOtpActivity.this, ResetPasswordActivity.class);
                         intent.putExtra("resetToken", resetToken);
                         startActivity(intent);
                         finish();
                     } else {
-                        Toast.makeText(VerifyOtpActivity.this, "Mã xác thực không hợp lệ", Toast.LENGTH_SHORT).show();
+                        AppToast.showError(VerifyOtpActivity.this, "Mã xác thực không hợp lệ");
                     }
                 }
 
                 @Override
                 public void onFailure(Call<VerifyResetPasswordOtpResponse> call, Throwable t) {
                     setLoading(false);
-                    Toast.makeText(VerifyOtpActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    AppToast.showError(VerifyOtpActivity.this, "Lỗi: " + t.getMessage());
                 }
             });
         } else {
@@ -154,7 +154,7 @@ public class VerifyOtpActivity extends AppCompatActivity {
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     setLoading(false);
                     if (response.isSuccessful()) {
-                        Toast.makeText(VerifyOtpActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                        AppToast.showSuccess(VerifyOtpActivity.this, "Đăng ký thành công!");
                         startActivity(new Intent(VerifyOtpActivity.this, LoginActivity.class));
                         finish();
                     } else {
@@ -169,14 +169,14 @@ public class VerifyOtpActivity extends AppCompatActivity {
                                 }
                             }
                         } catch (Exception ignored) {}
-                        Toast.makeText(VerifyOtpActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        AppToast.showError(VerifyOtpActivity.this, msg);
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
                     setLoading(false);
-                    Toast.makeText(VerifyOtpActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    AppToast.showError(VerifyOtpActivity.this, "Lỗi kết nối: " + t.getMessage());
                 }
             });
         }
@@ -196,7 +196,7 @@ public class VerifyOtpActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(VerifyOtpActivity.this, "Đã gửi lại mã mới", Toast.LENGTH_SHORT).show();
+                    AppToast.showSuccess(VerifyOtpActivity.this, "Đã gửi lại mã mới");
                     startResendTimer();
                 }
             }

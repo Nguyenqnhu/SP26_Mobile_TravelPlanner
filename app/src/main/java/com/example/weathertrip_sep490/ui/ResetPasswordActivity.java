@@ -7,7 +7,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +14,7 @@ import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.AuthAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.model.ResetPasswordRequest;
+import com.example.weathertrip_sep490.util.AppToast;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 
 import retrofit2.Call;
@@ -37,7 +37,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
         resetToken = getIntent().getStringExtra("resetToken");
         if (resetToken == null || resetToken.isEmpty()) {
-            Toast.makeText(this, "Thiếu thông tin xác thực. Vui lòng thử lại từ bước quên mật khẩu.", Toast.LENGTH_LONG).show();
+            AppToast.showError(this, "Thiếu thông tin xác thực. Vui lòng thử lại từ bước quên mật khẩu.");
             finish();
             return;
         }
@@ -93,13 +93,13 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 btnReset.setEnabled(true);
                 btnReset.setText("Cập nhật mật khẩu");
                 if (response.isSuccessful()) {
-                    Toast.makeText(ResetPasswordActivity.this, "Cập nhật mật khẩu thành công! Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+                    AppToast.showSuccess(ResetPasswordActivity.this, "Cập nhật mật khẩu thành công! Vui lòng đăng nhập lại.");
                     Intent intent = new Intent(ResetPasswordActivity.this, LoginActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(ResetPasswordActivity.this, "Cập nhật thất bại. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+                    AppToast.showError(ResetPasswordActivity.this, "Cập nhật thất bại. Vui lòng thử lại.");
                 }
             }
 
@@ -107,7 +107,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
             public void onFailure(Call<Void> call, Throwable t) {
                 btnReset.setEnabled(true);
                 btnReset.setText("Cập nhật mật khẩu");
-                Toast.makeText(ResetPasswordActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                AppToast.showError(ResetPasswordActivity.this, "Lỗi: " + t.getMessage());
             }
         });
     }

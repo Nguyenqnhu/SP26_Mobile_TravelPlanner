@@ -3,11 +3,13 @@ package com.example.weathertrip_sep490.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.weathertrip_sep490.util.AppToast;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,6 +25,15 @@ import com.example.weathertrip_sep490.adapter.FilterChipAdapter;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.POI;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,10 +48,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ExploreActivity extends AppCompatActivity {
+public class ExploreActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private RecyclerView rvPlaceFilters, rvActivityFilters, rvFeaturedPlaces, rvExplorePlaces;
     private TextView tvPlaceCount;
+    private TextView btnToggleMap;
 
     private final List<POI> poiList = new ArrayList<>();
     private FeaturedPOIAdapter featuredPOIAdapter;
@@ -49,6 +61,14 @@ public class ExploreActivity extends AppCompatActivity {
     // Stack ảnh nổi bật
     private ImageView imgStackFront, imgStackBack1, imgStackBack2;
     private final List<String> stackImageUrls = new ArrayList<>();
+
+    private static final String MAPVIEW_BUNDLE_KEY = "ExploreMapViewBundle";
+    private MapView mapView;
+    private GoogleMap googleMap;
+    private boolean mapReady = false;
+    private boolean mapMode = false;
+    private final List<Marker> poiMarkers = new ArrayList<>();
+    private static final Gson gson = new Gson();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +79,7 @@ public class ExploreActivity extends AppCompatActivity {
         rvFeaturedPlaces = findViewById(R.id.rvFeaturedPlaces);
         rvExplorePlaces = findViewById(R.id.rvExplorePlaces);
         tvPlaceCount = findViewById(R.id.tvPlaceCount);
+        btnToggleMap = findViewById(R.id.btnExploreToggleMap);
 
         imgStackFront = findViewById(R.id.imgStackFront);
         imgStackBack1 = findViewById(R.id.imgStackBack1);
@@ -67,7 +88,196 @@ public class ExploreActivity extends AppCompatActivity {
         setupImageStack();
         setupBottomNav();
         setupRecyclerViews();
+        initMapView(savedInstanceState);
+        setupToggleMap();
+
+        // Lấy POIs thật từ BE
         loadRecommendedPOIs();
+    }
+
+    private void setupToggleMap() {
+        if (btnToggleMap == null) return;
+        mapMode = false;
+        btnToggleMap.setText("Bản đồ");
+        btnToggleMap.setOnClickListener(v -> openExploreMap());
+        applyExploreModeUi();
+    }
+
+    private void openExploreMap() {
+        Intent intent = new Intent(this, ExploreMapActivity.class);
+        intent.putExtra("pois_json", gson.toJson(poiList));
+        startActivity(intent);
+    }
+
+    private void applyExploreModeUi() {
+        if (mapView != null) {
+            mapView.setVisibility(View.GONE);
+        }
+        if (rvFeaturedPlaces != null) {
+            rvFeaturedPlaces.setVisibility(View.VISIBLE);
+        }
+        if (rvExplorePlaces != null) {
+            rvExplorePlaces.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void initMapView(Bundle savedInstanceState) {
+        mapView = findViewById(R.id.mapExplorePois);
+        if (mapView == null) return;
+        Bundle mapBundle = null;
+        if (savedInstanceState != null) {
+            mapBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+        }
+        mapView.onCreate(mapBundle);
+        mapView.getMapAsync(this);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        googleMap = map;
+        mapReady = true;
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+
+        googleMap.setOnMarkerClickListener(marker -> {
+            Object tag = marker.getTag();
+            if (tag instanceof POI) {
+                openPoiDetailMock((POI) tag);
+                return true;
+            }
+            return false;
+        });
+
+        applyPoiMarkers();
+    }
+
+    private void applyPoiMarkers() {
+        if (!mapReady || googleMap == null) return;
+        googleMap.clear();
+        poiMarkers.clear();
+        if (poiList.isEmpty()) return;
+
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        // Tách pin nếu nhiều POI trùng tọa độ (đỡ bị chồng thành 1 pin)
+        final double earthRadiusMeters = 6378137.0;
+        final double jitterRadiusMeters = 40.0;
+
+        java.util.Map<String, List<POI>> clusters = new java.util.HashMap<>();
+        for (POI p : poiList) {
+            if (p == null) continue;
+            double lat = p.getLatitude();
+            double lng = p.getLongitude();
+            if (lat == 0.0d && lng == 0.0d) continue;
+            long latKey = Math.round(lat * 100000d);
+            long lngKey = Math.round(lng * 100000d);
+            String key = latKey + "_" + lngKey;
+            List<POI> list = clusters.get(key);
+            if (list == null) {
+                list = new ArrayList<>();
+                clusters.put(key, list);
+            }
+            list.add(p);
+        }
+
+        int added = 0;
+        LatLng first = null;
+        for (java.util.Map.Entry<String, List<POI>> entry : clusters.entrySet()) {
+            List<POI> group = entry.getValue();
+            if (group == null || group.isEmpty()) continue;
+
+            POI basePoi = group.get(0);
+            double baseLat = basePoi.getLatitude();
+            double baseLng = basePoi.getLongitude();
+            if (baseLat == 0.0d && baseLng == 0.0d) continue;
+
+            int n = group.size();
+            for (int i = 0; i < n; i++) {
+                POI p = group.get(i);
+                if (p == null) continue;
+
+                double lat = baseLat;
+                double lng = baseLng;
+                if (n > 1) {
+                    double angle = (2.0 * Math.PI * i) / n;
+                    double latRad = Math.toRadians(baseLat);
+                    double dx = jitterRadiusMeters * Math.cos(angle);
+                    double dy = jitterRadiusMeters * Math.sin(angle);
+
+                    double offsetLatRad = dx / earthRadiusMeters;
+                    double offsetLngRad = dy / (earthRadiusMeters * Math.cos(latRad));
+
+                    lat = baseLat + Math.toDegrees(offsetLatRad);
+                    lng = baseLng + Math.toDegrees(offsetLngRad);
+                }
+
+                LatLng pos = new LatLng(lat, lng);
+                if (first == null) first = pos;
+
+                Marker m = googleMap.addMarker(
+                        new MarkerOptions().position(pos).title(safe(p.getName())));
+                if (m != null) {
+                    m.setTag(p);
+                    poiMarkers.add(m);
+                    bounds.include(pos);
+                    added++;
+                }
+            }
+        }
+
+        if (added == 0) return;
+        try {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 80));
+        } catch (Exception ignored) {
+            if (first != null) googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(first, 12f));
+        }
+    }
+
+    private void openPoiDetailMock(POI poi) {
+        if (poi == null) return;
+        Intent intent = new Intent(this, ExplorePOIDetailActivity.class);
+        intent.putExtra(ExplorePOIDetailActivity.EXTRA_POI_ID, safe(poi.getId()));
+        intent.putExtra(ExplorePOIDetailActivity.EXTRA_POI_JSON, gson.toJson(poi));
+        startActivity(intent);
+    }
+
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mapView == null) return;
+        Bundle mapBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+        if (mapBundle == null) {
+            mapBundle = new Bundle();
+            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapBundle);
+        }
+        mapView.onSaveInstanceState(mapBundle);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mapView != null) mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        if (mapView != null) mapView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (mapView != null) mapView.onDestroy();
+        super.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (mapView != null) mapView.onLowMemory();
     }
 
 
@@ -128,14 +338,14 @@ public class ExploreActivity extends AppCompatActivity {
                     featuredPOIAdapter.notifyDataSetChanged();
                     explorePOIAdapter.notifyDataSetChanged();
                 } else {
-                    Toast.makeText(ExploreActivity.this, "Không lấy được dữ liệu địa điểm", Toast.LENGTH_SHORT).show();
+                    AppToast.showError(ExploreActivity.this, "Không lấy được dữ liệu địa điểm");
                     Log.e("API_POI", "Response error: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<List<POI>> call, Throwable t) {
-                Toast.makeText(ExploreActivity.this, "Lỗi kết nối API", Toast.LENGTH_SHORT).show();
+                AppToast.showError(ExploreActivity.this, "Lỗi kết nối API");
                 Log.e("API_POI", "Failure: " + t.getMessage());
             }
         });
@@ -293,6 +503,11 @@ public class ExploreActivity extends AppCompatActivity {
             }
             if (id == R.id.nav_trip) {
                 startActivity(new Intent(this, TripManageActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_coupon) {
+                startActivity(new Intent(this, AdsFeedActivity.class));
                 finish();
                 return true;
             }

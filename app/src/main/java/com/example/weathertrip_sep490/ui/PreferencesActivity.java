@@ -12,7 +12,6 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -20,6 +19,7 @@ import androidx.core.content.ContextCompat;
 import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.util.AppToast;
 import com.example.weathertrip_sep490.model.Preference;
 import com.example.weathertrip_sep490.model.UserPreferenceItem;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
@@ -72,7 +72,7 @@ public class PreferencesActivity extends AppCompatActivity {
 
         findViewById(R.id.btnContinue).setOnClickListener(v -> {
             if (selectedIds.isEmpty()) {
-                Toast.makeText(this, "Vui lòng chọn ít nhất 1 sở thích", Toast.LENGTH_SHORT).show();
+                AppToast.showError(this, "Vui lòng chọn ít nhất 1 sở thích");
             } else {
                 saveUserPreferencesAndContinue();
             }
@@ -101,13 +101,13 @@ public class PreferencesActivity extends AppCompatActivity {
                     allPreferences.addAll(response.body());
                     filterAndRender(etSearch.getText().toString());
                 } else {
-                    Toast.makeText(PreferencesActivity.this, "Không tải được danh sách sở thích", Toast.LENGTH_SHORT).show();
+                    AppToast.showError(PreferencesActivity.this, "Không tải được danh sách sở thích");
                 }
             }
 
             @Override
             public void onFailure(Call<List<Preference>> call, Throwable t) {
-                Toast.makeText(PreferencesActivity.this, "Lỗi kết nối server", Toast.LENGTH_SHORT).show();
+                AppToast.showError(PreferencesActivity.this, "Lỗi kết nối server");
             }
         });
     }
@@ -232,7 +232,7 @@ public class PreferencesActivity extends AppCompatActivity {
             accessToken = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getString("access_token", null);
         }
         if (accessToken == null || accessToken.trim().isEmpty()) {
-            Toast.makeText(this, "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+            AppToast.showError(this, "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
             navigateNext();
             return;
         }
@@ -254,7 +254,7 @@ public class PreferencesActivity extends AppCompatActivity {
                             .putBoolean(KEY_PENDING_PREFERENCES_SYNC, false)
                             .remove(KEY_PENDING_PREFERENCES_IDS)
                             .apply();
-                    Toast.makeText(PreferencesActivity.this, "Đã cập nhật sở thích thành công!", Toast.LENGTH_SHORT).show();
+                    AppToast.showSuccess(PreferencesActivity.this, "Đã cập nhật sở thích thành công!");
                     navigateNext();
                 } else {
                     int code = response.code();
@@ -276,20 +276,18 @@ public class PreferencesActivity extends AppCompatActivity {
                             || detailLower.contains("cloudinary")
                             || detailLower.contains("developerexceptionpagemiddleware")
                             || detailLower.contains("system.reflection");
-                    Toast.makeText(PreferencesActivity.this,
+                    AppToast.showError(PreferencesActivity.this,
                             looksLikeServerMisconfig
                                     ? "Server đang lỗi (" + code + "). Sở thích đã lưu trên máy và sẽ đồng bộ sau."
-                                    : ("Không lưu được lên server (" + code + "). " + (err != null && !err.trim().isEmpty() ? err : "Vui lòng thử lại sau.")),
-                            Toast.LENGTH_LONG).show();
+                                    : ("Không lưu được lên server (" + code + "). " + (err != null && !err.trim().isEmpty() ? err : "Vui lòng thử lại sau.")));
                     navigateNext();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(PreferencesActivity.this,
-                        "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "Unknown"),
-                        Toast.LENGTH_LONG).show();
+                AppToast.showError(PreferencesActivity.this,
+                        "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "Unknown"));
                 navigateNext();
             }
         });
