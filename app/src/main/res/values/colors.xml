@@ -30,6 +30,12 @@
     <color name="dark_green">#22C55E</color>
     <color name="green_soft">#BBF7D0</color>
     <color name="text_main">#064E3B</color>
+    <color name="partner_teal">#0F766E</color>
+    <color name="partner_teal_dark">#0B5F59</color>
+    <color name="partner_border">#D9E4DF</color>
+    <color name="partner_surface">#FBFCFB</color>
+    <color name="partner_chip_bg">#F5F7F6</color>
+    <color name="partner_chip_selected_bg">#EAF4F0</color>
     <color name="sencond_text">#374151</color>
     <color name="bright_green_start">#00F5A0</color>
     <color name="bright_green_end">#00D9F5</color>

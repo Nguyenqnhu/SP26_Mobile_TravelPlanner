@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -58,10 +57,6 @@ public class ExploreActivity extends AppCompatActivity implements OnMapReadyCall
     private FeaturedPOIAdapter featuredPOIAdapter;
     private ExplorePOIAdapter explorePOIAdapter;
 
-    // Stack ảnh nổi bật
-    private ImageView imgStackFront, imgStackBack1, imgStackBack2;
-    private final List<String> stackImageUrls = new ArrayList<>();
-
     private static final String MAPVIEW_BUNDLE_KEY = "ExploreMapViewBundle";
     private MapView mapView;
     private GoogleMap googleMap;
@@ -81,11 +76,7 @@ public class ExploreActivity extends AppCompatActivity implements OnMapReadyCall
         tvPlaceCount = findViewById(R.id.tvPlaceCount);
         btnToggleMap = findViewById(R.id.btnExploreToggleMap);
 
-        imgStackFront = findViewById(R.id.imgStackFront);
-        imgStackBack1 = findViewById(R.id.imgStackBack1);
-        imgStackBack2 = findViewById(R.id.imgStackBack2);
 
-        setupImageStack();
         setupBottomNav();
         setupRecyclerViews();
         initMapView(savedInstanceState);
@@ -334,7 +325,6 @@ public class ExploreActivity extends AppCompatActivity implements OnMapReadyCall
                         break;
                     }
 
-                    updateImageStackFromPois();
                     featuredPOIAdapter.notifyDataSetChanged();
                     explorePOIAdapter.notifyDataSetChanged();
                 } else {
@@ -411,76 +401,6 @@ public class ExploreActivity extends AppCompatActivity implements OnMapReadyCall
                 if (body != null) body.close();
             }
         });
-    }
-
-    // Thiết lập stack ảnh: khi bấm ảnh trước sẽ xoay về cuối danh sách
-    private void setupImageStack() {
-        if (imgStackFront == null || imgStackBack1 == null || imgStackBack2 == null) {
-            return;
-        }
-
-        imgStackFront.setOnClickListener(v -> {
-            if (stackImageUrls.isEmpty()) return;
-            // Đưa ảnh trước (index 0) xuống cuối
-            String first = stackImageUrls.remove(0);
-            stackImageUrls.add(first);
-            applyStackImages();
-        });
-    }
-
-    private void applyStackImages() {
-        if (imgStackFront == null || imgStackBack1 == null || imgStackBack2 == null) return;
-        if (stackImageUrls.isEmpty()) return;
-
-        int size = stackImageUrls.size();
-        String frontUrl = stackImageUrls.get(0);
-        String back1Url = stackImageUrls.get(size > 1 ? 1 : 0);
-        String back2Url = stackImageUrls.get(size > 2 ? 2 : (size > 1 ? 1 : 0));
-
-        loadStackImage(imgStackFront, frontUrl);
-        loadStackImage(imgStackBack1, back1Url);
-        loadStackImage(imgStackBack2, back2Url);
-    }
-
-    private void updateImageStackFromPois() {
-        if (imgStackFront == null || imgStackBack1 == null || imgStackBack2 == null) return;
-
-        stackImageUrls.clear();
-        for (POI poi : poiList) {
-            if (poi == null) continue;
-            String url = poi.getPoiImgUrl();
-            if (url == null) continue;
-            url = url.trim();
-            if (url.isEmpty()) continue;
-            stackImageUrls.add(url);
-            if (stackImageUrls.size() >= 3) break;
-        }
-        applyStackImages();
-    }
-
-    private void loadStackImage(ImageView imageView, String url) {
-        if (url == null || url.trim().isEmpty()) {
-            imageView.setImageResource(R.drawable.bg_image_placeholder);
-            return;
-        }
-        Glide.with(imageView)
-                .load(url.trim())
-                .placeholder(R.drawable.bg_image_placeholder)
-                .error(R.drawable.bg_image_placeholder)
-                .centerCrop()
-                .listener(new RequestListener<android.graphics.drawable.Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(GlideException e, Object model, Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
-                        Log.e("GLIDE_IMG", "Stack load failed url=" + url, e);
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, Target<android.graphics.drawable.Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        return false;
-                    }
-                })
-                .into(imageView);
     }
 
     private void setupBottomNav() {

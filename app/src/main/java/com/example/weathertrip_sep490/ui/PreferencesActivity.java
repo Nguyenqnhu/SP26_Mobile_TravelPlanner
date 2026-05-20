@@ -40,6 +40,7 @@ public class PreferencesActivity extends AppCompatActivity {
     private static final String KEY_SELECTED_PREFERENCES = "selected_preferences";
     private static final String KEY_PENDING_PREFERENCES_SYNC = "pending_preferences_sync";
     private static final String KEY_PENDING_PREFERENCES_IDS = "pending_preferences_ids";
+    private static final String KEY_HAS_COMPLETED_PREFERENCES_ONCE = "has_completed_preferences_once";
 
     private ChipGroup cgPreferences;
     private TextView tvSkip;
@@ -252,6 +253,7 @@ public class PreferencesActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     prefs.edit()
                             .putBoolean(KEY_PENDING_PREFERENCES_SYNC, false)
+                            .putBoolean(KEY_HAS_COMPLETED_PREFERENCES_ONCE, true)
                             .remove(KEY_PENDING_PREFERENCES_IDS)
                             .apply();
                     AppToast.showSuccess(PreferencesActivity.this, "Đã cập nhật sở thích thành công!");
@@ -268,6 +270,7 @@ public class PreferencesActivity extends AppCompatActivity {
                     // Đánh dấu chờ đồng bộ lại khi server ổn
                     prefs.edit()
                             .putBoolean(KEY_PENDING_PREFERENCES_SYNC, true)
+                            .putBoolean(KEY_HAS_COMPLETED_PREFERENCES_ONCE, true)
                             .putString(KEY_PENDING_PREFERENCES_IDS, joinedIds)
                             .apply();
 
@@ -295,6 +298,11 @@ public class PreferencesActivity extends AppCompatActivity {
 
     private void navigateNext() {
        //navigate
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_HAS_COMPLETED_PREFERENCES_ONCE, true)
+                .apply();
+
         Intent intent = new Intent(PreferencesActivity.this, HomepageActivity.class);
         startActivity(intent);
         finish();
