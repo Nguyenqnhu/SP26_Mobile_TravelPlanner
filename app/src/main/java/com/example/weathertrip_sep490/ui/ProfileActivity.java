@@ -94,6 +94,7 @@ public class ProfileActivity extends AppCompatActivity {
         setSettingItemText(R.id.itemChangePassword, "Đổi mật khẩu", R.drawable.ic_lock_outline);
         setSettingItemText(R.id.itemUpdatePreference, "Cập nhật preference", R.drawable.ic_preferences);
         setSettingItemText(R.id.itemSavedPromotions, "Các ưu đãi đã lưu", R.drawable.ic_heart);
+        setSettingItemText(R.id.itemBecomePartner, "Trở thành đối tác", R.drawable.ic_user);
         setSettingItemText(R.id.itemLanguage, "Ngôn ngữ", R.drawable.ic_language);
         setSettingItemText(R.id.itemHelp, "Trợ giúp", R.drawable.ic_help_outline);
 
@@ -126,6 +127,10 @@ public class ProfileActivity extends AppCompatActivity {
             startActivity(new Intent(this, SavedPromotionsActivity.class));
         });
 
+        findViewById(R.id.itemBecomePartner).setOnClickListener(v -> {
+            startActivity(new Intent(this, BecomePartnerActivity.class));
+        });
+
         findViewById(R.id.itemLanguage).setOnClickListener(v -> {
             LanguageManager.showLanguageDialog(this, this::recreate);
         });
@@ -134,6 +139,10 @@ public class ProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "Mở Help", Toast.LENGTH_SHORT).show();
         });
 
+        View partnerItem = findViewById(R.id.itemBecomePartner);
+        if (partnerItem != null) {
+            partnerItem.setOnClickListener(v -> startActivity(new Intent(this, BecomePartnerActivity.class)));
+        }
 
         //  Switch (DarkMode / Notifications)
         switchNotify.setOnCheckedChangeListener((button, isChecked) -> {
@@ -190,12 +199,20 @@ public class ProfileActivity extends AppCompatActivity {
                     User user = response.body();
                     TextView tvName = findViewById(R.id.tvUserName);
                     TextView tvEmail = findViewById(R.id.tvUserEmail);
+                    View partnerItem = findViewById(R.id.itemBecomePartner);
                     if (user.getName() != null && !user.getName().isEmpty()) {
                         tvName.setText(user.getName());
                     }
                     if (email != null && !email.isEmpty()) {
                         tvEmail.setText(email);
                     }
+                    if (partnerItem != null) {
+                        partnerItem.setVisibility(user.isPartner() ? View.GONE : View.VISIBLE);
+                    }
+                    getSharedPreferences("TravelGoPrefs", MODE_PRIVATE)
+                            .edit()
+                            .putBoolean("is_partner", user.isPartner())
+                            .apply();
                     // AvatarUrl: hiện chưa load ảnh từ URL, có thể thêm sau với thư viện image loading
                 }
             }

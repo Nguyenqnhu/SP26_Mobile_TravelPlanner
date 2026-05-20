@@ -163,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (pendingJoinTripId != null && !pendingJoinTripId.trim().isEmpty()) {
                         joinPendingInviteAfterLogin(pendingJoinTripId.trim(), token);
                     } else {
-                        navigateToPreferences(token);
+                        navigateAfterLogin(token, email);
                     }
                 } else {
                     AppToast.showError(LoginActivity.this, "Email hoặc mật khẩu không đúng");
@@ -178,11 +178,27 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void navigateToPreferences(@Nullable String token) {
+    private void navigateAfterLogin(@Nullable String token, @NonNull String email) {
+        SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+        boolean hasSavedPreferences = prefs.contains("selected_preferences")
+                && !TextUtils.isEmpty(prefs.getString("selected_preferences", ""));
+        boolean hasSeenPreferenceFlow = prefs.getBoolean("has_completed_preferences_once", false);
+
+        if (hasSavedPreferences || hasSeenPreferenceFlow) {
+            Intent intent = new Intent(LoginActivity.this, HomepageActivity.class);
+            if (token != null && !token.isEmpty()) {
+                intent.putExtra("access_token", token);
+            }
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
         if (token != null && !token.isEmpty()) {
             intent.putExtra("access_token", token);
         }
+        intent.putExtra("current_email", email);
         startActivity(intent);
         finish();
     }

@@ -67,6 +67,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.BecomePartnerActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.HomepageActivity"
             android:exported="false" />
 

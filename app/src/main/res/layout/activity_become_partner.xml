@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fillViewport="true"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="18dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="22dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp">
+
+            <ImageButton
+                android:id="@+id/btnPartnerBack"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_centerVertical="true"
+                android:background="@android:color/transparent"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_left"
+                app:tint="@color/text_main" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:text="Thông tin đối tác"
+                android:textColor="@color/text_main"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:text="Tên địa điểm / thương hiệu *"
+            android:textColor="@color/text_main"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etPartnerTitle"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_input_auth"
+            android:hint="VD: Homestay Núi Mây"
+            android:paddingStart="15dp"
+            android:paddingEnd="15dp"
+            android:singleLine="true"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/slate_500"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="7dp"
+            android:text="Địa chỉ kinh doanh"
+            android:textColor="@color/text_main"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etPartnerAddress"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_input_auth"
+            android:hint="Số nhà, đường, phường, tỉnh/thành"
+            android:paddingStart="15dp"
+            android:paddingEnd="15dp"
+            android:singleLine="true"
+            android:textColor="@color/text_main"
+            android:textColorHint="@color/slate_500"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="13dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="7dp"
+                    android:text="Số điện thoại"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etPartnerPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_input_auth"
+                    android:hint="0123 456 789"
+                    android:inputType="phone"
+                    android:paddingStart="15dp"
+                    android:paddingEnd="15dp"
+                    android:singleLine="true"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/slate_500"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="7dp"
+                    android:text="Email liên hệ"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etPartnerEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/bg_input_auth"
+                    android:hint="ban@example.com"
+                    android:inputType="textEmailAddress"
+                    android:paddingStart="15dp"
+                    android:paddingEnd="15dp"
+                    android:singleLine="true"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/slate_500"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:src="@drawable/ic_calendar"
+                app:tint="@color/text_main" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="7dp"
+                android:text="Giấy phép kinh doanh"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnPartnerLicensePicker"
+            android:layout_width="match_parent"
+            android:layout_height="118dp"
+            android:layout_marginBottom="7dp"
+            android:background="@drawable/bg_partner_license_upload"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <FrameLayout
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_partner_chip_selected">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_upload_simple"
+                    app:tint="@color/emerald_700" />
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chọn file PDF hoặc ảnh"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Tối đa 10MB · PDF, JPG, PNG"
+                android:textColor="@color/slate_500"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPartnerSelectedFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Chưa chọn file nào"
+            android:textColor="@color/slate_500"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/emerald_700" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tôi đồng ý với Điều khoản đối tác và xác nhận thông tin cung cấp là chính xác."
+                android:textColor="@color/slate_800"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPartnerSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:backgroundTint="@color/green_primary"
+            android:text="Đăng ký trở thành đối tác"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:cornerRadius="26dp" />
+
+    </LinearLayout>
+</ScrollView>

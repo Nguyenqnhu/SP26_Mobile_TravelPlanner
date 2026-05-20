@@ -26,6 +26,9 @@ public class User implements Serializable {
     @SerializedName("gender")
     private String gender;
 
+    @SerializedName(value = "isPartner", alternate = {"partner", "is_partner", "partnerStatus", "isMerchant"})
+    private Boolean partner;
+
 
     public User() {
     }
@@ -50,4 +53,8 @@ public class User implements Serializable {
 
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
+
+    public Boolean getPartner() { return partner; }
+    public boolean isPartner() { return Boolean.TRUE.equals(partner); }
+    public void setPartner(Boolean partner) { this.partner = partner; }
 }

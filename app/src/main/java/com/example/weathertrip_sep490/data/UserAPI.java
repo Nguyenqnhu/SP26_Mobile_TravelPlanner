@@ -10,6 +10,8 @@ import com.example.weathertrip_sep490.model.JoinParticipantResponse;
 import com.example.weathertrip_sep490.model.LocationOption;
 import com.example.weathertrip_sep490.model.DistrictOption;
 import com.example.weathertrip_sep490.model.AdvertisementItem;
+import com.example.weathertrip_sep490.model.PartnerRequestBody;
+import com.example.weathertrip_sep490.model.PartnerRequestResponse;
 import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.PlannerTripResponse;
 import com.example.weathertrip_sep490.model.SavedPromotionItem;
@@ -123,5 +125,15 @@ public interface UserAPI {
 
     @GET("api/users/me/saved-promotions")
     Call<List<SavedPromotionItem>> getMySavedPromotions();
+
+    @Multipart
+    @POST("api/partner-requests")
+    Call<PartnerRequestResponse> createPartnerRequest(
+            @Part("BusinessName") RequestBody businessName,
+            @Part("BusinessAddress") RequestBody businessAddress,
+            @Part("BusinessPhone") RequestBody businessPhone,
+            @Part("BusinessEmail") RequestBody businessEmail,
+            @Part MultipartBody.Part businessLicenseFile
+    );
 
 }
