@@ -23,8 +23,13 @@ import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.LoginRequest;
 import com.example.weathertrip_sep490.model.LoginResponse;
 import com.example.weathertrip_sep490.model.JoinParticipantResponse;
+import com.example.weathertrip_sep490.model.UserPreferenceItem;
 import com.example.weathertrip_sep490.util.AppToast;
+import com.example.weathertrip_sep490.util.PreferenceSessionHelper;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import android.util.Base64;
 
@@ -179,21 +184,57 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void navigateAfterLogin(@Nullable String token, @NonNull String email) {
-        SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
-        boolean hasSavedPreferences = prefs.contains("selected_preferences")
-                && !TextUtils.isEmpty(prefs.getString("selected_preferences", ""));
-        boolean hasSeenPreferenceFlow = prefs.getBoolean("has_completed_preferences_once", false);
+        String userId = PreferenceSessionHelper.resolveUserId(this);
+        PreferenceSessionHelper.migrateLegacyKeysIfNeeded(this, userId);
 
-        if (hasSavedPreferences || hasSeenPreferenceFlow) {
-            Intent intent = new Intent(LoginActivity.this, HomepageActivity.class);
-            if (token != null && !token.isEmpty()) {
-                intent.putExtra("access_token", token);
-            }
-            startActivity(intent);
-            finish();
+        if (PreferenceSessionHelper.hasLocalPreferences(this, userId)) {
+            openHomepage(token);
             return;
         }
 
+        setLoading(true);
+        RetrofitClient.getInstance().getPreferenceAPI().getUserPreferences()
+                .enqueue(new Callback<List<UserPreferenceItem>>() {
+                    @Override
+                    public void onResponse(Call<List<UserPreferenceItem>> call,
+                                           Response<List<UserPreferenceItem>> response) {
+                        setLoading(false);
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<String> ids = new ArrayList<>();
+                            for (UserPreferenceItem item : response.body()) {
+                                if (item != null && item.getPreferenceId() != null
+                                        && !item.getPreferenceId().trim().isEmpty()) {
+                                    ids.add(item.getPreferenceId().trim());
+                                }
+                            }
+                            if (!ids.isEmpty()) {
+                                PreferenceSessionHelper.saveSelectedIds(LoginActivity.this, userId, ids);
+                                PreferenceSessionHelper.markFlowCompleted(LoginActivity.this, userId);
+                                openHomepage(token);
+                                return;
+                            }
+                        }
+                        openPreferences(token, email);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<UserPreferenceItem>> call, Throwable t) {
+                        setLoading(false);
+                        openPreferences(token, email);
+                    }
+                });
+    }
+
+    private void openHomepage(@Nullable String token) {
+        Intent intent = new Intent(LoginActivity.this, HomepageActivity.class);
+        if (token != null && !token.isEmpty()) {
+            intent.putExtra("access_token", token);
+        }
+        startActivity(intent);
+        finish();
+    }
+
+    private void openPreferences(@Nullable String token, @NonNull String email) {
         Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
         if (token != null && !token.isEmpty()) {
             intent.putExtra("access_token", token);

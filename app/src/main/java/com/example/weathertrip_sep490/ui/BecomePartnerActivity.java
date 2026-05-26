@@ -6,7 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -37,6 +39,7 @@ public class BecomePartnerActivity extends AppCompatActivity {
     private Button btnSubmit;
     private View btnLicensePicker;
     private TextView tvSelectedFileName;
+    private CheckBox cbPartnerAgree;
     private File selectedLicenseFile;
     private ActivityResultLauncher<String> filePickerLauncher;
 
@@ -59,8 +62,14 @@ public class BecomePartnerActivity extends AppCompatActivity {
         btnSubmit = findViewById(R.id.btnPartnerSubmit);
         btnLicensePicker = findViewById(R.id.btnPartnerLicensePicker);
         tvSelectedFileName = findViewById(R.id.tvPartnerSelectedFile);
+        cbPartnerAgree = findViewById(R.id.cbPartnerAgree);
         findViewById(R.id.btnPartnerBack).setOnClickListener(v -> finish());
         btnLicensePicker.setOnClickListener(v -> filePickerLauncher.launch("*/*"));
+
+        if (cbPartnerAgree != null) {
+            cbPartnerAgree.setOnCheckedChangeListener((buttonView, isChecked) -> { });
+            cbPartnerAgree.setChecked(false);
+        }
 
         btnSubmit.setOnClickListener(v -> submitPartnerRequest());
     }
@@ -101,6 +110,10 @@ public class BecomePartnerActivity extends AppCompatActivity {
             AppToast.showError(this, "Vui lòng chọn giấy phép kinh doanh");
             return;
         }
+        if (cbPartnerAgree != null && !cbPartnerAgree.isChecked()) {
+            AppToast.showError(this, "Vui lòng đồng ý với điều khoản đối tác");
+            return;
+        }
 
         setSubmitting(true);
 
@@ -119,7 +132,7 @@ public class BecomePartnerActivity extends AppCompatActivity {
                         if (response.isSuccessful() && response.body() != null) {
                             travelPrefs.edit().putBoolean("is_partner_request_pending", true).apply();
                             AppToast.showSuccess(BecomePartnerActivity.this, "Gửi yêu cầu đối tác thành công");
-                            startActivity(new Intent(BecomePartnerActivity.this, ProfileActivity.class));
+                            startActivity(new Intent(BecomePartnerActivity.this, PartnerRequestStatusActivity.class));
                             finish();
                         } else {
                             AppToast.showError(BecomePartnerActivity.this, "Gửi yêu cầu thất bại");
@@ -140,6 +153,14 @@ public class BecomePartnerActivity extends AppCompatActivity {
         btnSubmit.setText(submitting ? "Đang gửi..." : "Đăng ký trở thành đối tác");
         btnLicensePicker.setEnabled(!submitting);
         btnBusinessFieldsEnabled(!submitting);
+        if (cbPartnerAgree != null) cbPartnerAgree.setEnabled(!submitting);
+    }
+
+    private void updateAgreementUi(boolean checked) {
+        if (cbPartnerAgree == null) return;
+        cbPartnerAgree.setBackgroundResource(checked ? R.drawable.bg_partner_checkbox_checked : R.drawable.bg_partner_checkbox_unchecked);
+        cbPartnerAgree.setButtonDrawable(checked ? R.drawable.ic_partner_check : null);
+        cbPartnerAgree.setPadding(0, 0, 0, 0);
     }
 
     private void btnBusinessFieldsEnabled(boolean enabled) {
