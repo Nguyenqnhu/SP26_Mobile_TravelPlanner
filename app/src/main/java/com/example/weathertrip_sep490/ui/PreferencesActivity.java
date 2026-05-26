@@ -22,6 +22,7 @@ import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.util.AppToast;
 import com.example.weathertrip_sep490.model.Preference;
 import com.example.weathertrip_sep490.model.UserPreferenceItem;
+import com.example.weathertrip_sep490.util.PreferenceSessionHelper;
 import com.example.weathertrip_sep490.util.ViewAnimationUtil;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -37,12 +38,11 @@ public class PreferencesActivity extends AppCompatActivity {
 
     private static final String TAG = "PreferencesActivity";
     private static final String PREFS_NAME = "TravelGoPrefs";
-    private static final String KEY_SELECTED_PREFERENCES = "selected_preferences";
     private static final String KEY_PENDING_PREFERENCES_SYNC = "pending_preferences_sync";
     private static final String KEY_PENDING_PREFERENCES_IDS = "pending_preferences_ids";
-    private static final String KEY_HAS_COMPLETED_PREFERENCES_ONCE = "has_completed_preferences_once";
 
     private ChipGroup cgPreferences;
+    private String sessionUserId;
     private TextView tvSkip;
     private EditText etSearch;
     private final List<String> selectedIds = new ArrayList<>(); // Lưu ID những mục người dùng chọn
@@ -59,6 +59,15 @@ public class PreferencesActivity extends AppCompatActivity {
             getSharedPreferences("TravelGoPrefs", MODE_PRIVATE).edit()
                     .putString("access_token", tokenFromIntent.trim()).apply();
         }
+
+        String emailFromIntent = getIntent() != null ? getIntent().getStringExtra("current_email") : null;
+        if (emailFromIntent != null && !emailFromIntent.trim().isEmpty()) {
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                    .putString("current_email", emailFromIntent.trim())
+                    .apply();
+        }
+        sessionUserId = PreferenceSessionHelper.resolveUserId(this);
+        PreferenceSessionHelper.migrateLegacyKeysIfNeeded(this, sessionUserId);
 
         cgPreferences = findViewById(R.id.cgPreferences);
         tvSkip = findViewById(R.id.tvSkip);
@@ -139,9 +148,8 @@ public class PreferencesActivity extends AppCompatActivity {
     }
 
     private void preloadSelectedPreferencesFromLocal() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String localSelected = prefs.getString(KEY_SELECTED_PREFERENCES, "");
-        if (localSelected == null || localSelected.trim().isEmpty()) {
+        String localSelected = PreferenceSessionHelper.getSelectedIdsCsv(this, sessionUserId);
+        if (localSelected.trim().isEmpty()) {
             return;
         }
         selectedIds.clear();
@@ -155,9 +163,7 @@ public class PreferencesActivity extends AppCompatActivity {
     }
 
     private void persistSelectedPreferencesLocal() {
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String joinedIds = TextUtils.join(",", selectedIds);
-        prefs.edit().putString(KEY_SELECTED_PREFERENCES, joinedIds).apply();
+        PreferenceSessionHelper.saveSelectedIds(this, sessionUserId, selectedIds);
     }
 
     private void filterAndRender(String query) {
@@ -251,9 +257,9 @@ public class PreferencesActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
+                    PreferenceSessionHelper.markFlowCompleted(PreferencesActivity.this, sessionUserId);
                     prefs.edit()
                             .putBoolean(KEY_PENDING_PREFERENCES_SYNC, false)
-                            .putBoolean(KEY_HAS_COMPLETED_PREFERENCES_ONCE, true)
                             .remove(KEY_PENDING_PREFERENCES_IDS)
                             .apply();
                     AppToast.showSuccess(PreferencesActivity.this, "Đã cập nhật sở thích thành công!");
@@ -268,9 +274,9 @@ public class PreferencesActivity extends AppCompatActivity {
                             + " selectedIds=" + selectedIds
                             + " errorBody=" + (err != null ? err : "<null>"));
                     // Đánh dấu chờ đồng bộ lại khi server ổn
+                    PreferenceSessionHelper.markFlowCompleted(PreferencesActivity.this, sessionUserId);
                     prefs.edit()
                             .putBoolean(KEY_PENDING_PREFERENCES_SYNC, true)
-                            .putBoolean(KEY_HAS_COMPLETED_PREFERENCES_ONCE, true)
                             .putString(KEY_PENDING_PREFERENCES_IDS, joinedIds)
                             .apply();
 
@@ -297,11 +303,7 @@ public class PreferencesActivity extends AppCompatActivity {
     }
 
     private void navigateNext() {
-       //navigate
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .edit()
-                .putBoolean(KEY_HAS_COMPLETED_PREFERENCES_ONCE, true)
-                .apply();
+        PreferenceSessionHelper.markFlowCompleted(this, sessionUserId);
 
         Intent intent = new Intent(PreferencesActivity.this, HomepageActivity.class);
         startActivity(intent);

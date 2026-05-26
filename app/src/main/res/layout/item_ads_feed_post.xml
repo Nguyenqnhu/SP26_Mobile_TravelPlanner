@@ -75,7 +75,6 @@
                     android:clickable="true"
                     android:contentDescription="@null"
                     android:focusable="true"
-                    android:focusableInTouchMode="true"
                     android:padding="6dp"
                     android:scaleType="centerInside"
                     app:srcCompat="@drawable/not_save_button" />

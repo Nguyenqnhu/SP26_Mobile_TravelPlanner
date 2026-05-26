@@ -71,6 +71,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.PartnerRequestStatusActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.HomepageActivity"
             android:exported="false" />
 

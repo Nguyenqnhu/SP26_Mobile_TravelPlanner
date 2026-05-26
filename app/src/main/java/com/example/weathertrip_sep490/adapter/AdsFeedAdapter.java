@@ -170,6 +170,26 @@ public class AdsFeedAdapter extends RecyclerView.Adapter<AdsFeedAdapter.Holder> 
                     .centerCrop()
                     .into(imgCover);
 
+            imgCover.setOnClickListener(v -> {
+                String imageUrl = item.getImageUrl();
+                if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                    android.app.Dialog dialog = new android.app.Dialog(itemView.getContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                    dialog.setContentView(R.layout.dialog_fullscreen_image);
+                    ImageView imgFullscreen = dialog.findViewById(R.id.imgFullscreen);
+                    View btnClose = dialog.findViewById(R.id.btnFullscreenClose);
+
+                    Glide.with(itemView.getContext())
+                            .load(imageUrl)
+                            .placeholder(R.drawable.bg_image_placeholder)
+                            .error(R.drawable.bg_image_placeholder)
+                            .into(imgFullscreen);
+
+                    btnClose.setOnClickListener(v1 -> dialog.dismiss());
+                    imgFullscreen.setOnClickListener(v1 -> dialog.dismiss());
+                    dialog.show();
+                }
+            });
+
             String promotionId = item.getPromotion() != null ? item.getPromotion().getPromotionId() : null;
             boolean canSave = promotionId != null && !promotionId.trim().isEmpty();
             AdsFeedAdapter adapter = null;
