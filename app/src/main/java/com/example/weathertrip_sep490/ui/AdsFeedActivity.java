@@ -34,10 +34,6 @@ public class AdsFeedActivity extends AppCompatActivity {
 
     private AdsFeedAdapter adapter;
     private final List<AdvertisementItem> allAds = new ArrayList<>();
-    private int selectedFilter = 0;
-    private MaterialButton chipAll;
-    private MaterialButton chipPromo;
-    private MaterialButton chipSaved;
     private TextView tvTitle;
     private final Set<String> savedPromotionIds = new HashSet<>();
 
@@ -46,12 +42,14 @@ public class AdsFeedActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ads_feed);
 
-        ImageView btnBack = findViewById(R.id.btnAdsFeedBack);
-        btnBack.setOnClickListener(v -> finish());
+        android.view.View btnBack = findViewById(R.id.btnAdsFeedBack);
+        btnBack.setOnClickListener(v -> {
+            if (isTaskRoot()) {
+                startActivity(new Intent(this, HomepageActivity.class));
+            }
+            finish();
+        });
         tvTitle = findViewById(R.id.tvAdsFeedTitle);
-        chipAll = findViewById(R.id.chipAdsAll);
-        chipPromo = findViewById(R.id.chipAdsPromo);
-        chipSaved = findViewById(R.id.chipAdsSaved);
 
         RecyclerView rv = findViewById(R.id.rvAdsFeed);
         rv.setLayoutManager(new LinearLayoutManager(this));
@@ -67,11 +65,6 @@ public class AdsFeedActivity extends AppCompatActivity {
             }
         });
         rv.setAdapter(adapter);
-
-        chipAll.setOnClickListener(v -> selectFilter(0));
-        chipPromo.setOnClickListener(v -> selectFilter(1));
-        chipSaved.setOnClickListener(v -> selectFilter(2));
-        selectFilter(0);
 
         loadSavedPromotions();
         loadAdvertisements();
@@ -116,59 +109,27 @@ public class AdsFeedActivity extends AppCompatActivity {
                 }
                 applyFilter();
                 if (allAds.isEmpty()) {
-                    Toast.makeText(AdsFeedActivity.this, "Chưa có quảng cáo nào", Toast.LENGTH_SHORT).show();
+                    com.example.weathertrip_sep490.util.AppToast.showInfo(AdsFeedActivity.this, "Chưa có quảng cáo nào");
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<AdvertisementItem>> call, @NonNull Throwable t) {
-                Toast.makeText(AdsFeedActivity.this, "Lỗi tải quảng cáo: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
+                com.example.weathertrip_sep490.util.AppToast.showError(AdsFeedActivity.this, "Lỗi tải quảng cáo: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });
     }
 
-    private void selectFilter(int index) {
-        selectedFilter = index;
-        styleChip(chipAll, index == 0);
-        styleChip(chipPromo, index == 1);
-        styleChip(chipSaved, index == 2);
-        applyFilter();
-    }
-
-    private void styleChip(@NonNull MaterialButton chip, boolean selected) {
-        int stroke = ContextCompat.getColor(this, R.color.green_primary);
-        int fillBase = ContextCompat.getColor(this, R.color.emerald_100);
-        int fill = androidx.core.graphics.ColorUtils.setAlphaComponent(fillBase, 170);
-
-        chip.setBackgroundTintList(android.content.res.ColorStateList.valueOf(selected ? fill : ContextCompat.getColor(this, R.color.white)));
-        chip.setTextColor(stroke);
-        chip.setStrokeWidth(2);
-        chip.setStrokeColor(android.content.res.ColorStateList.valueOf(stroke));
-    }
-
     private void applyFilter() {
-        List<AdvertisementItem> filtered = new ArrayList<>();
-        for (AdvertisementItem item : allAds) {
-            if (selectedFilter == 0) {
-                filtered.add(item);
-            } else if (selectedFilter == 1) {
-                if (item.getPromotion() != null) filtered.add(item);
-            } else {
-                String promotionId = item.getPromotion() != null ? item.getPromotion().getPromotionId() : null;
-                if (promotionId != null && savedPromotionIds.contains(promotionId.trim())) {
-                    filtered.add(item);
-                }
-            }
-        }
-        adapter.updateData(filtered);
+        adapter.updateData(allAds);
         if (tvTitle != null) {
-            tvTitle.setText("Các ưu đãi TravelPlanner (" + filtered.size() + ")");
+            tvTitle.setText("Các ưu đãi TravelGo (" + allAds.size() + ")");
         }
     }
 
     private void savePromotion(@NonNull AdvertisementItem item) {
         if (item.getPromotion() == null || item.getPromotion().getPromotionId() == null || item.getPromotion().getPromotionId().trim().isEmpty()) {
-            Toast.makeText(this, "Bài viết này chưa có mã giảm để lưu", Toast.LENGTH_SHORT).show();
+            com.example.weathertrip_sep490.util.AppToast.showError(this, "Bài viết này chưa có mã giảm để lưu");
             return;
         }
         String promotionId = item.getPromotion().getPromotionId().trim();
@@ -177,26 +138,26 @@ public class AdsFeedActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(AdsFeedActivity.this, "Mã giảm lưu thành công !", Toast.LENGTH_SHORT).show();
+                    com.example.weathertrip_sep490.util.AppToast.showSuccess(AdsFeedActivity.this, "Mã giảm lưu thành công !");
                     savedPromotionIds.add(promotionId);
                     if (adapter != null) adapter.setPromotionSaved(promotionId, true);
                     applyFilter();
                     return;
                 }
                 if (response.code() == 409) {
-                    Toast.makeText(AdsFeedActivity.this, "Mã giảm đã được lưu trước đó", Toast.LENGTH_SHORT).show();
+                    com.example.weathertrip_sep490.util.AppToast.showInfo(AdsFeedActivity.this, "Mã giảm đã được lưu trước đó");
                     savedPromotionIds.add(promotionId);
                     if (adapter != null) adapter.setPromotionSaved(promotionId, true);
                     applyFilter();
                     return;
                 }
-                Toast.makeText(AdsFeedActivity.this, "Không thể lưu mã giảm (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                com.example.weathertrip_sep490.util.AppToast.showError(AdsFeedActivity.this, "Không thể lưu mã giảm (" + response.code() + ")");
                 if (adapter != null) adapter.setPromotionSaved(promotionId, false);
             }
 
             @Override
             public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-                Toast.makeText(AdsFeedActivity.this, "Lỗi mạng khi lưu mã giảm", Toast.LENGTH_SHORT).show();
+                com.example.weathertrip_sep490.util.AppToast.showError(AdsFeedActivity.this, "Lỗi mạng khi lưu mã giảm");
                 if (adapter != null) adapter.setPromotionSaved(promotionId, false);
             }
         });

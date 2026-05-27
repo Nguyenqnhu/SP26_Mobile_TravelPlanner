@@ -17,4 +17,8 @@
         <item name="android:textColor">@color/text_main</item>
         <item name="android:textStyle">bold</item>
     </style>
+
+    <style name="CustomPopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@android:color/white</item>
+    </style>
 </resources>

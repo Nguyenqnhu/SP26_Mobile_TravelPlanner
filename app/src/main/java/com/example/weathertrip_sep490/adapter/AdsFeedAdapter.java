@@ -77,7 +77,7 @@ public class AdsFeedAdapter extends RecyclerView.Adapter<AdsFeedAdapter.Holder> 
 
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
-        holder.bind(items.get(position), listener, expandedIds);
+        holder.bind(items.get(position), this, listener, expandedIds);
     }
 
     @Override
@@ -121,6 +121,7 @@ public class AdsFeedAdapter extends RecyclerView.Adapter<AdsFeedAdapter.Holder> 
 
         void bind(
                 @NonNull AdvertisementItem item,
+                @NonNull AdsFeedAdapter adapter,
                 @NonNull Listener listener,
                 @NonNull Set<String> expandedIds
         ) {
@@ -192,34 +193,74 @@ public class AdsFeedAdapter extends RecyclerView.Adapter<AdsFeedAdapter.Holder> 
 
             String promotionId = item.getPromotion() != null ? item.getPromotion().getPromotionId() : null;
             boolean canSave = promotionId != null && !promotionId.trim().isEmpty();
-            AdsFeedAdapter adapter = null;
-            RecyclerView.Adapter<?> binding = getBindingAdapter();
-            if (binding instanceof AdsFeedAdapter) {
-                adapter = (AdsFeedAdapter) binding;
-            }
-            boolean isSaved = canSave && adapter != null && adapter.savedPromotionIds.contains(promotionId.trim());
-            btnSaveIcon.setImageResource(isSaved ? R.drawable.saved_button : R.drawable.not_save_button);
-            btnSaveIcon.setEnabled(canSave);
-            btnSaveIcon.setAlpha(canSave ? 1f : 0.35f);
+            btnSaveIcon.setVisibility(View.VISIBLE);
             btnSaveIcon.setFocusable(true);
             btnSaveIcon.setClickable(true);
 
-            View.OnClickListener saveClick = v -> {
-                if (!canSave) return;
-                String key = promotionId.trim();
-                RecyclerView.Adapter<?> current = getBindingAdapter();
-                if (!(current instanceof AdsFeedAdapter)) return;
-                AdsFeedAdapter a = (AdsFeedAdapter) current;
-                if (!a.savedPromotionIds.contains(key)) {
-                    a.savedPromotionIds.add(key); // optimistic UI
-                    int pos = getBindingAdapterPosition();
-                    if (pos != RecyclerView.NO_POSITION) {
-                        a.notifyItemChanged(pos);
+            View.OnClickListener menuClick = v -> {
+                android.content.Context ctx = v.getContext();
+                android.app.Activity act = null;
+                android.content.Context tempCtx = ctx;
+                while (tempCtx instanceof android.content.ContextWrapper) {
+                    if (tempCtx instanceof android.app.Activity) {
+                        act = (android.app.Activity) tempCtx;
+                        break;
                     }
+                    tempCtx = ((android.content.ContextWrapper) tempCtx).getBaseContext();
                 }
-                listener.onSaveClicked(item);
+
+                if (act == null) return;
+
+                android.view.View popupView = android.view.LayoutInflater.from(ctx).inflate(R.layout.layout_custom_popup_menu, null);
+                
+                android.widget.PopupWindow popupWindow = new android.widget.PopupWindow(
+                    popupView,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    true
+                );
+
+                popupWindow.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                    popupWindow.setElevation(8f);
+                }
+
+                android.widget.LinearLayout btnSave = popupView.findViewById(R.id.btnPopupSave);
+                android.widget.ImageView imgIcon = popupView.findViewById(R.id.imgPopupSaveIcon);
+                android.widget.TextView tvTitleLabel = popupView.findViewById(R.id.tvPopupSaveTitle);
+
+                String key = promotionId != null ? promotionId.trim() : "";
+                boolean currentlySaved = canSave && adapter.savedPromotionIds.contains(key);
+
+                if (currentlySaved) {
+                    tvTitleLabel.setText("Đã lưu mã giảm");
+                    imgIcon.setImageResource(R.drawable.saved_button);
+                } else {
+                    tvTitleLabel.setText("Lưu mã giảm");
+                    imgIcon.setImageResource(R.drawable.not_save_button);
+                }
+
+                final android.app.Activity finalAct = act;
+                btnSave.setOnClickListener(vOption -> {
+                    popupWindow.dismiss();
+                    if (!canSave) {
+                        com.example.weathertrip_sep490.util.AppToast.showError(finalAct, "Bài viết này không có mã giảm để lưu");
+                    } else if (currentlySaved) {
+                        com.example.weathertrip_sep490.util.AppToast.showInfo(finalAct, "Mã giảm đã được lưu trước đó");
+                    } else {
+                        adapter.savedPromotionIds.add(key);
+                        int pos = getBindingAdapterPosition();
+                        if (pos != RecyclerView.NO_POSITION) {
+                            adapter.notifyItemChanged(pos);
+                        }
+                        listener.onSaveClicked(item);
+                    }
+                });
+
+                int densityOffset = - (int) (125 * ctx.getResources().getDisplayMetrics().density);
+                popupWindow.showAsDropDown(v, densityOffset, 0);
             };
-            btnSaveIcon.setOnClickListener(saveClick);
+            btnSaveIcon.setOnClickListener(menuClick);
             itemView.setOnClickListener(v -> listener.onItemClicked(item));
 
             tvSeeMore.setOnClickListener(v -> {
