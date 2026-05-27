@@ -94,64 +94,174 @@
                 android:textSize="15sp" />
         </LinearLayout>
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupPoiFilters"
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            app:singleLine="false"
-            app:singleSelection="true">
+            android:scrollbars="none">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPoiAll"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupPoiFilters"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:tag="ALL"
-                android:text="Tất cả"
-                android:checked="true" />
+                app:singleLine="true"
+                app:singleSelection="true">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPoiCafe"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="Cafe"
-                android:text="Cafe" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPoiAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="ALL"
+                    android:text="Tất cả"
+                    android:checked="true"
+                    android:textColor="@color/filter_chip_text"
+                    app:chipBackgroundColor="@color/filter_chip_background"
+                    app:chipStrokeColor="@color/filter_chip_stroke"
+                    app:chipStrokeWidth="1dp"
+                    app:chipIcon="@drawable/ic_filter_all"
+                    app:chipIconVisible="true"
+                    app:chipIconTint="@color/filter_chip_icon_tint"
+                    app:checkedIconVisible="false" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPoiRestaurant"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="Restaurant"
-                android:text="Nhà hàng" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPoiCafe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="Cafe"
+                    android:text="Cafe"
+                    android:textColor="@color/filter_chip_text"
+                    app:chipBackgroundColor="@color/filter_chip_background"
+                    app:chipStrokeColor="@color/filter_chip_stroke"
+                    app:chipStrokeWidth="1dp"
+                    app:chipIcon="@drawable/ic_filter_cafe"
+                    app:chipIconVisible="true"
+                    app:chipIconTint="@color/filter_chip_icon_tint"
+                    app:checkedIconVisible="false" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPoiEntertainment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="Nightlife"
-                android:text="Giải trí" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPoiRestaurant"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="Restaurant"
+                    android:text="Nhà hàng"
+                    android:textColor="@color/filter_chip_text"
+                    app:chipBackgroundColor="@color/filter_chip_background"
+                    app:chipStrokeColor="@color/filter_chip_stroke"
+                    app:chipStrokeWidth="1dp"
+                    app:chipIcon="@drawable/ic_filter_restaurant"
+                    app:chipIconVisible="true"
+                    app:chipIconTint="@color/filter_chip_icon_tint"
+                    app:checkedIconVisible="false" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPoiCulture"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="CULTURE"
-                android:text="Văn hoá" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPoiEntertainment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="Nightlife"
+                    android:text="Giải trí"
+                    android:textColor="@color/filter_chip_text"
+                    app:chipBackgroundColor="@color/filter_chip_background"
+                    app:chipStrokeColor="@color/filter_chip_stroke"
+                    app:chipStrokeWidth="1dp"
+                    app:chipIcon="@drawable/ic_filter_entertainment"
+                    app:chipIconVisible="true"
+                    app:chipIconTint="@color/filter_chip_icon_tint"
+                    app:checkedIconVisible="false" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipPoiNature"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tag="NATURE"
-                android:text="Thiên nhiên" />
-        </com.google.android.material.chip.ChipGroup>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPoiCulture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="CULTURE"
+                    android:text="Văn hoá"
+                    android:textColor="@color/filter_chip_text"
+                    app:chipBackgroundColor="@color/filter_chip_background"
+                    app:chipStrokeColor="@color/filter_chip_stroke"
+                    app:chipStrokeWidth="1dp"
+                    app:chipIcon="@drawable/ic_filter_culture"
+                    app:chipIconVisible="true"
+                    app:chipIconTint="@color/filter_chip_icon_tint"
+                    app:checkedIconVisible="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPoiNature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="NATURE"
+                    android:text="Thiên nhiên"
+                    android:textColor="@color/filter_chip_text"
+                    app:chipBackgroundColor="@color/filter_chip_background"
+                    app:chipStrokeColor="@color/filter_chip_stroke"
+                    app:chipStrokeWidth="1dp"
+                    app:chipIcon="@drawable/ic_filter_nature"
+                    app:chipIconVisible="true"
+                    app:chipIconTint="@color/filter_chip_icon_tint"
+                    app:checkedIconVisible="false" />
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- Floating Search Suggestions Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardSearchSuggestions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="136dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
+        app:strokeColor="#E5E7EB"
+        app:strokeWidth="1dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSearchAutoComplete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="220dp"
+            android:padding="4dp" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Zoom controls container -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="256dp"
+        android:orientation="vertical">
+
+        <!-- Zoom In Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnZoomIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/ic_zoom_in"
+            app:fabSize="mini"
+            app:backgroundTint="@android:color/white"
+            app:tint="#111827"
+            android:contentDescription="Zoom In" />
+
+        <!-- Zoom Out Button -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnZoomOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_zoom_out"
+            app:fabSize="mini"
+            app:backgroundTint="@android:color/white"
+            app:tint="#111827"
+            android:contentDescription="Zoom Out" />
     </LinearLayout>
 
     <!-- Bottom suggestion panel -->
     <LinearLayout
         android:id="@+id/panelPoiSuggestions"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="240dp"
         android:layout_gravity="bottom"
         android:orientation="vertical"
         android:background="#CCFFFFFF"

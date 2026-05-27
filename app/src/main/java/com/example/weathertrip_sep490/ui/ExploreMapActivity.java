@@ -9,6 +9,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.view.View;
+import com.google.android.material.card.MaterialCardView;
+import com.example.weathertrip_sep490.adapter.SearchSuggestionAdapter;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +26,7 @@ import com.example.weathertrip_sep490.adapter.PoiRecentAdapter;
 import com.example.weathertrip_sep490.model.POI;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -62,6 +67,11 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
     private EditText etSearchMap;
     private ChipGroup chipGroupPoiFilters;
 
+    private MaterialCardView cardSearchSuggestions;
+    private RecyclerView rvSearchAutoComplete;
+    private SearchSuggestionAdapter searchSuggestionAdapter;
+    private boolean isSelectingFromSuggestions = false;
+
     private String activeCategory = "ALL";
     private String searchQuery = "";
 
@@ -77,8 +87,28 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
         rvSuggestions = findViewById(R.id.rvPoiSuggestions);
         etSearchMap = findViewById(R.id.etSearchMap);
         chipGroupPoiFilters = findViewById(R.id.chipGroupPoiFilters);
+        cardSearchSuggestions = findViewById(R.id.cardSearchSuggestions);
+        rvSearchAutoComplete = findViewById(R.id.rvSearchAutoComplete);
+        setupSearchSuggestions();
 
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
+
+        FloatingActionButton btnZoomIn = findViewById(R.id.btnZoomIn);
+        FloatingActionButton btnZoomOut = findViewById(R.id.btnZoomOut);
+        if (btnZoomIn != null) {
+            btnZoomIn.setOnClickListener(v -> {
+                if (googleMap != null) {
+                    googleMap.animateCamera(CameraUpdateFactory.zoomIn());
+                }
+            });
+        }
+        if (btnZoomOut != null) {
+            btnZoomOut.setOnClickListener(v -> {
+                if (googleMap != null) {
+                    googleMap.animateCamera(CameraUpdateFactory.zoomOut());
+                }
+            });
+        }
 
         // Parse POIs from intent (can be empty if caller didn't pass data)
         String poisJson = getIntent().getStringExtra(EXTRA_POIS_JSON);
@@ -86,7 +116,13 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
             Type listType = new TypeToken<List<POI>>() {}.getType();
             try {
                 List<POI> parsed = gson.fromJson(poisJson, listType);
-                if (parsed != null) pois.addAll(parsed);
+                if (parsed != null) {
+                    if (parsed.size() > 10) {
+                        pois.addAll(parsed.subList(0, 10));
+                    } else {
+                        pois.addAll(parsed);
+                    }
+                }
             } catch (Exception ignored) {
             }
         }
@@ -117,7 +153,14 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
                     return;
                 }
                 pois.clear();
-                pois.addAll(response.body());
+                List<POI> body = response.body();
+                if (body != null) {
+                    if (body.size() > 10) {
+                        pois.addAll(body.subList(0, 10));
+                    } else {
+                        pois.addAll(body);
+                    }
+                }
                 recomputeFilteredPoisAndRefreshUi();
             }
 
@@ -141,6 +184,9 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
                 @Override
                 public void afterTextChanged(Editable s) {
                     searchQuery = s == null ? "" : s.toString();
+                    if (!isSelectingFromSuggestions) {
+                        updateSearchSuggestionsPopup(searchQuery);
+                    }
                     recomputeFilteredPoisAndRefreshUi();
                 }
             });
@@ -159,12 +205,69 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
         }
     }
 
+    private void setupSearchSuggestions() {
+        if (rvSearchAutoComplete == null) return;
+        rvSearchAutoComplete.setLayoutManager(new LinearLayoutManager(this));
+        searchSuggestionAdapter = new SearchSuggestionAdapter(poi -> {
+            if (poi == null) return;
+            isSelectingFromSuggestions = true;
+            etSearchMap.setText(poi.getName());
+            searchQuery = poi.getName();
+            isSelectingFromSuggestions = false;
+            
+            if (cardSearchSuggestions != null) {
+                cardSearchSuggestions.setVisibility(View.GONE);
+            }
+            
+            recomputeFilteredPoisAndRefreshUi();
+            
+            if (googleMap != null) {
+                LatLng pos = new LatLng(poi.getLatitude(), poi.getLongitude());
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16f));
+            }
+        });
+        rvSearchAutoComplete.setAdapter(searchSuggestionAdapter);
+    }
+
+    private void updateSearchSuggestionsPopup(String query) {
+        if (cardSearchSuggestions == null || searchSuggestionAdapter == null) return;
+        
+        String q = query == null ? "" : query.trim().toLowerCase();
+        if (q.isEmpty()) {
+            cardSearchSuggestions.setVisibility(View.GONE);
+            return;
+        }
+        
+        List<POI> suggestions = new ArrayList<>();
+        for (POI poi : pois) {
+            if (poi == null) continue;
+            String name = poi.getName() == null ? "" : poi.getName().toLowerCase();
+            String city = poi.getCity() == null ? "" : poi.getCity().toLowerCase();
+            String type = poi.getType() == null ? "" : poi.getType().toLowerCase();
+            if (name.contains(q) || city.contains(q) || type.contains(q)) {
+                suggestions.add(poi);
+            }
+        }
+        
+        if (suggestions.isEmpty()) {
+            cardSearchSuggestions.setVisibility(View.GONE);
+        } else {
+            searchSuggestionAdapter.updateData(suggestions);
+            cardSearchSuggestions.setVisibility(View.VISIBLE);
+        }
+    }
+
     private void setupSuggestions() {
         if (rvSuggestions == null) return;
         rvSuggestions.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        suggestionsAdapter = new PoiRecentAdapter(this::openPoiDetailMock);
+        suggestionsAdapter = new PoiRecentAdapter(poi -> {
+            if (poi != null && googleMap != null) {
+                LatLng pos = new LatLng(poi.getLatitude(), poi.getLongitude());
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 15f));
+            }
+        });
         rvSuggestions.setAdapter(suggestionsAdapter);
         recomputeFilteredPoisAndRefreshUi();
     }
