@@ -31,10 +31,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:gravity="center"
                 android:maxLines="2"
                 android:text="giảm 10%"
                 android:textColor="@color/white"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 

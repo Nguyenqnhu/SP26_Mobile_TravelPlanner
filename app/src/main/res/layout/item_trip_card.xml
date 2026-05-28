@@ -158,30 +158,19 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 android:gravity="center"
-                android:orientation="horizontal"
-                android:weightSum="2">
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/btnTripReplan"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_emerald_light_rounded"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp"
-                    android:text="Re-plan"
-                    android:textColor="@color/emerald_700"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:visibility="gone"
+                    android:text="Re-plan" />
 
                 <TextView
                     android:id="@+id/btnTripDetails"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:background="@drawable/bg_emerald_light_rounded"
                     android:foreground="?attr/selectableItemBackground"
                     android:gravity="center"
