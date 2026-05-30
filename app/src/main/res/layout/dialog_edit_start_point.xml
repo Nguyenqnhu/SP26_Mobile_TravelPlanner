@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Điểm xuất phát"
+        android:textColor="#475569"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp" />
+
+    <AutoCompleteTextView
+        android:id="@+id/etEditStartLocation"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/input_field_background"
+        android:hint="Nhập điểm đi (tỉnh/thành)..."
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textSize="15sp"
+        android:textColor="#1e293b"
+        android:inputType="text"
+        android:completionThreshold="1"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quận/Huyện xuất phát"
+        android:textColor="#475569"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp" />
+
+    <Spinner
+        android:id="@+id/spinnerEditStartDistrict"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@drawable/input_field_background"
+        android:spinnerMode="dropdown"
+        android:layout_marginBottom="8dp" />
+
+</LinearLayout>
