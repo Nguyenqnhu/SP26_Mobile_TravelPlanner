@@ -21,11 +21,14 @@ import com.example.weathertrip_sep490.model.TripResponse;
 import com.example.weathertrip_sep490.model.User;
 import com.example.weathertrip_sep490.model.UserPreferenceItem;
 import com.example.weathertrip_sep490.model.UserPreferencesRequest;
+import com.example.weathertrip_sep490.model.RouteOption;
+import com.example.weathertrip_sep490.model.RouteSuggestionResponse;
 
 import java.util.List;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -68,6 +71,9 @@ public interface UserAPI {
     @GET("api/pois/recommended")
     Call<List<POI>> getRecommendedPOIs(@Query("lang") String lang);
 
+    @GET("api/pois/recommended")
+    Call<List<POI>> getRecommendedPOIsWithLimit(@Query("lang") String lang, @Query("limit") Integer limit);
+
     //Create trip
     @POST("api/trip/create")
     Call<TripResponse> createTrip(
@@ -88,6 +94,14 @@ public interface UserAPI {
             @Path("tripId") String tripId,
             @Query("insertAt") int insertAt,
             @Body List<AddSegmentRequest> body
+    );
+
+    //Update segment
+    @PUT("api/trip/{tripId}/segments/{segmentId}")
+    Call<ResponseBody> updateTripSegment(
+            @Path("tripId") String tripId,
+            @Path("segmentId") String segmentId,
+            @Body AddSegmentRequest body
     );
 
     // AI generate trip
@@ -136,4 +150,15 @@ public interface UserAPI {
             @Part MultipartBody.Part businessLicenseFile
     );
 
+    @GET("api/trip/{tripId}/available-routes")
+    Call<List<RouteOption>> getAvailableRoutes(@Path("tripId") String tripId);
+
+    @POST("api/trip/{tripId}/apply-route")
+    Call<okhttp3.ResponseBody> applyRoute(@Path("tripId") String tripId, @Body RouteOption body);
+
+    @GET("api/trip/{routeId}/advice-and-reccommendation")
+    Call<RouteSuggestionResponse> getRouteAdvice(
+            @Path("routeId") String routeId,
+            @Query("tripId") String tripId
+    );
 }

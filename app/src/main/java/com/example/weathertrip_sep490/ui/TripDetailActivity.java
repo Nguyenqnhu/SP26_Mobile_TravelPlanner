@@ -16,6 +16,16 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AutoCompleteTextView;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import com.example.weathertrip_sep490.model.LocationOption;
+import com.example.weathertrip_sep490.model.DistrictOption;
+import java.util.Map;
+import java.util.HashMap;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,6 +48,7 @@ import com.example.weathertrip_sep490.model.PlannerGenerateResponse;
 import com.example.weathertrip_sep490.model.PlannerItemResponse;
 import com.example.weathertrip_sep490.model.PlannerTripResponse;
 import com.example.weathertrip_sep490.model.TripSegmentResponse;
+import com.example.weathertrip_sep490.model.POI;
 import com.example.weathertrip_sep490.model.TripRibbonDay;
 import com.example.weathertrip_sep490.ui.decoration.ItineraryTimelineLineDecoration;
 import com.example.weathertrip_sep490.util.PlannerSegmentValidation;
@@ -65,7 +76,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback, AddSegmentBottomSheet.Listener, TripInviteDialogFragment.Listener {
+public class TripDetailActivity extends AppCompatActivity implements OnMapReadyCallback, TripInviteDialogFragment.Listener {
 
     public static final String EXTRA_CITY = "extra_city";
     public static final String EXTRA_TRIP_TITLE = "extra_trip_title";
@@ -86,12 +97,15 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private boolean mapReady;
 
     private final List<Marker> mapMarkers = new ArrayList<>();
+    private final List<com.google.android.gms.maps.model.Polyline> mapPolylines = new ArrayList<>();
     private final List<ItineraryRow> currentRows = new ArrayList<>();
+    private final Map<String, POI> poiCacheMap = new java.util.HashMap<>();
 
     private TripDateRibbonAdapter dayRibbonAdapter;
     private ItineraryListAdapter itineraryAdapter;
     private RecyclerView rvDays;
     private RecyclerView rvTimeline;
+    private androidx.recyclerview.widget.SnapHelper snapHelper;
 
     private TextView tvRibbonMonthTitle;
     private TextView tvMapPlaceCount;
@@ -114,6 +128,25 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
     private TextView btnGenerateAi;
     private TextView btnAddSegment;
     private TextView btnInvite;
+
+    private View cardDayRibbon;
+    private View btnGenerateFinalItinerary;
+
+    private View cardReviewFields;
+    private View layoutTimelineContainer;
+    private TextView tvReviewTripTitle;
+    private TextView tvReviewStartLocation;
+    private TextView tvReviewStartDistrict;
+    private TextView tvReviewSegmentLocation;
+    private TextView tvReviewSegmentDistrict;
+    private TextView tvReviewSegmentDates;
+
+    private View btnEditTripTitle;
+    private View btnEditStartLocation;
+    private View btnEditStartDistrict;
+    private View btnEditSegmentLocation;
+    private View btnEditSegmentDistrict;
+    private View btnEditSegmentDates;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -170,6 +203,14 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         rvTimeline.setAdapter(itineraryAdapter);
         rvTimeline.addItemDecoration(new ItineraryTimelineLineDecoration(itineraryAdapter, getResources()));
 
+        cardDayRibbon = findViewById(R.id.cardDayRibbon);
+        btnGenerateFinalItinerary = findViewById(R.id.btnGenerateFinalItinerary);
+        if (btnGenerateFinalItinerary != null) {
+            btnGenerateFinalItinerary.setOnClickListener(v -> generatePlannerAndReload());
+        }
+
+        loadPoiCache();
+
         if (hasPlannerId) {
             usePlannerApiMode = true;
             generatedLocationName = segLocation != null ? segLocation.trim() : "";
@@ -200,6 +241,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             seedDefaultRouteSegment();
             updateMonthTitle(0);
         }
+
+        initReviewCardViews();
     }
 
     private void seedGeneratedItinerary(int dayIndex, int totalDays) {
@@ -267,6 +310,44 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         applyMapMarkers();
     }
 
+    private boolean isAiGenerated(PlannerTripResponse response) {
+        if (response == null || response.getSegments() == null) return false;
+        for (com.example.weathertrip_sep490.model.TripSegmentResponse segment : response.getSegments()) {
+            if (segment.getDays() != null && !segment.getDays().isEmpty()) {
+                for (com.example.weathertrip_sep490.model.PlannerDayResponse day : segment.getDays()) {
+                    if (day.getItems() != null && !day.getItems().isEmpty()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private void loadPoiCache() {
+        UserAPI api = RetrofitClient.getInstance().getUserAPI();
+        api.getRecommendedPOIsWithLimit("vi", 1000).enqueue(new Callback<List<POI>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<POI>> call, @NonNull Response<List<POI>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    for (POI p : response.body()) {
+                        if (p.getName() != null) {
+                            poiCacheMap.put(p.getName().trim().toLowerCase(), p);
+                        }
+                    }
+                    if (usePlannerApiMode && dayRibbonAdapter != null) {
+                        seedFromPlanner(dayRibbonAdapter.getSelectedPosition());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<POI>> call, @NonNull Throwable t) {
+                // Silently ignore
+            }
+        });
+    }
+
     private void loadPlannerData(@NonNull String tripId) {
         UserAPI api = RetrofitClient.getInstance().getUserAPI();
         api.getPlanner(tripId).enqueue(new Callback<PlannerTripResponse>() {
@@ -277,6 +358,45 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     return;
                 }
                 plannerResponse = response.body();
+
+                boolean isAiGen = isAiGenerated(plannerResponse);
+
+                if (cardReviewFields != null) {
+                    cardReviewFields.setVisibility(isAiGen ? View.GONE : View.VISIBLE);
+                }
+                if (layoutTimelineContainer != null) {
+                    layoutTimelineContainer.setVisibility(isAiGen ? View.VISIBLE : View.GONE);
+                }
+                populateReviewCard();
+
+                // Update adapter edit button visibility & edit listener
+                if (itineraryAdapter != null) {
+                    itineraryAdapter.setShowEditButtons(!isAiGen);
+                    if (!isAiGen) {
+                        itineraryAdapter.setOnSegmentEditListener((segmentId, segmentLabel) -> {
+                            if (segmentId != null) {
+                                EditSegmentBottomSheet.newInstance(tripId, segmentId, segmentLabel, tvReviewSegmentDistrict != null ? tvReviewSegmentDistrict.getText().toString() : "", () -> {
+                                    loadPlannerData(tripId);
+                                }).show(getSupportFragmentManager(), "EditSegmentBottomSheet");
+                            } else {
+                                Toast.makeText(TripDetailActivity.this, "Không tìm thấy ID chặng để chỉnh sửa", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        itineraryAdapter.setOnSegmentEditListener(null);
+                    }
+                }
+
+                // Show/hide sticky AI generation button
+                if (btnGenerateFinalItinerary != null) {
+                    btnGenerateFinalItinerary.setVisibility(isAiGen ? View.GONE : View.VISIBLE);
+                }
+
+                // Show/hide day ribbon card
+                if (cardDayRibbon != null) {
+                    cardDayRibbon.setVisibility(isAiGen ? View.VISIBLE : View.GONE);
+                }
+
                 List<TripRibbonDay> days = buildDaysFromPlanner(plannerResponse, pendingDates, pendingSegStart, pendingSegEnd);
                 if (days.isEmpty()) {
                     days = buildRibbonDaysForTrip(pendingDates, pendingSegStart, pendingSegEnd);
@@ -363,7 +483,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             if (segment == null) continue;
             String segmentLabel = "Chặng " + segment.getOrderIndex();
             String cityName = generatedLocationName != null && !generatedLocationName.isEmpty() ? generatedLocationName : "Chặng đã chọn";
-            currentRows.add(new ItinerarySegmentRow(segmentLabel, cityName, segment.getDistanceKm() != null ? String.format(Locale.getDefault(), "%.1f km", segment.getDistanceKm()) : "--"));
+            currentRows.add(new ItinerarySegmentRow(segmentLabel, cityName, segment.getDistanceKm() != null ? String.format(Locale.getDefault(), "%.1f km", segment.getDistanceKm()) : "--", segment.getSegmentId()));
             List<PlannerDayResponse> days = segment.getDays();
             if (days != null && !days.isEmpty()) {
                 for (PlannerDayResponse day : days) {
@@ -381,6 +501,18 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                         String locationLine = joinLocation(item.getLocationName(), item.getAddress());
                         String indoorText = item.isIndoor() ? "Trong nhà" : "Ngoài trời";
                         String weather = "Risk " + formatRisk(item.getWeatherRiskScore());
+                        double lat = generatedLat;
+                        double lng = generatedLng;
+                        if (title != null) {
+                            String key = title.trim().toLowerCase();
+                            if (poiCacheMap.containsKey(key)) {
+                                POI cachedPoi = poiCacheMap.get(key);
+                                if (cachedPoi != null) {
+                                    lat = cachedPoi.getLatitude();
+                                    lng = cachedPoi.getLongitude();
+                                }
+                            }
+                        }
                         currentRows.add(new ItineraryStopRow(
                                 formatTimeRange(startTime, endTime),
                                 safeTime(startTime),
@@ -392,8 +524,8 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                                 "Theo lịch AI",
                                 weather,
                                 R.drawable.bg_image_placeholder,
-                                generatedLat,
-                                generatedLng,
+                                lat,
+                                lng,
                                 globalStopOrder++
                         ));
                     }
@@ -479,17 +611,63 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             Toast.makeText(this, "Thiếu tripId", Toast.LENGTH_SHORT).show();
             return;
         }
-        int segmentCount = -1;
-        if (plannerResponse != null && plannerResponse.getSegments() != null) {
-            segmentCount = plannerResponse.getSegments().size();
+
+        String startPoint = startPointLabel;
+        String destination = destinationLabel;
+        String title = tripTitleLabel;
+        String startDateIso = null;
+        String endDateIso = null;
+        String startDateDisplay = null;
+        String endDateDisplay = null;
+        boolean roundTrip = false;
+
+        android.content.SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+        String currentUserId = prefs.getString("current_user_id", "");
+        String tripsKey = "managed_trips_json_" + (currentUserId.trim().isEmpty() ? "anonymous" : currentUserId.trim());
+        String json = prefs.getString(tripsKey, null);
+        if (json != null && !json.trim().isEmpty()) {
+            try {
+                org.json.JSONArray arr = new org.json.JSONArray(json);
+                for (int i = 0; i < arr.length(); i++) {
+                    org.json.JSONObject o = arr.getJSONObject(i);
+                    if (plannerTripId.equals(o.optString("id", ""))) {
+                        startDateIso = o.optString("startDateIso", "");
+                        endDateIso = o.optString("endDateIso", "");
+                        String range = o.optString("range", "");
+                        if (!range.isEmpty()) {
+                            if (range.contains("-")) {
+                                String[] parts = range.split("-");
+                                if (parts.length >= 2) {
+                                    startDateDisplay = parts[0].trim();
+                                    endDateDisplay = parts[1].trim();
+                                    roundTrip = true;
+                                }
+                            } else if (range.contains("·")) {
+                                String[] parts = range.split("·");
+                                startDateDisplay = parts[0].trim();
+                                roundTrip = false;
+                            } else {
+                                startDateDisplay = range;
+                            }
+                        }
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {}
         }
-        AddSegmentBottomSheet.newInstance(
-                plannerTripId,
-                destinationLabel != null ? destinationLabel : "Trip",
-                pendingSegStart != null ? pendingSegStart : "",
-                pendingSegEnd != null ? pendingSegEnd : "",
-                segmentCount
-        ).show(getSupportFragmentManager(), "AddSegmentBottomSheet");
+
+        Intent intent = new Intent(this, SelectRouteActivity.class);
+        intent.putExtra("trip_id", plannerTripId);
+        intent.putExtra("trip_title", title);
+        intent.putExtra("start_point", startPoint);
+        intent.putExtra("destination", destination);
+        intent.putExtra("start_date_iso", startDateIso);
+        intent.putExtra("end_date_iso", endDateIso);
+        intent.putExtra("start_date_display", startDateDisplay);
+        intent.putExtra("end_date_display", endDateDisplay);
+        intent.putExtra("round_trip", roundTrip);
+        startActivity(intent);
+        finish();
     }
 
     private void showInviteDialog() {
@@ -505,10 +683,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 .show(getSupportFragmentManager(), "TripInviteDialogFragment");
     }
 
-    @Override
-    public void onSegmentAddedAndReadyForAi(@NonNull String tripId, @NonNull String locationName, @NonNull String segmentStartDate, @NonNull String segmentEndDate, double latitude, double longitude) {
-        reloadPlanner();
-    }
+
 
     @Override
     public void onInviteJoined(@NonNull String tripId) {
@@ -705,25 +880,27 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         dayRibbonAdapter.setDays(days);
         rvDays.setAdapter(dayRibbonAdapter);
 
-        SnapHelper snapHelper = new LinearSnapHelper();
-        snapHelper.attachToRecyclerView(rvDays);
-        rvDays.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if (newState != RecyclerView.SCROLL_STATE_IDLE) return;
-                View snapped = snapHelper.findSnapView(recyclerView.getLayoutManager());
-                if (snapped == null) return;
-                int pos = recyclerView.getLayoutManager().getPosition(snapped);
-                if (pos == RecyclerView.NO_POSITION) return;
-                if (dayRibbonAdapter.getSelectedPosition() != pos) {
-                    dayRibbonAdapter.setSelectedPosition(pos);
-                    seedForRibbonDay(pos);
-                    updateMonthTitle(pos);
-                    applyMapMarkers();
+        if (snapHelper == null) {
+            snapHelper = new LinearSnapHelper();
+            snapHelper.attachToRecyclerView(rvDays);
+            rvDays.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                    if (newState != RecyclerView.SCROLL_STATE_IDLE) return;
+                    View snapped = snapHelper.findSnapView(recyclerView.getLayoutManager());
+                    if (snapped == null) return;
+                    int pos = recyclerView.getLayoutManager().getPosition(snapped);
+                    if (pos == RecyclerView.NO_POSITION) return;
+                    if (dayRibbonAdapter.getSelectedPosition() != pos) {
+                        dayRibbonAdapter.setSelectedPosition(pos);
+                        seedForRibbonDay(pos);
+                        updateMonthTitle(pos);
+                        applyMapMarkers();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private void seedForRibbonDay(int pos) {
@@ -843,6 +1020,90 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         }
         mapMarkers.clear();
 
+        for (com.google.android.gms.maps.model.Polyline p : mapPolylines) {
+            p.remove();
+        }
+        mapPolylines.clear();
+
+        boolean isAiGen = isAiGenerated(plannerResponse);
+        if (!isAiGen) {
+            android.content.SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+            String polylineJson = prefs.getString("route_polyline_" + plannerTripId, null);
+            if (polylineJson != null && !polylineJson.trim().isEmpty()) {
+                try {
+                    java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<com.example.weathertrip_sep490.model.RoutePolylinePointDto>>(){}.getType();
+                    List<com.example.weathertrip_sep490.model.RoutePolylinePointDto> polyPoints = new com.google.gson.Gson().fromJson(polylineJson, listType);
+                    if (polyPoints != null && !polyPoints.isEmpty()) {
+                        List<LatLng> points = new ArrayList<>();
+                        for (com.example.weathertrip_sep490.model.RoutePolylinePointDto p : polyPoints) {
+                            points.add(new LatLng(p.getLatitude(), p.getLongitude()));
+                        }
+                        if (!points.isEmpty()) {
+                            com.google.android.gms.maps.model.Polyline poly = googleMap.addPolyline(new com.google.android.gms.maps.model.PolylineOptions()
+                                    .addAll(points)
+                                    .color(androidx.core.content.ContextCompat.getColor(this, R.color.green_primary))
+                                    .width(14f));
+                            mapPolylines.add(poly);
+
+                            LatLng startLatLng = points.get(0);
+                            LatLng endLatLng = points.get(points.size() - 1);
+
+                            Marker startMarker = googleMap.addMarker(new MarkerOptions()
+                                    .position(startLatLng)
+                                    .title("Điểm xuất phát")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                            if (startMarker != null) mapMarkers.add(startMarker);
+
+                            Marker endMarker = googleMap.addMarker(new MarkerOptions()
+                                    .position(endLatLng)
+                                    .title("Điểm đến")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                            if (endMarker != null) mapMarkers.add(endMarker);
+
+                            // Draw intermediate stop markers
+                            String nodesJson = prefs.getString("route_nodes_" + plannerTripId, null);
+                            if (nodesJson != null && !nodesJson.trim().isEmpty()) {
+                                try {
+                                    java.lang.reflect.Type stringListType = new com.google.gson.reflect.TypeToken<List<String>>(){}.getType();
+                                    List<String> routeNodes = new com.google.gson.Gson().fromJson(nodesJson, stringListType);
+                                    if (routeNodes != null && routeNodes.size() > 2) {
+                                        for (int i = 1; i < routeNodes.size() - 1; i++) {
+                                            String nodeName = routeNodes.get(i);
+                                            if (points.size() > 2) {
+                                                int idx = (int) (((double) i / (routeNodes.size() - 1)) * (points.size() - 1));
+                                                if (idx > 0 && idx < points.size() - 1) {
+                                                    LatLng intermediatePos = points.get(idx);
+                                                    Marker interMarker = googleMap.addMarker(new MarkerOptions()
+                                                            .position(intermediatePos)
+                                                            .title(nodeName)
+                                                            .snippet("Điểm dừng chân")
+                                                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                                                    if (interMarker != null) mapMarkers.add(interMarker);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (Exception ignored) {}
+                            }
+
+                            LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+                            for (LatLng latLng : points) {
+                                bounds.include(latLng);
+                            }
+                            try {
+                                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 80));
+                            } catch (Exception ignored) {
+                                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bounds.build().getCenter(), 10f));
+                            }
+                            return;
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         LatLngBounds.Builder bounds = new LatLngBounds.Builder();
         boolean has = false;
         int index = 1;
@@ -955,5 +1216,236 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             outState.putBundle(MAPVIEW_BUNDLE_KEY, mapBundle);
         }
         mapView.onSaveInstanceState(mapBundle);
+    }
+
+    private void initReviewCardViews() {
+        cardReviewFields = findViewById(R.id.cardReviewFields);
+        layoutTimelineContainer = findViewById(R.id.layoutTimelineContainer);
+        tvReviewTripTitle = findViewById(R.id.tvReviewTripTitle);
+        tvReviewStartLocation = findViewById(R.id.tvReviewStartLocation);
+        tvReviewStartDistrict = findViewById(R.id.tvReviewStartDistrict);
+        tvReviewSegmentLocation = findViewById(R.id.tvReviewSegmentLocation);
+        tvReviewSegmentDistrict = findViewById(R.id.tvReviewSegmentDistrict);
+        tvReviewSegmentDates = findViewById(R.id.tvReviewSegmentDates);
+
+        btnEditTripTitle = findViewById(R.id.btnEditTripTitle);
+        btnEditStartLocation = findViewById(R.id.btnEditStartLocation);
+        btnEditStartDistrict = findViewById(R.id.btnEditStartDistrict);
+        btnEditSegmentLocation = findViewById(R.id.btnEditSegmentLocation);
+        btnEditSegmentDistrict = findViewById(R.id.btnEditSegmentDistrict);
+        btnEditSegmentDates = findViewById(R.id.btnEditSegmentDates);
+
+        if (btnEditTripTitle != null) {
+            btnEditTripTitle.setOnClickListener(v -> showEditTitleDialog());
+        }
+
+        if (btnEditStartLocation != null) {
+            btnEditStartLocation.setOnClickListener(v -> showEditStartPointDialog());
+        }
+        if (btnEditStartDistrict != null) {
+            btnEditStartDistrict.setOnClickListener(v -> showEditStartPointDialog());
+        }
+
+        View.OnClickListener editSegmentListener = v -> {
+            if (plannerTripId == null || plannerTripId.trim().isEmpty()) {
+                Toast.makeText(this, "Không có Trip ID", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String segmentId = null;
+            if (plannerResponse != null && plannerResponse.getSegments() != null && !plannerResponse.getSegments().isEmpty()) {
+                segmentId = plannerResponse.getSegments().get(0).getSegmentId();
+            }
+            if (segmentId != null) {
+                EditSegmentBottomSheet.newInstance(
+                        plannerTripId,
+                        segmentId,
+                        tvReviewSegmentLocation.getText().toString(),
+                        tvReviewSegmentDistrict.getText().toString(),
+                        () -> {
+                            loadPlannerData(plannerTripId);
+                        }
+                ).show(getSupportFragmentManager(), "EditSegmentBottomSheet");
+            } else {
+                Toast.makeText(this, "Không tìm thấy chặng để chỉnh sửa", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        if (btnEditSegmentLocation != null) {
+            btnEditSegmentLocation.setOnClickListener(editSegmentListener);
+        }
+        if (btnEditSegmentDistrict != null) {
+            btnEditSegmentDistrict.setOnClickListener(editSegmentListener);
+        }
+        if (btnEditSegmentDates != null) {
+            btnEditSegmentDates.setOnClickListener(editSegmentListener);
+        }
+    }
+
+    private void populateReviewCard() {
+        if (cardReviewFields == null) return;
+
+        android.content.SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+
+        String localTitle = prefs.getString("trip_local_title_" + plannerTripId, tripTitleLabel);
+        if (localTitle == null || localTitle.trim().isEmpty()) {
+            localTitle = tripTitleLabel != null ? tripTitleLabel : "--";
+        }
+        tvReviewTripTitle.setText(localTitle);
+
+        String localStartLoc = prefs.getString("trip_start_location_" + plannerTripId, startPointLabel);
+        if (localStartLoc == null || localStartLoc.trim().isEmpty()) {
+            localStartLoc = startPointLabel != null ? startPointLabel : "--";
+        }
+        tvReviewStartLocation.setText(localStartLoc);
+
+        String localStartDist = prefs.getString("trip_start_district_" + plannerTripId, "--");
+        tvReviewStartDistrict.setText(localStartDist);
+
+        String localSegLoc = prefs.getString("trip_segment_location_" + plannerTripId, null);
+        if (localSegLoc == null || localSegLoc.trim().isEmpty()) {
+            localSegLoc = destinationLabel != null ? destinationLabel : "--";
+        }
+        tvReviewSegmentLocation.setText(localSegLoc);
+
+        String localSegDist = prefs.getString("trip_segment_district_" + plannerTripId, null);
+        if (localSegDist == null || localSegDist.trim().isEmpty()) {
+            localSegDist = prefs.getString("trip_end_district_" + plannerTripId, "--");
+        }
+        tvReviewSegmentDistrict.setText(localSegDist);
+
+        String localSegDates = prefs.getString("trip_segment_dates_" + plannerTripId, null);
+        if (localSegDates == null || localSegDates.trim().isEmpty()) {
+            if (plannerResponse != null && plannerResponse.getSegments() != null && !plannerResponse.getSegments().isEmpty()) {
+                com.example.weathertrip_sep490.model.TripSegmentResponse seg = plannerResponse.getSegments().get(0);
+                if (seg.getStartDate() != null && seg.getEndDate() != null) {
+                    try {
+                        java.text.DateFormat df = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        localSegDates = df.format(seg.getStartDate()) + " - " + df.format(seg.getEndDate());
+                    } catch (Exception ignored) {}
+                }
+            }
+            if (localSegDates == null || localSegDates.trim().isEmpty()) {
+                localSegDates = pendingDates != null ? pendingDates : "--";
+            }
+        }
+        tvReviewSegmentDates.setText(localSegDates);
+    }
+
+    private void showEditTitleDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Sửa tên chuyến đi");
+
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        input.setText(tripTitleLabel != null ? tripTitleLabel : "");
+        builder.setView(input);
+
+        builder.setPositiveButton("Lưu", (dialog, which) -> {
+            String newTitle = input.getText().toString().trim();
+            if (!newTitle.isEmpty()) {
+                tripTitleLabel = newTitle;
+                TextView tvJourneyTitle = findViewById(R.id.tvTripJourneyTitle);
+                if (tvJourneyTitle != null) tvJourneyTitle.setText(newTitle);
+                if (tvReviewTripTitle != null) tvReviewTripTitle.setText(newTitle);
+
+                android.content.SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+                prefs.edit().putString("trip_local_title_" + plannerTripId, newTitle).apply();
+            }
+        });
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void showEditStartPointDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_start_point, null);
+        builder.setView(dialogView);
+
+        AutoCompleteTextView etStartLoc = dialogView.findViewById(R.id.etEditStartLocation);
+        Spinner spStartDist = dialogView.findViewById(R.id.spinnerEditStartDistrict);
+
+        final List<String> locItems = new ArrayList<>();
+        final Map<String, String> locNameToId = new HashMap<>();
+        final List<String> distLabels = new ArrayList<>();
+        final List<String> distIds = new ArrayList<>();
+        final ArrayAdapter<String> distAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, distLabels);
+        distAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spStartDist.setAdapter(distAdapter);
+
+        etStartLoc.setText(startPointLabel != null ? startPointLabel : "");
+
+        RetrofitClient.getInstance().getUserAPI().getAllLocations().enqueue(new Callback<List<LocationOption>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<LocationOption>> call, @NonNull Response<List<LocationOption>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    locItems.clear();
+                    locNameToId.clear();
+                    for (LocationOption loc : response.body()) {
+                        if (loc != null && loc.getLocationName() != null) {
+                            locItems.add(loc.getLocationName());
+                            locNameToId.put(loc.getLocationName(), loc.getLocationId());
+                        }
+                    }
+                    ArrayAdapter<String> locAdapter = new ArrayAdapter<>(
+                            TripDetailActivity.this,
+                            android.R.layout.simple_dropdown_item_1line,
+                            locItems
+                    );
+                    etStartLoc.setAdapter(locAdapter);
+                }
+            }
+            @Override public void onFailure(@NonNull Call<List<LocationOption>> call, @NonNull Throwable t) {}
+        });
+
+        etStartLoc.setOnItemClickListener((parent, v, position, id) -> {
+            String selectedName = (String) parent.getItemAtPosition(position);
+            String locId = locNameToId.get(selectedName);
+            if (locId != null) {
+                RetrofitClient.getInstance().getUserAPI().getDistrictsByLocation(locId).enqueue(new Callback<List<DistrictOption>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<DistrictOption>> call, @NonNull Response<List<DistrictOption>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            distLabels.clear();
+                            distIds.clear();
+                            distLabels.add("-- Chọn quận/huyện --");
+                            distIds.add("");
+                            for (DistrictOption d : response.body()) {
+                                if (d != null && d.getName() != null) {
+                                    distLabels.add(d.getName());
+                                    distIds.add(d.getId());
+                                }
+                            }
+                            distAdapter.notifyDataSetChanged();
+                        }
+                    }
+                    @Override public void onFailure(@NonNull Call<List<DistrictOption>> call, @NonNull Throwable t) {}
+                });
+            }
+        });
+
+        builder.setPositiveButton("Lưu", (dialog, which) -> {
+            String newLoc = etStartLoc.getText().toString().trim();
+            int pos = spStartDist.getSelectedItemPosition();
+            String newDist = (pos > 0 && pos < distLabels.size()) ? distLabels.get(pos) : "";
+
+            if (!newLoc.isEmpty()) {
+                startPointLabel = newLoc;
+                if (tvReviewStartLocation != null) tvReviewStartLocation.setText(newLoc);
+                if (tvReviewStartDistrict != null) tvReviewStartDistrict.setText(newDist.isEmpty() ? "--" : newDist);
+
+                TextView tvRoute = findViewById(R.id.tvTripRouteBreadcrumb);
+                if (tvRoute != null) {
+                    tvRoute.setText(startPointLabel + " → " + (destinationLabel != null ? destinationLabel : ""));
+                }
+
+                android.content.SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+                prefs.edit()
+                     .putString("trip_start_location_" + plannerTripId, newLoc)
+                     .putString("trip_start_district_" + plannerTripId, newDist)
+                     .apply();
+            }
+        });
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
+        builder.show();
     }
 }

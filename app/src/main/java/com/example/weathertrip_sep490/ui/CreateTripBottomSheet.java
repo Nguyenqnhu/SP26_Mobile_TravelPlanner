@@ -132,8 +132,8 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         endCal = Calendar.getInstance();
         endCal.add(Calendar.DAY_OF_MONTH, 3);
 
-        // System now only supports one-way trips
-        applyTripTypeUi(false);
+        // Enable end date selection to match 4 API parameters requirement
+        applyTripTypeUi(true);
 
         view.findViewById(R.id.btnCloseCreateTrip).setOnClickListener(v -> dismiss());
 
@@ -503,7 +503,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         boolean roundTrip = false;
         java.text.DateFormat dfDisplay = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         String startStr = dfDisplay.format(startCal.getTime());
-        String endStr = "";
+        String endStr = dfDisplay.format(endCal.getTime());
 
         // one-way only: endDate will be computed as startDate + 1 day for BE compatibility
 
@@ -511,9 +511,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         // Gửi enum dạng string để tránh lệch mapping số giữa các bản BE deploy.
         String typeQuery = "OneWay";
         String startIso = toApiDateTime(startCal);
-        Calendar oneWayEndCal = (Calendar) startCal.clone();
-        oneWayEndCal.add(Calendar.DAY_OF_MONTH, 1);
-        String endIso = toApiDateTime(oneWayEndCal);
+        String endIso = toApiDateTime(endCal);
         TripCreateRequest body = new TripCreateRequest(
                 tripTitle,
                 resolvedStartPoint,
@@ -560,6 +558,23 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
                     return;
                 }
                 Toast.makeText(requireContext(), "Đã tạo chuyến đi", Toast.LENGTH_SHORT).show();
+
+                // Save selected start and end district / location names to SharedPreferences
+                try {
+                    android.content.SharedPreferences prefs = requireContext().getSharedPreferences("TravelGoPrefs", android.content.Context.MODE_PRIVATE);
+                    String startDist = spStartDistrict.getSelectedItem() != null ? spStartDistrict.getSelectedItem().toString() : "";
+                    String endDist = spEndDistrict.getSelectedItem() != null ? spEndDistrict.getSelectedItem().toString() : "";
+                    prefs.edit()
+                         .putString("trip_start_location_" + createdTripId.trim(), resolvedStartPoint)
+                         .putString("trip_start_district_" + createdTripId.trim(), startDist)
+                         .putString("trip_end_location_" + createdTripId.trim(), resolvedDestination)
+                         .putString("trip_end_district_" + createdTripId.trim(), endDist)
+                         .putString("trip_start_date_iso_" + createdTripId.trim(), startIso)
+                         .putString("trip_end_date_iso_" + createdTripId.trim(), endIso)
+                         .apply();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 if (listener != null) {
                     listener.onTripCreated(

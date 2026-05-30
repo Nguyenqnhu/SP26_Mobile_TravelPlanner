@@ -24,6 +24,22 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
     private static final int TYPE_STOP = 1;
 
     private final List<ItineraryRow> items = new ArrayList<>();
+    
+    public interface OnSegmentEditListener {
+        void onEditSegment(String segmentId, String segmentLabel);
+    }
+    
+    private OnSegmentEditListener editListener;
+    private boolean showEditButtons = true;
+
+    public void setOnSegmentEditListener(OnSegmentEditListener listener) {
+        this.editListener = listener;
+    }
+
+    public void setShowEditButtons(boolean show) {
+        this.showEditButtons = show;
+        notifyDataSetChanged();
+    }
 
     public void updateData(List<ItineraryRow> newItems) {
         items.clear();
@@ -58,7 +74,7 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof SegmentVH) {
             ItinerarySegmentRow s = (ItinerarySegmentRow) items.get(position);
-            ((SegmentVH) holder).bind(s);
+            ((SegmentVH) holder).bind(s, editListener, showEditButtons);
         } else if (holder instanceof StopVH) {
             ItineraryStopRow s = (ItineraryStopRow) items.get(position);
             ((StopVH) holder).bind(s);
@@ -74,18 +90,28 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
         private final TextView tvPill;
         private final TextView tvCity;
         private final TextView tvTemp;
+        private final View btnEdit;
 
         SegmentVH(@NonNull View itemView) {
             super(itemView);
             tvPill = itemView.findViewById(R.id.tvSegmentPill);
             tvCity = itemView.findViewById(R.id.tvSegmentCity);
             tvTemp = itemView.findViewById(R.id.tvSegmentTemp);
+            btnEdit = itemView.findViewById(R.id.btnEditSegment);
         }
 
-        void bind(ItinerarySegmentRow s) {
+        void bind(ItinerarySegmentRow s, OnSegmentEditListener listener, boolean showEdit) {
             tvPill.setText(s.getSegmentLabel());
             tvCity.setText(s.getCityName());
             tvTemp.setText(s.getWeatherTemp());
+            if (btnEdit != null) {
+                btnEdit.setVisibility(showEdit ? View.VISIBLE : View.GONE);
+                btnEdit.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onEditSegment(s.getSegmentId(), s.getCityName());
+                    }
+                });
+            }
         }
     }
 

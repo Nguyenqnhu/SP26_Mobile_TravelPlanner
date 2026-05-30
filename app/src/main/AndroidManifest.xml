@@ -116,6 +116,9 @@
             android:name=".ui.ExploreMapActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.SelectRouteActivity"
+            android:exported="false" />
 
     </application>
 

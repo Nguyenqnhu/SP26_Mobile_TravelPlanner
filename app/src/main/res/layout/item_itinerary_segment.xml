@@ -52,4 +52,16 @@
         android:textColor="#111827"
         android:textSize="14sp"
         android:textStyle="bold" />
+
+    <ImageButton
+        android:id="@+id/btnEditSegment"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="16dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_edit"
+        android:padding="6dp"
+        app:tint="@color/emerald_700"
+        android:contentDescription="Sửa chặng" />
 </LinearLayout>

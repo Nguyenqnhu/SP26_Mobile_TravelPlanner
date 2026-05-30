@@ -34,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener, AddSegmentBottomSheet.Listener, SegmentManagerBottomSheet.Listener {
+public class TripManageActivity extends AppCompatActivity implements CreateTripBottomSheet.Listener {
 
     private static final String PREFS_NAME = "TravelGoPrefs";
     private static final String KEY_MANAGED_TRIPS_PREFIX = "managed_trips_json_";
@@ -445,22 +445,19 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         pendingStartDateIso = startDateIso;
         pendingEndDateIso = endDateIso;
 
-        SegmentManagerBottomSheet.newInstance(
-                tripId,
-                tripTitle,
-                startPoint,
-                destination,
-                startDateIso,
-                endDateIso
-        ).show(getSupportFragmentManager(), "SegmentManagerBottomSheet");
+        Intent intent = new Intent(this, SelectRouteActivity.class);
+        intent.putExtra("trip_id", tripId);
+        intent.putExtra("trip_title", tripTitle);
+        intent.putExtra("start_point", startPoint);
+        intent.putExtra("destination", destination);
+        intent.putExtra("start_date_iso", startDateIso);
+        intent.putExtra("end_date_iso", endDateIso);
+        intent.putExtra("start_date_display", startDateDisplay);
+        intent.putExtra("end_date_display", endDateDisplay);
+        intent.putExtra("round_trip", roundTrip);
+        startActivity(intent);
     }
 
-    @Override
-    public void onSegmentAddedAndReadyForAi(@NonNull String tripId, @NonNull String locationName, @NonNull String segmentStartDate, @NonNull String segmentEndDate, double latitude, double longitude) {
-        // handled inside SegmentManagerBottomSheet via reloadPlanner()
-    }
-
-    @Override
     public void onGenerateCompleted(@NonNull String tripId) {
         String city = (pendingDestination != null && !pendingDestination.trim().isEmpty()) ? pendingDestination.trim() : (pendingTripTitle != null ? pendingTripTitle : "");
         String dates = buildDateRangeDisplay(pendingStartDateDisplay, pendingEndDateDisplay, pendingRoundTrip);
