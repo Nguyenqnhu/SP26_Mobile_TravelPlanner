@@ -47,7 +47,8 @@
             android:textSize="13sp"
             app:cornerRadius="20dp"
             app:strokeColor="@color/itinerary_header_green"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="1dp"
+            android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTripInvite"

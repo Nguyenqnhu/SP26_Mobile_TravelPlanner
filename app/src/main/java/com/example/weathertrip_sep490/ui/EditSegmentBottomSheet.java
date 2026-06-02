@@ -75,6 +75,7 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
     private Calendar tripEndCal = Calendar.getInstance();
 
     private boolean isSubmitting = false;
+    private boolean isProgrammaticChange = false;
 
     public static EditSegmentBottomSheet newInstance(String tripId, String segmentId, String initialLocationName, String initialDistrictName, Listener listener) {
         EditSegmentBottomSheet fragment = new EditSegmentBottomSheet();
@@ -194,6 +195,7 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
+                if (isProgrammaticChange) return;
                 selectedLocationId = null;
                 selectedDistrictId = null;
                 resetDistrictSpinner();
@@ -201,7 +203,9 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
         });
 
         if (initialLocationName != null && !initialLocationName.isEmpty()) {
+            isProgrammaticChange = true;
             etLocation.setText(initialLocationName);
+            isProgrammaticChange = false;
         }
     }
 
@@ -272,7 +276,9 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
                 if (initialLocationName != null && !initialLocationName.isEmpty()) {
                     String canonical = resolveCanonicalLocationName(initialLocationName);
                     if (canonical != null) {
+                        isProgrammaticChange = true;
                         etLocation.setText(canonical);
+                        isProgrammaticChange = false;
                         onLocationSelected(canonical);
                     }
                 }
@@ -332,12 +338,15 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
         }
         districtAdapter.notifyDataSetChanged();
         if (spDistrict != null) {
-            spDistrict.setSelection(selectedIndex, false);
-            if (selectedIndex > 0) {
-                selectedDistrictId = districtIds.get(selectedIndex);
-            } else {
-                selectedDistrictId = null;
-            }
+            int finalSelectedIndex = selectedIndex;
+            spDistrict.post(() -> {
+                spDistrict.setSelection(finalSelectedIndex, false);
+                if (finalSelectedIndex > 0) {
+                    selectedDistrictId = districtIds.get(finalSelectedIndex);
+                } else {
+                    selectedDistrictId = null;
+                }
+            });
         }
     }
 

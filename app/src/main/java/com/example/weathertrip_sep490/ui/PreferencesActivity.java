@@ -189,7 +189,12 @@ public class PreferencesActivity extends AppCompatActivity {
             chip.setOnCheckedChangeListener((v, isChecked) -> {
                 if (isChecked) {
                     if (!selectedIds.contains(pref.getId())) {
-                        selectedIds.add(pref.getId());
+                        if (selectedIds.size() >= 4) {
+                            v.setChecked(false);
+                            AppToast.showError(PreferencesActivity.this, "Không chọn quá 4 preference");
+                        } else {
+                            selectedIds.add(pref.getId());
+                        }
                     }
                 } else {
                     selectedIds.remove(pref.getId());

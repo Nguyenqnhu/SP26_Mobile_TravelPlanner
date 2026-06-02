@@ -103,7 +103,26 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
         void bind(ItinerarySegmentRow s, OnSegmentEditListener listener, boolean showEdit) {
             tvPill.setText(s.getSegmentLabel());
             tvCity.setText(s.getCityName());
-            tvTemp.setText(s.getWeatherTemp());
+            
+            String tempVal = s.getWeatherTemp();
+            if (tempVal == null || tempVal.trim().isEmpty() || tempVal.equals("--")) {
+                tvTemp.setVisibility(View.GONE);
+                ImageView ivIcon = itemView.findViewById(R.id.ivSegmentWeatherIcon);
+                if (ivIcon != null) ivIcon.setVisibility(View.GONE);
+            } else {
+                tvTemp.setVisibility(View.VISIBLE);
+                tvTemp.setText(tempVal);
+                ImageView ivIcon = itemView.findViewById(R.id.ivSegmentWeatherIcon);
+                if (ivIcon != null) {
+                    ivIcon.setVisibility(View.VISIBLE);
+                    if (tempVal.toLowerCase().contains("km")) {
+                        ivIcon.setImageResource(R.drawable.ic_pin);
+                    } else {
+                        ivIcon.setImageResource(R.drawable.ic_sun);
+                    }
+                }
+            }
+
             if (btnEdit != null) {
                 btnEdit.setVisibility(showEdit ? View.VISIBLE : View.GONE);
                 btnEdit.setOnClickListener(v -> {
@@ -146,7 +165,26 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
             tvTimeEnd.setText(s.getTimeEndCol());
 
             tvRangeBar.setText(s.getTimeRange());
-            tvTempBar.setText(s.getWeatherTemp());
+            
+            String tempVal = s.getWeatherTemp();
+            if (tempVal == null || tempVal.trim().isEmpty() || tempVal.equals("--")) {
+                tvTempBar.setVisibility(View.GONE);
+                ImageView ivIcon = itemView.findViewById(R.id.ivStopWeatherIcon);
+                if (ivIcon != null) ivIcon.setVisibility(View.GONE);
+            } else {
+                tvTempBar.setVisibility(View.VISIBLE);
+                tvTempBar.setText(tempVal);
+                ImageView ivIcon = itemView.findViewById(R.id.ivStopWeatherIcon);
+                if (ivIcon != null) {
+                    ivIcon.setVisibility(View.VISIBLE);
+                    if (tempVal.toLowerCase().contains("km")) {
+                        ivIcon.setImageResource(R.drawable.ic_pin);
+                    } else {
+                        ivIcon.setImageResource(R.drawable.ic_sun);
+                    }
+                }
+            }
+
             tvTitle.setText(s.getTitle());
             tvLocation.setText(s.getLocationLine());
             tvHours.setText(s.getOpeningHours());
@@ -154,11 +192,11 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
             tvNext.setText("Điểm tiếp theo: " + s.getNextDestination());
 
             Glide.with(itemView.getContext())
-                    .load(s.getImageResId())
-                    .centerCrop()
-                    .placeholder(R.drawable.bg_image_placeholder)
-                    .error(R.drawable.bg_image_placeholder)
-                    .into(ivThumb);
+                     .load(s.getImageResId())
+                     .centerCrop()
+                     .placeholder(R.drawable.bg_image_placeholder)
+                     .error(R.drawable.bg_image_placeholder)
+                     .into(ivThumb);
         }
     }
 }

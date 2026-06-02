@@ -515,6 +515,7 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
                 intent.putExtra(TripDetailActivity.EXTRA_START_POINT, startPoint);
                 intent.putExtra(TripDetailActivity.EXTRA_DESTINATION, destination);
                 intent.putExtra(TripDetailActivity.EXTRA_ROUTE, buildRouteLabel(startPoint, destination));
+                intent.putExtra("auto_open_edit_segment", true);
                 
                 startActivity(intent);
                 finish();

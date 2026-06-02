@@ -135,6 +135,7 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
     @Override
     protected void onResume() {
         super.onResume();
+        loadTripsFromLocal();
         refreshTripsWithCurrentStatus();
         refreshStatusTabLabels();
         applyTabVisualState();
@@ -444,6 +445,23 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         pendingEndDateDisplay = endDateDisplay;
         pendingStartDateIso = startDateIso;
         pendingEndDateIso = endDateIso;
+
+        String city = (destination != null && !destination.trim().isEmpty()) ? destination.trim() : (tripTitle != null ? tripTitle : "");
+        String dates = buildDateRangeDisplay(startDateDisplay, endDateDisplay, roundTrip);
+        TripStatus status = computeStatusFromDate(startDateIso, endDateIso, TripStatus.UPCOMING);
+
+        upsertManagedTrip(new Trip(
+                tripId,
+                tripTitle != null ? tripTitle : city,
+                startPoint != null ? startPoint : "",
+                destination != null ? destination : city,
+                dates,
+                startDateIso,
+                endDateIso,
+                null,
+                status,
+                R.drawable.sampleplace
+        ));
 
         Intent intent = new Intent(this, SelectRouteActivity.class);
         intent.putExtra("trip_id", tripId);
