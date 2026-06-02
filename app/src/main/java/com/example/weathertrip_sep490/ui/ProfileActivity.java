@@ -22,6 +22,8 @@ import com.example.weathertrip_sep490.R;
 import com.example.weathertrip_sep490.data.RetrofitClient;
 import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.User;
+import com.example.weathertrip_sep490.model.AccountResponse;
+import com.example.weathertrip_sep490.model.PartnerRequestResponse;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
@@ -36,6 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
     private SharedPreferences sharedPrefs;
     private SwitchMaterial switchNotify, switchDark;
     private UserAPI userAPI;
+    private PartnerRequestResponse latestPartnerRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,7 +131,11 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.itemBecomePartner).setOnClickListener(v -> {
-            startActivity(new Intent(this, BecomePartnerActivity.class));
+            if (latestPartnerRequest != null && latestPartnerRequest.getId() != null) {
+                startActivity(new Intent(this, PartnerRequestStatusActivity.class));
+            } else {
+                startActivity(new Intent(this, BecomePartnerActivity.class));
+            }
         });
 
         findViewById(R.id.itemLanguage).setOnClickListener(v -> {
@@ -138,11 +145,6 @@ public class ProfileActivity extends AppCompatActivity {
         findViewById(R.id.itemHelp).setOnClickListener(v -> {
             Toast.makeText(this, "Mở Help", Toast.LENGTH_SHORT).show();
         });
-
-        View partnerItem = findViewById(R.id.itemBecomePartner);
-        if (partnerItem != null) {
-            partnerItem.setOnClickListener(v -> startActivity(new Intent(this, BecomePartnerActivity.class)));
-        }
 
         //  Switch (DarkMode / Notifications)
         switchNotify.setOnCheckedChangeListener((button, isChecked) -> {
@@ -184,6 +186,12 @@ public class ProfileActivity extends AppCompatActivity {
         switchDark.setChecked(sharedPrefs.getBoolean("darkMode", false));
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadUserProfile();
+    }
+
     private void loadUserProfile() {
         SharedPreferences loginPrefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
         String userId = loginPrefs.getString("current_user_id", null);
@@ -192,6 +200,7 @@ public class ProfileActivity extends AppCompatActivity {
         if (userId == null || userId.trim().isEmpty()) {
             return;
         }
+
         userAPI.getUserById(userId.trim()).enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
@@ -199,27 +208,64 @@ public class ProfileActivity extends AppCompatActivity {
                     User user = response.body();
                     TextView tvName = findViewById(R.id.tvUserName);
                     TextView tvEmail = findViewById(R.id.tvUserEmail);
-                    View partnerItem = findViewById(R.id.itemBecomePartner);
                     if (user.getName() != null && !user.getName().isEmpty()) {
                         tvName.setText(user.getName());
                     }
                     if (email != null && !email.isEmpty()) {
                         tvEmail.setText(email);
                     }
-                    if (partnerItem != null) {
-                        partnerItem.setVisibility(user.isPartner() ? View.GONE : View.VISIBLE);
-                    }
-                    getSharedPreferences("TravelGoPrefs", MODE_PRIVATE)
-                            .edit()
-                            .putBoolean("is_partner", user.isPartner())
-                            .apply();
-                    // AvatarUrl: hiện chưa load ảnh từ URL, có thể thêm sau với thư viện image loading
                 }
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                // bỏ qua, dùng giá trị mặc định
+            }
+        });
+
+        // Check Partner status and Role using AuthAPI /me endpoint
+        RetrofitClient.getInstance().getAuthAPI().getCurrentUser().enqueue(new Callback<AccountResponse>() {
+            @Override
+            public void onResponse(Call<AccountResponse> call, Response<AccountResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    AccountResponse acc = response.body();
+                    boolean isPartner = "Partner".equalsIgnoreCase(acc.getRoleName());
+
+                    View partnerItem = findViewById(R.id.itemBecomePartner);
+                    TextView tvPartnerTag = findViewById(R.id.tvPartnerTag);
+
+                    if (partnerItem != null) {
+                        partnerItem.setVisibility(isPartner ? View.GONE : View.VISIBLE);
+                    }
+                    if (tvPartnerTag != null) {
+                        tvPartnerTag.setVisibility(isPartner ? View.VISIBLE : View.GONE);
+                    }
+
+                    getSharedPreferences("TravelGoPrefs", MODE_PRIVATE)
+                            .edit()
+                            .putBoolean("is_partner", isPartner)
+                            .apply();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AccountResponse> call, Throwable t) {
+            }
+        });
+
+        // Also fetch latest partner request to decide navigation
+        userAPI.getMyPartnerRequestStatus().enqueue(new Callback<PartnerRequestResponse>() {
+            @Override
+            public void onResponse(Call<PartnerRequestResponse> call, Response<PartnerRequestResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    latestPartnerRequest = response.body();
+                } else {
+                    latestPartnerRequest = null;
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PartnerRequestResponse> call, Throwable t) {
+                latestPartnerRequest = null;
             }
         });
     }

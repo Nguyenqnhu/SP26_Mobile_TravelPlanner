@@ -7,6 +7,7 @@ import com.example.weathertrip_sep490.model.LoginResponse;
 import com.example.weathertrip_sep490.model.OtpRequest;
 import com.example.weathertrip_sep490.model.RegistRequest;
 import com.example.weathertrip_sep490.model.ResetPasswordRequest;
+import com.example.weathertrip_sep490.model.AccountResponse;
 import com.example.weathertrip_sep490.model.User;
 import com.example.weathertrip_sep490.model.VerifyResetPasswordOtpResponse;
 
@@ -19,6 +20,9 @@ import retrofit2.http.POST;
 import retrofit2.http.Query;
 
 public interface AuthAPI {
+
+    @GET("api/auth/me")
+    Call<AccountResponse> getCurrentUser();
 
     // 1. Đăng ký tài khoản mới
     @POST("api/auth/register")

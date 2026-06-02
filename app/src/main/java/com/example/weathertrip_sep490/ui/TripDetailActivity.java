@@ -210,6 +210,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         }
 
         loadPoiCache();
+        initReviewCardViews();
 
         if (hasPlannerId) {
             usePlannerApiMode = true;
@@ -241,8 +242,6 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             seedDefaultRouteSegment();
             updateMonthTitle(0);
         }
-
-        initReviewCardViews();
     }
 
     private void seedGeneratedItinerary(int dayIndex, int totalDays) {
@@ -368,6 +367,36 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                     layoutTimelineContainer.setVisibility(isAiGen ? View.VISIBLE : View.GONE);
                 }
                 populateReviewCard();
+
+                // Auto open edit segment bottom sheet if needed
+                boolean autoOpen = getIntent().getBooleanExtra("auto_open_edit_segment", false);
+                if (!autoOpen && !isAiGen) {
+                    android.content.SharedPreferences prefs = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+                    String localSegDist = prefs.getString("trip_segment_district_" + plannerTripId, null);
+                    if (localSegDist == null || localSegDist.trim().isEmpty() || localSegDist.equalsIgnoreCase("Chặng dừng") || localSegDist.equalsIgnoreCase("Chọn quận/huyện")) {
+                        autoOpen = true;
+                    }
+                }
+
+                if (!isAiGen && autoOpen) {
+                    getIntent().putExtra("auto_open_edit_segment", false); // consume the flag
+                    com.example.weathertrip_sep490.model.TripSegmentResponse targetSegment = getStopSegmentToEdit(plannerResponse);
+                    if (targetSegment != null) {
+                        String segId = targetSegment.getSegmentId();
+                        String segLoc = tvReviewSegmentLocation != null ? tvReviewSegmentLocation.getText().toString() : "";
+                        String segDist = tvReviewSegmentDistrict != null ? tvReviewSegmentDistrict.getText().toString() : "";
+                        
+                        EditSegmentBottomSheet.newInstance(
+                                plannerTripId,
+                                segId,
+                                segLoc,
+                                segDist,
+                                () -> {
+                                    loadPlannerData(plannerTripId);
+                                }
+                        ).show(getSupportFragmentManager(), "EditSegmentBottomSheet");
+                    }
+                }
 
                 // Update adapter edit button visibility & edit listener
                 if (itineraryAdapter != null) {
@@ -500,7 +529,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                         String title = safeText(item.getPoiName());
                         String locationLine = joinLocation(item.getLocationName(), item.getAddress());
                         String indoorText = item.isIndoor() ? "Trong nhà" : "Ngoài trời";
-                        String weather = "Risk " + formatRisk(item.getWeatherRiskScore());
+                        String weather = "";
+                        if (item.getWeather() != null) {
+                            int rainPercent = (int) (item.getWeather().getPrecipitationProbability() * 100);
+                            int temp = (int) item.getWeather().getTemperatureCelsius();
+                            weather = "Mưa: " + rainPercent + "% | " + temp + "°C";
+                        }
                         double lat = generatedLat;
                         double lng = generatedLng;
                         if (title != null) {
@@ -1251,14 +1285,11 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
                 Toast.makeText(this, "Không có Trip ID", Toast.LENGTH_SHORT).show();
                 return;
             }
-            String segmentId = null;
-            if (plannerResponse != null && plannerResponse.getSegments() != null && !plannerResponse.getSegments().isEmpty()) {
-                segmentId = plannerResponse.getSegments().get(0).getSegmentId();
-            }
-            if (segmentId != null) {
+            com.example.weathertrip_sep490.model.TripSegmentResponse targetSegment = getStopSegmentToEdit(plannerResponse);
+            if (targetSegment != null) {
                 EditSegmentBottomSheet.newInstance(
                         plannerTripId,
-                        segmentId,
+                        targetSegment.getSegmentId(),
                         tvReviewSegmentLocation.getText().toString(),
                         tvReviewSegmentDistrict.getText().toString(),
                         () -> {
@@ -1315,9 +1346,9 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
         String localSegDates = prefs.getString("trip_segment_dates_" + plannerTripId, null);
         if (localSegDates == null || localSegDates.trim().isEmpty()) {
-            if (plannerResponse != null && plannerResponse.getSegments() != null && !plannerResponse.getSegments().isEmpty()) {
-                com.example.weathertrip_sep490.model.TripSegmentResponse seg = plannerResponse.getSegments().get(0);
-                if (seg.getStartDate() != null && seg.getEndDate() != null) {
+            if (plannerResponse != null && plannerResponse.getSegments() != null) {
+                com.example.weathertrip_sep490.model.TripSegmentResponse seg = getStopSegmentToEdit(plannerResponse);
+                if (seg != null && seg.getStartDate() != null && seg.getEndDate() != null) {
                     try {
                         java.text.DateFormat df = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                         localSegDates = df.format(seg.getStartDate()) + " - " + df.format(seg.getEndDate());
@@ -1447,5 +1478,18 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
         });
         builder.setNegativeButton("Hủy", (dialog, which) -> dialog.cancel());
         builder.show();
+    }
+
+    private com.example.weathertrip_sep490.model.TripSegmentResponse getStopSegmentToEdit(com.example.weathertrip_sep490.model.PlannerTripResponse response) {
+        if (response == null || response.getSegments() == null || response.getSegments().isEmpty()) {
+            return null;
+        }
+        List<com.example.weathertrip_sep490.model.TripSegmentResponse> segments = response.getSegments();
+        // Fallback to middle segment (index 1) if size >= 3
+        if (segments.size() >= 3) {
+            return segments.get(1);
+        }
+        // Fallback to the last segment
+        return segments.get(segments.size() - 1);
     }
 }

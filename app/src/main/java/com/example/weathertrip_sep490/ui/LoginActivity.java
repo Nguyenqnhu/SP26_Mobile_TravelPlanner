@@ -185,12 +185,12 @@ public class LoginActivity extends AppCompatActivity {
 
     private void navigateAfterLogin(@Nullable String token, @NonNull String email) {
         String userId = PreferenceSessionHelper.resolveUserId(this);
-        PreferenceSessionHelper.migrateLegacyKeysIfNeeded(this, userId);
 
-        if (PreferenceSessionHelper.hasLocalPreferences(this, userId)) {
-            openHomepage(token);
-            return;
-        }
+        // Clear any old legacy non-scoped keys to avoid side effects of previous users
+        getSharedPreferences("TravelGoPrefs", MODE_PRIVATE).edit()
+                .remove("selected_preferences")
+                .remove("has_completed_preferences_once")
+                .apply();
 
         setLoading(true);
         RetrofitClient.getInstance().getPreferenceAPI().getUserPreferences()
@@ -220,7 +220,12 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<List<UserPreferenceItem>> call, Throwable t) {
                         setLoading(false);
-                        openPreferences(token, email);
+                        // Fallback to local preferences only if network query fails
+                        if (PreferenceSessionHelper.hasLocalPreferences(LoginActivity.this, userId)) {
+                            openHomepage(token);
+                        } else {
+                            openPreferences(token, email);
+                        }
                     }
                 });
     }

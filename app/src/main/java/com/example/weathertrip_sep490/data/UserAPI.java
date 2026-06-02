@@ -150,6 +150,9 @@ public interface UserAPI {
             @Part MultipartBody.Part businessLicenseFile
     );
 
+    @GET("api/partner-requests/my-status")
+    Call<PartnerRequestResponse> getMyPartnerRequestStatus();
+
     @GET("api/trip/{tripId}/available-routes")
     Call<List<RouteOption>> getAvailableRoutes(@Path("tripId") String tripId);
 

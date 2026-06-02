@@ -38,6 +38,7 @@
         android:textStyle="bold" />
 
     <ImageView
+        android:id="@+id/ivSegmentWeatherIcon"
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:contentDescription="@null"
