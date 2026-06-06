@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.Editable;
@@ -286,7 +288,7 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
 
             @Override
             public void onFailure(@NonNull Call<List<LocationOption>> call, @NonNull Throwable t) {
-                Toast.makeText(requireContext(), "Lỗi tải địa điểm: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "Lỗi tải địa điểm: " + t.getMessage());
             }
         });
     }
@@ -314,7 +316,7 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
 
             @Override
             public void onFailure(@NonNull Call<List<DistrictOption>> call, @NonNull Throwable t) {
-                Toast.makeText(requireContext(), "Lỗi tải quận/huyện: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "Lỗi tải quận/huyện: " + t.getMessage());
             }
         });
     }
@@ -373,7 +375,7 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
                         }
                     } else {
                         if (picked.before(startCal)) {
-                            Toast.makeText(requireContext(), "Ngày về phải sau hoặc bằng ngày đi", Toast.LENGTH_SHORT).show();
+                            AppToast.show(requireContext(), "Ngày về phải sau hoặc bằng ngày đi");
                             return;
                         }
                         endCal = picked;
@@ -398,20 +400,20 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
 
         String locationInput = etLocation.getText() != null ? etLocation.getText().toString().trim() : "";
         if (locationInput.isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng chọn địa điểm", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng chọn địa điểm");
             return;
         }
 
         String resolvedLocation = resolveCanonicalLocationName(locationInput);
         if (resolvedLocation == null) {
-            Toast.makeText(requireContext(), "Vui lòng chọn địa điểm từ danh sách gợi ý", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng chọn địa điểm từ danh sách gợi ý");
             return;
         }
         selectedLocationId = locationNameToId.get(resolvedLocation);
 
         int distPos = spDistrict.getSelectedItemPosition();
         if (distPos < 1 || distPos >= districtIds.size() || districtIds.get(distPos) == null) {
-            Toast.makeText(requireContext(), "Vui lòng chọn quận/huyện", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng chọn quận/huyện");
             return;
         }
         selectedDistrictId = districtIds.get(distPos);
@@ -431,10 +433,10 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
                     return;
                 }
                 if (!response.isSuccessful()) {
-                    Toast.makeText(context, "Cập nhật chặng thất bại", Toast.LENGTH_SHORT).show();
+                    AppToast.show(context, "Cập nhật chặng thất bại");
                     return;
                 }
-                Toast.makeText(context, "Cập nhật chặng thành công!", Toast.LENGTH_SHORT).show();
+                AppToast.show(context, "Cập nhật chặng thành công!");
                 try {
                     android.content.SharedPreferences prefs = context.getSharedPreferences("TravelGoPrefs", android.content.Context.MODE_PRIVATE);
                     String locName = etLocation.getText().toString().trim();
@@ -461,7 +463,7 @@ public class EditSegmentBottomSheet extends BottomSheetDialogFragment {
                 isSubmitting = false;
                 android.content.Context context = getContext();
                 if (context != null && isAdded()) {
-                    Toast.makeText(context, "Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    AppToast.show(context, "Lỗi mạng: " + t.getMessage());
                 }
             }
         });

@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -25,7 +27,7 @@ import com.example.weathertrip_sep490.model.User;
 import com.example.weathertrip_sep490.model.AccountResponse;
 import com.example.weathertrip_sep490.model.PartnerRequestResponse;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.switchmaterial.SwitchMaterial;
+import androidx.appcompat.widget.SwitchCompat;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,7 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     private ImageView ivAvatar;
     private SharedPreferences sharedPrefs;
-    private SwitchMaterial switchNotify, switchDark;
+    private SwitchCompat switchNotify;
     private UserAPI userAPI;
     private PartnerRequestResponse latestPartnerRequest;
 
@@ -91,7 +93,6 @@ public class ProfileActivity extends AppCompatActivity {
     private void initViews() {
         ivAvatar = findViewById(R.id.ivAvatar);
         switchNotify = findViewById(R.id.switchNotifications);
-        switchDark = findViewById(R.id.switchDarkMode);
 
         setSettingItemText(R.id.itemPersonalInfo, "Thông tin cá nhân", R.drawable.ic_user);
         setSettingItemText(R.id.itemChangePassword, "Đổi mật khẩu", R.drawable.ic_lock_outline);
@@ -143,17 +144,12 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.itemHelp).setOnClickListener(v -> {
-            Toast.makeText(this, "Mở Help", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Mở Help");
         });
 
-        //  Switch (DarkMode / Notifications)
+        //  Switch (Notifications)
         switchNotify.setOnCheckedChangeListener((button, isChecked) -> {
             sharedPrefs.edit().putBoolean("notifications", isChecked).apply();
-        });
-
-        switchDark.setOnCheckedChangeListener((button, isChecked) -> {
-            sharedPrefs.edit().putBoolean("darkMode", isChecked).apply();
-            applyTheme(isChecked);
         });
 
         // Logout
@@ -173,17 +169,8 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    private void applyTheme(boolean isDark) {
-        if (isDark) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        }
-    }
-
     private void loadSavedSettings() {
         switchNotify.setChecked(sharedPrefs.getBoolean("notifications", true));
-        switchDark.setChecked(sharedPrefs.getBoolean("darkMode", false));
     }
 
     @Override

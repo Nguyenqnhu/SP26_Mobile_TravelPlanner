@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -137,19 +139,19 @@ public class EditProfileActivity extends AppCompatActivity {
         String address = etAddress.getText().toString().trim();
 
         if (name.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập tên", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Vui lòng nhập tên");
             return;
         }
         if (phone.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập số điện thoại", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Vui lòng nhập số điện thoại");
             return;
         }
         if (dobInput.isEmpty()) {
-            Toast.makeText(this, "Vui lòng chọn ngày sinh", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Vui lòng chọn ngày sinh");
             return;
         }
         if (address.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập địa chỉ", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Vui lòng nhập địa chỉ");
             return;
         }
 
@@ -166,14 +168,14 @@ public class EditProfileActivity extends AppCompatActivity {
             SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             Date date = inputFormat.parse(dobInput);
             if (date == null) {
-                Toast.makeText(this, "Ngày sinh không hợp lệ", Toast.LENGTH_SHORT).show();
+                AppToast.show(this, "Ngày sinh không hợp lệ");
                 return;
             }
             SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
             isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             dobIso = isoFormat.format(date);
         } catch (ParseException e) {
-            Toast.makeText(this, "Ngày sinh không hợp lệ", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Ngày sinh không hợp lệ");
             return;
         }
         MediaType textMediaType = MediaType.parse("text/plain");
@@ -192,19 +194,16 @@ public class EditProfileActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(EditProfileActivity.this, "Cập nhật hồ sơ thành công", Toast.LENGTH_SHORT).show();
+                    AppToast.show(EditProfileActivity.this, "Cập nhật hồ sơ thành công");
                     finish();
                 } else {
-                    Toast.makeText(EditProfileActivity.this,
-                            "Cập nhật thất bại (" + response.code() + ")", Toast.LENGTH_LONG).show();
+                    AppToast.show(EditProfileActivity.this, "Cập nhật thất bại (" + response.code() + ")");
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(EditProfileActivity.this,
-                        "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "Unknown"),
-                        Toast.LENGTH_LONG).show();
+                AppToast.show(EditProfileActivity.this, "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "Unknown"));
             }
         });
     }

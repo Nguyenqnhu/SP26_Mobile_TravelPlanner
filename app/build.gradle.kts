@@ -24,8 +24,10 @@ android {
 
     buildTypes {
         debug {
+            // Deployed BE URL
+            buildConfigField("String", "API_BASE_URL", "\"https://travelplanner-e8afamefddf8bwc7.southeastasia-01.azurewebsites.net/\"")
             // Local BE (Android emulator -> host machine via 10.0.2.2)
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5131/\"")
+            // buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5131/\"")
         }
         release {
             // Cloud backend for production

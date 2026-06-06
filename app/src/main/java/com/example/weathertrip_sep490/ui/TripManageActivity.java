@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -80,7 +82,7 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
         tripAdapter = new TripCardAdapter(new TripCardAdapter.TripCardListener() {
             @Override
             public void onReplan(Trip trip) {
-                Toast.makeText(TripManageActivity.this, "Re-plan: " + trip.getCity(), Toast.LENGTH_SHORT).show();
+                AppToast.show(TripManageActivity.this, "Re-plan: " + trip.getCity());
             }
 
             @Override
@@ -98,7 +100,7 @@ public class TripManageActivity extends AppCompatActivity implements CreateTripB
 
             @Override
             public void onReview(Trip trip) {
-                Toast.makeText(TripManageActivity.this, "Đánh giá: " + trip.getCity(), Toast.LENGTH_SHORT).show();
+                AppToast.show(TripManageActivity.this, "Đánh giá: " + trip.getCity());
             }
         });
         rvTrips.setAdapter(tripAdapter);

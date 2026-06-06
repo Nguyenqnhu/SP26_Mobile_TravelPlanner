@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -77,7 +79,7 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
         }
 
         if (poiId == null || poiId.trim().isEmpty()) {
-            Toast.makeText(this, "Không có POI id", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Không có POI id");
             finish();
             return;
         }
@@ -91,7 +93,7 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<POI>> call, Response<List<POI>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(ExplorePOIDetailActivity.this, "Không lấy được dữ liệu POI", Toast.LENGTH_SHORT).show();
+                    AppToast.show(ExplorePOIDetailActivity.this, "Không lấy được dữ liệu POI");
                     return;
                 }
 
@@ -105,7 +107,7 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
                 }
 
                 if (found == null) {
-                    Toast.makeText(ExplorePOIDetailActivity.this, "Không tìm thấy POI", Toast.LENGTH_SHORT).show();
+                    AppToast.show(ExplorePOIDetailActivity.this, "Không tìm thấy POI");
                     return;
                 }
                 bindPoi(found);
@@ -114,7 +116,7 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<POI>> call, Throwable t) {
                 Log.e("POI_DETAIL", "loadPoiById failed", t);
-                Toast.makeText(ExplorePOIDetailActivity.this, "Lỗi kết nối API", Toast.LENGTH_SHORT).show();
+                AppToast.show(ExplorePOIDetailActivity.this, "Lỗi kết nối API");
             }
         });
     }
@@ -149,7 +151,7 @@ public class ExplorePOIDetailActivity extends AppCompatActivity {
         findViewById(R.id.btnOpenMap).setOnClickListener(v -> {
             String link = poi.getGoogleMapLink();
             if (link == null || link.trim().isEmpty()) {
-                Toast.makeText(this, "Chưa có GoogleMapLink", Toast.LENGTH_SHORT).show();
+                AppToast.show(this, "Chưa có GoogleMapLink");
                 return;
             }
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(link.trim())));

@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -149,7 +151,7 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
             @Override
             public void onResponse(Call<List<POI>> call, Response<List<POI>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(ExploreMapActivity.this, "Không lấy được POI", Toast.LENGTH_SHORT).show();
+                    AppToast.show(ExploreMapActivity.this, "Không lấy được POI");
                     return;
                 }
                 pois.clear();
@@ -166,7 +168,7 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
 
             @Override
             public void onFailure(Call<List<POI>> call, Throwable t) {
-                Toast.makeText(ExploreMapActivity.this, "Lỗi kết nối API POI", Toast.LENGTH_SHORT).show();
+                AppToast.show(ExploreMapActivity.this, "Lỗi kết nối API POI");
             }
         });
     }
@@ -390,7 +392,7 @@ public class ExploreMapActivity extends AppCompatActivity implements OnMapReadyC
 
         applyPoiMarkers();
         if (filteredPois.isEmpty()) {
-            Toast.makeText(this, "Chưa có địa điểm để hiển thị", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Chưa có địa điểm để hiển thị");
         }
     }
 

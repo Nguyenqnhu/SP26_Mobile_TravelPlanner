@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -142,7 +144,7 @@ public class WeatherBottomSheet extends BottomSheetDialogFragment {
         String latStr = etLat.getText() != null ? etLat.getText().toString().trim() : "";
         String lngStr = etLng.getText() != null ? etLng.getText().toString().trim() : "";
         if (latStr.isEmpty() || lngStr.isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng nhập latitude và longitude", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng nhập latitude và longitude");
             return;
         }
 
@@ -150,7 +152,7 @@ public class WeatherBottomSheet extends BottomSheetDialogFragment {
         Double lat = tryParseDoubleFlexible(latStr);
         Double lng = tryParseDoubleFlexible(lngStr);
         if (lat == null || lng == null) {
-            Toast.makeText(requireContext(), "Latitude/Longitude không hợp lệ", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Latitude/Longitude không hợp lệ");
             return;
         }
 
@@ -217,11 +219,7 @@ public class WeatherBottomSheet extends BottomSheetDialogFragment {
                     }
 
                     setLoading(false);
-                    Toast.makeText(
-                            requireContext(),
-                            "Không lấy được thời tiết (" + response.code() + ")" + (details.isEmpty() ? "" : (": " + details)),
-                            Toast.LENGTH_LONG
-                    ).show();
+                    AppToast.show(requireContext(), "Không lấy được thời tiết (" + response.code() + ")" + (details.isEmpty() ? "" : (": " + details)));
                     adapter.submit(new ArrayList<>());
                 }
             }
@@ -229,7 +227,7 @@ public class WeatherBottomSheet extends BottomSheetDialogFragment {
             @Override
             public void onFailure(@NonNull Call<List<Weather>> call, @NonNull Throwable t) {
                 setLoading(false);
-                Toast.makeText(requireContext(), "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_LONG).show();
+                AppToast.show(requireContext(), "Lỗi kết nối: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });
     }
@@ -258,7 +256,7 @@ public class WeatherBottomSheet extends BottomSheetDialogFragment {
             public void onResponse(@NonNull Call<OpenMeteoDailyResponse> call, @NonNull Response<OpenMeteoDailyResponse> response) {
                 setLoading(false);
                 if (!response.isSuccessful() || response.body() == null || response.body().daily == null) {
-                    Toast.makeText(requireContext(), "Không lấy được thời tiết (" + response.code() + ")", Toast.LENGTH_LONG).show();
+                    AppToast.show(requireContext(), "Không lấy được thời tiết (" + response.code() + ")");
                     adapter.submit(new ArrayList<>());
                     return;
                 }
@@ -279,14 +277,14 @@ public class WeatherBottomSheet extends BottomSheetDialogFragment {
                     }
                     out.add(w);
                 }
-                Toast.makeText(requireContext(), "BE lỗi parse toạ độ, đã lấy từ Open‑Meteo trực tiếp.", Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "BE lỗi parse toạ độ, đã lấy từ Open‑Meteo trực tiếp.");
                 adapter.submit(out);
             }
 
             @Override
             public void onFailure(@NonNull Call<OpenMeteoDailyResponse> call, @NonNull Throwable t) {
                 setLoading(false);
-                Toast.makeText(requireContext(), "Lỗi Open‑Meteo: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_LONG).show();
+                AppToast.show(requireContext(), "Lỗi Open‑Meteo: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });
     }

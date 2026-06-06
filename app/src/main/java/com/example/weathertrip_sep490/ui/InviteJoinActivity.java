@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -29,7 +31,7 @@ public class InviteJoinActivity extends AppCompatActivity {
         Uri data = getIntent() != null ? getIntent().getData() : null;
         String tripId = data != null ? data.getQueryParameter("tripId") : null;
         if (tripId == null || tripId.trim().isEmpty()) {
-            Toast.makeText(this, "Link mời không hợp lệ", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Link mời không hợp lệ");
             finishToWelcome();
             return;
         }
@@ -49,9 +51,9 @@ public class InviteJoinActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call<JoinParticipantResponse> call, @NonNull Response<JoinParticipantResponse> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(InviteJoinActivity.this, "Đã tham gia chuyến đi", Toast.LENGTH_SHORT).show();
+                    AppToast.show(InviteJoinActivity.this, "Đã tham gia chuyến đi");
                 } else {
-                    Toast.makeText(InviteJoinActivity.this, "Không thể tham gia chuyến đi (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                    AppToast.show(InviteJoinActivity.this, "Không thể tham gia chuyến đi (" + response.code() + ")");
                 }
                 Intent intent = new Intent(InviteJoinActivity.this, TripManageActivity.class);
                 startActivity(intent);
@@ -60,7 +62,7 @@ public class InviteJoinActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<JoinParticipantResponse> call, @NonNull Throwable t) {
-                Toast.makeText(InviteJoinActivity.this, "Lỗi mạng khi tham gia: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
+                AppToast.show(InviteJoinActivity.this, "Lỗi mạng khi tham gia: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
                 Intent intent = new Intent(InviteJoinActivity.this, TripManageActivity.class);
                 startActivity(intent);
                 finish();

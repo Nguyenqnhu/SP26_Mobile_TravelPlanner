@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -282,7 +284,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
             public void onResponse(@NonNull Call<List<LocationOption>> call, @NonNull Response<List<LocationOption>> response) {
                 hasLoadedLocations = true;
                 if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(requireContext(), "Không tải được danh sách địa điểm", Toast.LENGTH_SHORT).show();
+                    AppToast.show(requireContext(), "Không tải được danh sách địa điểm");
                     return;
                 }
                 locationItems.clear();
@@ -313,7 +315,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
             @Override
             public void onFailure(@NonNull Call<List<LocationOption>> call, @NonNull Throwable t) {
                 hasLoadedLocations = false;
-                Toast.makeText(requireContext(), "Lỗi tải địa điểm: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "Lỗi tải địa điểm: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });
     }
@@ -322,7 +324,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         selectedStartLocationId = locationNameToId.get(locationName);
         resetStartDistrictSpinner();
         if (selectedStartLocationId == null || selectedStartLocationId.trim().isEmpty()) {
-            Toast.makeText(requireContext(), "LocationId không hợp lệ cho điểm bắt đầu", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "LocationId không hợp lệ cho điểm bắt đầu");
             return;
         }
         fetchDistrictsForLocation(selectedStartLocationId, true);
@@ -332,7 +334,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         selectedEndLocationId = locationNameToId.get(locationName);
         resetEndDistrictSpinner();
         if (selectedEndLocationId == null || selectedEndLocationId.trim().isEmpty()) {
-            Toast.makeText(requireContext(), "LocationId không hợp lệ cho điểm đến", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "LocationId không hợp lệ cho điểm đến");
             return;
         }
         fetchDistrictsForLocation(selectedEndLocationId, false);
@@ -348,7 +350,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
             @Override
             public void onResponse(@NonNull Call<List<DistrictOption>> call, @NonNull Response<List<DistrictOption>> response) {
                 if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(requireContext(), "Không tải được danh sách quận/huyện", Toast.LENGTH_SHORT).show();
+                    AppToast.show(requireContext(), "Không tải được danh sách quận/huyện");
                     return;
                 }
                 districtCacheByLocationId.put(key, response.body());
@@ -357,7 +359,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
 
             @Override
             public void onFailure(@NonNull Call<List<DistrictOption>> call, @NonNull Throwable t) {
-                Toast.makeText(requireContext(), "Lỗi tải quận/huyện: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "Lỗi tải quận/huyện: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });
     }
@@ -390,7 +392,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
             selectedEndDistrictId = null;
         }
         if (labels.size() <= 1) {
-            Toast.makeText(requireContext(), "Không có quận/huyện cho location này", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Không có quận/huyện cho location này");
         }
     }
 
@@ -421,7 +423,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
                         }
                     } else {
                         if (picked.before(startCal)) {
-                            Toast.makeText(requireContext(), "Ngày về phải sau hoặc bằng ngày đi", Toast.LENGTH_SHORT).show();
+                            AppToast.show(requireContext(), "Ngày về phải sau hoặc bằng ngày đi");
                             return;
                         }
                         endCal = picked;
@@ -441,29 +443,29 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         String startPointInput = etStartPoint.getText() != null ? etStartPoint.getText().toString().trim() : "";
         String destinationInput = etDestination.getText() != null ? etDestination.getText().toString().trim() : "";
         if (tripTitle.isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng nhập tên chuyến đi", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng nhập tên chuyến đi");
             return;
         }
         if (startPointInput.isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng nhập điểm bắt đầu", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng nhập điểm bắt đầu");
             return;
         }
         if (destinationInput.isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng nhập điểm đến", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng nhập điểm đến");
             return;
         }
         if (!hasLoadedLocations || locationItems.isEmpty()) {
-            Toast.makeText(requireContext(), "Chưa tải được danh sách địa điểm. Vui lòng thử lại sau.", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Chưa tải được danh sách địa điểm. Vui lòng thử lại sau.");
             return;
         }
         String startPoint = resolveCanonicalLocationName(startPointInput);
         String destination = resolveCanonicalLocationName(destinationInput);
         if (startPoint == null) {
-            Toast.makeText(requireContext(), "Điểm bắt đầu không hợp lệ, vui lòng chọn từ danh sách", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Điểm bắt đầu không hợp lệ, vui lòng chọn từ danh sách");
             return;
         }
         if (destination == null) {
-            Toast.makeText(requireContext(), "Điểm đến không hợp lệ, vui lòng chọn từ danh sách", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Điểm đến không hợp lệ, vui lòng chọn từ danh sách");
             return;
         }
         final String resolvedStartPoint = startPoint;
@@ -474,11 +476,11 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         selectedEndLocationId = locationNameToId.get(resolvedDestination);
 
         if (selectedStartLocationId == null || selectedStartLocationId.trim().isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng chọn điểm bắt đầu từ danh sách", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng chọn điểm bắt đầu từ danh sách");
             return;
         }
         if (selectedEndLocationId == null || selectedEndLocationId.trim().isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng chọn điểm đến từ danh sách", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng chọn điểm đến từ danh sách");
             return;
         }
 
@@ -486,7 +488,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         if (startDistPos < 1 || startDistPos >= startDistrictIds.size()
                 || startDistrictIds.get(startDistPos) == null
                 || startDistrictIds.get(startDistPos).trim().isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng chọn quận/huyện điểm bắt đầu", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng chọn quận/huyện điểm bắt đầu");
             return;
         }
         selectedStartDistrictId = startDistrictIds.get(startDistPos).trim();
@@ -495,7 +497,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
         if (endDistPos < 1 || endDistPos >= endDistrictIds.size()
                 || endDistrictIds.get(endDistPos) == null
                 || endDistrictIds.get(endDistPos).trim().isEmpty()) {
-            Toast.makeText(requireContext(), "Vui lòng chọn quận/huyện điểm đến", Toast.LENGTH_SHORT).show();
+            AppToast.show(requireContext(), "Vui lòng chọn quận/huyện điểm đến");
             return;
         }
         selectedEndDistrictId = endDistrictIds.get(endDistPos).trim();
@@ -543,21 +545,17 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
                         }
                     } catch (Exception ignored) {}
                     Log.e(TAG, "createTrip failed code=" + response.code() + " body=" + details);
-                    Toast.makeText(
-                            requireContext(),
-                            "Tạo chuyến đi thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : (": " + details)),
-                            Toast.LENGTH_LONG
-                    ).show();
+                    AppToast.show(requireContext(), "Tạo chuyến đi thất bại (" + response.code() + ")" + (details.isEmpty() ? "" : (": " + details)));
                     return;
                 }
                 // Response body có thể null (ví dụ: 204/empty body)
                 TripResponse resp = response.body();
                 String createdTripId = resp != null ? resp.getTripId() : null;
                 if (createdTripId == null || createdTripId.trim().isEmpty()) {
-                    Toast.makeText(requireContext(), "Create trip thành công nhưng thiếu tripId", Toast.LENGTH_LONG).show();
+                    AppToast.show(requireContext(), "Create trip thành công nhưng thiếu tripId");
                     return;
                 }
-                Toast.makeText(requireContext(), "Đã tạo chuyến đi", Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "Đã tạo chuyến đi");
 
                 // Save selected start and end district / location names to SharedPreferences
                 try {
@@ -595,7 +593,7 @@ public class CreateTripBottomSheet extends BottomSheetDialogFragment {
             @Override
             public void onFailure(@NonNull Call<TripResponse> call, @NonNull Throwable t) {
                 isSubmitting = false;
-                Toast.makeText(requireContext(), "Lỗi mạng: " + (t.getMessage() != null ? t.getMessage() : "unknown"), Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "Lỗi mạng: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });
     }

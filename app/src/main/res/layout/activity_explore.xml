@@ -187,6 +187,7 @@
         app:itemBackground="@drawable/bg_nav_item_transparent"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
+        app:itemActiveIndicatorStyle="@null"
         app:menu="@menu/bottom_nav" />
 
 </LinearLayout>

@@ -20,6 +20,8 @@ public final class ItineraryStopRow implements ItineraryRow {
     private final double latitude;
     private final double longitude;
     private final int markerOrder;
+    private final String aiReason;
+    private final String imageUrl;
 
     public ItineraryStopRow(
             @NonNull String timeRange,
@@ -36,6 +38,45 @@ public final class ItineraryStopRow implements ItineraryRow {
             double longitude,
             int markerOrder
     ) {
+        this(timeRange, timeStartCol, timeEndCol, title, locationLine, openingHours, priceText, nextDestination, weatherTemp, imageResId, latitude, longitude, markerOrder, null, null);
+    }
+
+    public ItineraryStopRow(
+            @NonNull String timeRange,
+            @NonNull String timeStartCol,
+            @NonNull String timeEndCol,
+            @NonNull String title,
+            @NonNull String locationLine,
+            @NonNull String openingHours,
+            @NonNull String priceText,
+            @NonNull String nextDestination,
+            @NonNull String weatherTemp,
+            @DrawableRes int imageResId,
+            double latitude,
+            double longitude,
+            int markerOrder,
+            String aiReason
+    ) {
+        this(timeRange, timeStartCol, timeEndCol, title, locationLine, openingHours, priceText, nextDestination, weatherTemp, imageResId, latitude, longitude, markerOrder, aiReason, null);
+    }
+
+    public ItineraryStopRow(
+            @NonNull String timeRange,
+            @NonNull String timeStartCol,
+            @NonNull String timeEndCol,
+            @NonNull String title,
+            @NonNull String locationLine,
+            @NonNull String openingHours,
+            @NonNull String priceText,
+            @NonNull String nextDestination,
+            @NonNull String weatherTemp,
+            @DrawableRes int imageResId,
+            double latitude,
+            double longitude,
+            int markerOrder,
+            String aiReason,
+            String imageUrl
+    ) {
         this.timeRange = timeRange;
         this.timeStartCol = timeStartCol;
         this.timeEndCol = timeEndCol;
@@ -49,6 +90,8 @@ public final class ItineraryStopRow implements ItineraryRow {
         this.latitude = latitude;
         this.longitude = longitude;
         this.markerOrder = markerOrder;
+        this.aiReason = aiReason;
+        this.imageUrl = imageUrl;
     }
 
     @NonNull
@@ -110,5 +153,13 @@ public final class ItineraryStopRow implements ItineraryRow {
 
     public int getMarkerOrder() {
         return markerOrder;
+    }
+
+    public String getAiReason() {
+        return aiReason;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }

@@ -54,4 +54,15 @@
         android:paddingEnd="16dp"
         android:paddingBottom="16dp" />
 
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:itemBackground="@drawable/bg_nav_item_transparent"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:itemActiveIndicatorStyle="@null"
+        app:menu="@menu/bottom_nav" />
+
 </LinearLayout>

@@ -27,7 +27,7 @@ public class ItineraryTimelineLineDecoration extends RecyclerView.ItemDecoration
         float d = res.getDisplayMetrics().density;
         float w = Math.max(2f, 2f * d);
         this.halfW = w / 2f;
-        this.cxOffsetPx = 44f * d + 11f * d;
+        this.cxOffsetPx = 11f * d;
         this.paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(0xFFD1D5DB);
         paint.setStyle(Paint.Style.FILL);

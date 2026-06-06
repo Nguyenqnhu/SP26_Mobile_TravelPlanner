@@ -3,13 +3,13 @@ package com.example.weathertrip_sep490.model;
 import com.google.gson.annotations.SerializedName;
 
 public class WeatherSnapshotDto {
-    @SerializedName("temperatureCelsius")
+    @SerializedName(value = "temperatureCelsius", alternate = {"TemperatureCelsius"})
     private double temperatureCelsius;
 
-    @SerializedName("precipitationProbability")
+    @SerializedName(value = "precipitationProbability", alternate = {"PrecipitationProbability"})
     private double precipitationProbability;
 
-    @SerializedName("windSpeed")
+    @SerializedName(value = "windSpeed", alternate = {"WindSpeed"})
     private double windSpeed;
 
     public WeatherSnapshotDto() {}
