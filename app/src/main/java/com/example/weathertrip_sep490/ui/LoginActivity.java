@@ -284,6 +284,11 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setEnabled(!loading);
         btnLogin.setText(loading ? "Đang đăng nhập..." : "Đăng nhập");
         btnLogin.setAlpha(loading ? 0.7f : 1f);
+        if (loading) {
+            com.example.weathertrip_sep490.util.LoadingDialog.show(this, "Đang đăng nhập...");
+        } else {
+            com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
+        }
     }
 
     private String extractUserIdFromToken(String token) {

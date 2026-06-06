@@ -167,6 +167,11 @@ public class BecomePartnerActivity extends AppCompatActivity {
         btnLicensePicker.setEnabled(!submitting);
         btnBusinessFieldsEnabled(!submitting);
         if (cbPartnerAgree != null) cbPartnerAgree.setEnabled(!submitting);
+        if (submitting) {
+            com.example.weathertrip_sep490.util.LoadingDialog.show(this, "Đang gửi yêu cầu đối tác...");
+        } else {
+            com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
+        }
     }
 
     private void updateAgreementUi(boolean checked) {

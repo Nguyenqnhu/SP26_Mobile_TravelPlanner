@@ -631,11 +631,12 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
             AppToast.show(this, "Dữ liệu chặng chưa hợp lệ (thiếu ngày hoặc ngày kết thúc trước ngày bắt đầu). Hãy chỉnh chặng rồi thử lại.");
             return;
         }
-        AppToast.show(this, "Đang generate AI...");
+        com.example.weathertrip_sep490.util.LoadingDialog.show(this, "Đang tối ưu lịch trình bằng AI...");
         UserAPI api = RetrofitClient.getInstance().getUserAPI();
         api.generatePlanner(plannerTripId).enqueue(new Callback<com.example.weathertrip_sep490.model.PlannerGenerateResponse>() {
             @Override
             public void onResponse(@NonNull Call<com.example.weathertrip_sep490.model.PlannerGenerateResponse> call, @NonNull Response<com.example.weathertrip_sep490.model.PlannerGenerateResponse> response) {
+                com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
                 if (!response.isSuccessful()) {
                     String details = "";
                     try {
@@ -651,6 +652,7 @@ public class TripDetailActivity extends AppCompatActivity implements OnMapReadyC
 
             @Override
             public void onFailure(@NonNull Call<com.example.weathertrip_sep490.model.PlannerGenerateResponse> call, @NonNull Throwable t) {
+                com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
                 AppToast.show(TripDetailActivity.this, "Lỗi mạng khi generate AI: " + (t.getMessage() != null ? t.getMessage() : "unknown"));
             }
         });

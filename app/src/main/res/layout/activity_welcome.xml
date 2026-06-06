@@ -44,10 +44,7 @@
             android:id="@+id/ivLogo"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:background="@drawable/bg_gradient_rounded"
-            android:padding="20dp"
-            android:src="@android:drawable/ic_menu_send"
-            app:tint="@color/white"
+            android:src="@drawable/ic_app_logo"
             android:elevation="12dp" />
 
         <TextView

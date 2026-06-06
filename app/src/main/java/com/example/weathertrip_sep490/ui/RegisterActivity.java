@@ -195,6 +195,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         btnRegister.setEnabled(false);
         btnRegister.setText("Đang đăng ký...");
+        com.example.weathertrip_sep490.util.LoadingDialog.show(this, "Đang đăng ký tài khoản...");
 
         // Map đúng theo JSON backend yêu cầu:
         //  email, password, dateOfBirth, name, address, phoneNumber, gender
@@ -218,6 +219,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onResponse(Call<Void> call, Response<Void> response) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Đăng ký");
+                com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
 
                 if (response.isSuccessful()) {
                     AppToast.showSuccess(RegisterActivity.this, "Đăng ký thành công! Vui lòng xác thực OTP");
@@ -253,6 +255,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onFailure(Call<Void> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Đăng ký");
+                com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
                 AppToast.showError(RegisterActivity.this, "Lỗi kết nối: " + t.getMessage());
             }
         });

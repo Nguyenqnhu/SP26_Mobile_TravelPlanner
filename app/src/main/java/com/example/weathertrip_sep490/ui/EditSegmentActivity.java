@@ -217,10 +217,12 @@ public class EditSegmentActivity extends AppCompatActivity implements OnMapReady
         btnGenerateAi.setEnabled(false);
         btnGenerateAi.setText("Đang tạo lịch trình AI...");
         pbLoading.setVisibility(View.VISIBLE);
+        com.example.weathertrip_sep490.util.LoadingDialog.show(this, "Đang tối ưu lịch trình bằng AI...");
 
         RetrofitClient.getInstance().getUserAPI().generatePlanner(tripId).enqueue(new Callback<PlannerGenerateResponse>() {
             @Override
             public void onResponse(@NonNull Call<PlannerGenerateResponse> call, @NonNull Response<PlannerGenerateResponse> response) {
+                com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
                 pbLoading.setVisibility(View.GONE);
                 btnGenerateAi.setEnabled(true);
                 btnGenerateAi.setText("Tạo lịch trình AI");
@@ -252,6 +254,7 @@ public class EditSegmentActivity extends AppCompatActivity implements OnMapReady
 
             @Override
             public void onFailure(@NonNull Call<PlannerGenerateResponse> call, @NonNull Throwable t) {
+                com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
                 pbLoading.setVisibility(View.GONE);
                 btnGenerateAi.setEnabled(true);
                 btnGenerateAi.setText("Tạo lịch trình AI");

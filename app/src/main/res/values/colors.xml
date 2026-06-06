@@ -64,4 +64,5 @@
 
     <color name="itinerary_header_green">#006D4E</color>
     <color name="itinerary_ribbon_day_bg">#E8F5E9</color>
+    <color name="launcher_background">#006D4E</color>
 </resources>
