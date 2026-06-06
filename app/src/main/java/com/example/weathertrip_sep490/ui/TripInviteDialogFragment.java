@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -204,7 +206,7 @@ public class TripInviteDialogFragment extends BottomSheetDialogFragment {
         if (inviteUrl == null || inviteUrl.trim().isEmpty()) return;
         ClipboardManager cm = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText("inviteUrl", inviteUrl));
-        Toast.makeText(requireContext(), "Đã copy link", Toast.LENGTH_SHORT).show();
+        AppToast.show(requireContext(), "Đã copy link");
     }
 
     private void showQr() {
@@ -246,7 +248,7 @@ public class TripInviteDialogFragment extends BottomSheetDialogFragment {
                 }
                 etEmail.setText("");
                 tvStatus.setText("Đã gửi lời mời thành công");
-                Toast.makeText(requireContext(), "Đã mời người dùng vào chuyến đi", Toast.LENGTH_SHORT).show();
+                AppToast.show(requireContext(), "Đã mời người dùng vào chuyến đi");
             }
 
             @Override

@@ -30,6 +30,12 @@ public class PlannerItemResponse {
     @SerializedName(value = "weather", alternate = {"Weather"})
     private WeatherSnapshotDto weather;
 
+    @SerializedName(value = "aiReason", alternate = {"AiReason", "AIReason"})
+    private String aiReason;
+
+    @SerializedName(value = "poiImg", alternate = {"PoiImg", "POIImg"})
+    private String poiImg;
+
     public String getType() { return type; }
     public String getPoiName() { return poiName; }
     public String getAddress() { return address; }
@@ -39,4 +45,6 @@ public class PlannerItemResponse {
     public String getEndTime() { return endTime; }
     public double getWeatherRiskScore() { return weatherRiskScore; }
     public WeatherSnapshotDto getWeather() { return weather; }
+    public String getAiReason() { return aiReason; }
+    public String getPoiImg() { return poiImg; }
 }

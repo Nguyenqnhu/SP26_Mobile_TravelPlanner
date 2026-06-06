@@ -132,7 +132,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Tạo trip"
+                        android:text="Tạo chuyến đi"
                         android:textColor="@color/slate_800"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -849,5 +849,6 @@
         app:itemBackground="@drawable/bg_nav_item_transparent"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
+        app:itemActiveIndicatorStyle="@null"
         app:menu="@menu/bottom_nav" />
 </LinearLayout>

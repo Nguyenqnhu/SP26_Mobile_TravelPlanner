@@ -20,6 +20,7 @@ import com.example.weathertrip_sep490.data.UserAPI;
 import com.example.weathertrip_sep490.model.AdvertisementItem;
 import com.example.weathertrip_sep490.model.SavedPromotionItem;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,7 @@ public class AdsFeedActivity extends AppCompatActivity {
 
         loadSavedPromotions();
         loadAdvertisements();
+        setupBottomNav();
     }
 
     private void loadSavedPromotions() {
@@ -160,6 +162,39 @@ public class AdsFeedActivity extends AppCompatActivity {
                 com.example.weathertrip_sep490.util.AppToast.showError(AdsFeedActivity.this, "Lỗi mạng khi lưu mã giảm");
                 if (adapter != null) adapter.setPromotionSaved(promotionId, false);
             }
+        });
+    }
+
+    private void setupBottomNav() {
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        if (bottomNav == null) return;
+        bottomNav.setSelectedItemId(R.id.nav_coupon);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, HomepageActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_explore) {
+                startActivity(new Intent(this, ExploreActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_user) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_trip) {
+                startActivity(new Intent(this, TripManageActivity.class));
+                finish();
+                return true;
+            }
+            if (id == R.id.nav_coupon) {
+                return true;
+            }
+            return false;
         });
     }
 }

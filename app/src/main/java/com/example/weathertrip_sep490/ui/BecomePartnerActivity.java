@@ -135,7 +135,20 @@ public class BecomePartnerActivity extends AppCompatActivity {
                             startActivity(new Intent(BecomePartnerActivity.this, PartnerRequestStatusActivity.class));
                             finish();
                         } else {
-                            AppToast.showError(BecomePartnerActivity.this, "Gửi yêu cầu thất bại");
+                            String errorMsg = "Gửi yêu cầu thất bại";
+                            try {
+                                okhttp3.ResponseBody eb = response.errorBody();
+                                if (eb != null) {
+                                    String jsonStr = eb.string();
+                                    org.json.JSONObject obj = new org.json.JSONObject(jsonStr);
+                                    if (obj.has("message")) {
+                                        errorMsg = obj.getString("message");
+                                    } else if (obj.has("detail")) {
+                                        errorMsg = obj.getString("detail");
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+                            AppToast.showError(BecomePartnerActivity.this, errorMsg);
                         }
                     }
 

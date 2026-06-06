@@ -145,6 +145,8 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
         private final TextView tvPrice;
         private final TextView tvNext;
         private final ImageView ivThumb;
+        private final View layoutAiReason;
+        private final TextView tvAiReason;
 
         StopVH(@NonNull View itemView) {
             super(itemView);
@@ -158,6 +160,8 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
             tvPrice = itemView.findViewById(R.id.tvStopPrice);
             tvNext = itemView.findViewById(R.id.tvStopNext);
             ivThumb = itemView.findViewById(R.id.imgStopThumb);
+            layoutAiReason = itemView.findViewById(R.id.layoutAiReason);
+            tvAiReason = itemView.findViewById(R.id.tvStopAiReason);
         }
 
         void bind(ItineraryStopRow s) {
@@ -191,12 +195,31 @@ public class ItineraryListAdapter extends RecyclerView.Adapter<RecyclerView.View
             tvPrice.setText(s.getPriceText());
             tvNext.setText("Điểm tiếp theo: " + s.getNextDestination());
 
-            Glide.with(itemView.getContext())
-                     .load(s.getImageResId())
-                     .centerCrop()
-                     .placeholder(R.drawable.bg_image_placeholder)
-                     .error(R.drawable.bg_image_placeholder)
-                     .into(ivThumb);
+            if (layoutAiReason != null && tvAiReason != null) {
+                if (s.getAiReason() != null && !s.getAiReason().trim().isEmpty()) {
+                    layoutAiReason.setVisibility(View.VISIBLE);
+                    tvAiReason.setText("Gợi ý từ AI: " + s.getAiReason().trim());
+                } else {
+                    layoutAiReason.setVisibility(View.GONE);
+                }
+            }
+
+            String imgUrl = s.getImageUrl();
+            if (imgUrl != null && !imgUrl.trim().isEmpty()) {
+                Glide.with(itemView.getContext())
+                         .load(imgUrl.trim())
+                         .centerCrop()
+                         .placeholder(R.drawable.bg_image_placeholder)
+                         .error(R.drawable.bg_image_placeholder)
+                         .into(ivThumb);
+            } else {
+                Glide.with(itemView.getContext())
+                         .load(s.getImageResId())
+                         .centerCrop()
+                         .placeholder(R.drawable.bg_image_placeholder)
+                         .error(R.drawable.bg_image_placeholder)
+                         .into(ivThumb);
+            }
         }
     }
 }

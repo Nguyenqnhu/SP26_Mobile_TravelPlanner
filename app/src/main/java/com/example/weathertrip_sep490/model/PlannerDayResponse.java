@@ -10,9 +10,13 @@ public class PlannerDayResponse {
     @SerializedName(value = "date", alternate = {"Date"})
     private Date date;
 
+    @SerializedName(value = "dayReason", alternate = {"DayReason", "day_reason"})
+    private String dayReason;
+
     @SerializedName(value = "items", alternate = {"Items"})
     private List<PlannerItemResponse> items = new ArrayList<>();
 
     public Date getDate() { return date; }
+    public String getDayReason() { return dayReason; }
     public List<PlannerItemResponse> getItems() { return items; }
 }

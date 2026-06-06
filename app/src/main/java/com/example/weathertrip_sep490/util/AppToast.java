@@ -1,12 +1,15 @@
 package com.example.weathertrip_sep490.util;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -21,23 +24,50 @@ public final class AppToast {
     private AppToast() {
     }
 
-    public static void show(@NonNull Activity activity, @NonNull String message) {
-        show(activity, message, TYPE_INFO);
+    private static Activity findActivity(Context context) {
+        if (context == null) {
+            return null;
+        } else if (context instanceof Activity) {
+            return (Activity) context;
+        } else if (context instanceof ContextWrapper) {
+            return findActivity(((ContextWrapper) context).getBaseContext());
+        }
+        return null;
     }
 
-    public static void showSuccess(@NonNull Activity activity, @NonNull String message) {
-        show(activity, message, TYPE_SUCCESS);
+    public static void show(@NonNull Context context, @NonNull String message) {
+        int type = TYPE_INFO;
+        String msgLower = message.toLowerCase();
+        if (msgLower.contains("thành công") || msgLower.contains("đã tạo") || msgLower.contains("đã copy") || msgLower.contains("đã mời") || msgLower.contains("đã tham gia")) {
+            type = TYPE_SUCCESS;
+        } else if (msgLower.contains("lỗi") || msgLower.contains("thất bại") || msgLower.contains("không") || msgLower.contains("chưa") || msgLower.contains("thiếu") || msgLower.contains("sai")) {
+            type = TYPE_ERROR;
+        }
+        show(context, message, type);
     }
 
-    public static void showError(@NonNull Activity activity, @NonNull String message) {
-        show(activity, message, TYPE_ERROR);
+    public static void showSuccess(@NonNull Context context, @NonNull String message) {
+        show(context, message, TYPE_SUCCESS);
     }
 
-    public static void showInfo(@NonNull Activity activity, @NonNull String message) {
-        show(activity, message, TYPE_INFO);
+    public static void showError(@NonNull Context context, @NonNull String message) {
+        show(context, message, TYPE_ERROR);
     }
 
-    public static void show(@NonNull Activity activity, @NonNull String message, int type) {
+    public static void showInfo(@NonNull Context context, @NonNull String message) {
+        show(context, message, TYPE_INFO);
+    }
+
+    public static void show(@NonNull Context context, @NonNull String message, int type) {
+        Activity activity = findActivity(context);
+        if (activity != null) {
+            showInternal(activity, message, type);
+        } else {
+            Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private static void showInternal(@NonNull Activity activity, @NonNull String message, int type) {
         if (activity.isFinishing() || activity.isDestroyed()) return;
 
         ViewGroup root = activity.findViewById(android.R.id.content);

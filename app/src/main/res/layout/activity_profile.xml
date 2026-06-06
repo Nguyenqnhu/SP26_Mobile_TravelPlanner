@@ -276,37 +276,16 @@
                             android:layout_toEndOf="@id/iconBell"
                             android:layout_centerVertical="true"
                             android:text="Thông báo" />
-                        <com.google.android.material.switchmaterial.SwitchMaterial
+                        <androidx.appcompat.widget.SwitchCompat
                             android:id="@+id/switchNotifications"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:thumbTint="@color/green_primary"
-                            android:trackTint="@color/green_soft" />
-                    </RelativeLayout>
-
-                    <View style="@style/Divider" />
-
-                    <RelativeLayout style="@style/SwitchItemPadding">
-                        <ImageView
-                            android:id="@+id/iconMoon"
-                            style="@style/SettingIcon"
-                            android:layout_centerVertical="true"
-                            android:src="@drawable/ic_moon" />
-                        <TextView
-                            style="@style/SettingText"
-                            android:layout_toEndOf="@id/iconMoon"
-                            android:layout_centerVertical="true"
-                            android:text="Chế độ tối" />
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchDarkMode"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_centerVertical="true"
-                            android:thumbTint="@color/green_primary"
-                            android:trackTint="@color/green_soft" />
+                            android:thumb="@drawable/abc_switch_thumb_material"
+                            app:thumbTint="@drawable/switch_thumb_selector"
+                            app:trackTint="@drawable/switch_track_selector"
+                            app:useMaterialThemeColors="false" />
                     </RelativeLayout>
 
                     <View style="@style/Divider" />
@@ -396,5 +375,6 @@
         app:itemBackground="@drawable/bg_nav_item_transparent"
         app:itemIconTint="@color/nav_item_color"
         app:itemTextColor="@color/nav_item_color"
+        app:itemActiveIndicatorStyle="@null"
         app:menu="@menu/bottom_nav" />
 </LinearLayout>

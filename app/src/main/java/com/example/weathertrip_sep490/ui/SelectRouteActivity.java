@@ -1,5 +1,7 @@
 package com.example.weathertrip_sep490.ui;
 
+import com.example.weathertrip_sep490.util.AppToast;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -125,7 +127,7 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
         roundTrip = intent.getBooleanExtra("round_trip", false);
 
         if (tripId == null || tripId.trim().isEmpty()) {
-            Toast.makeText(this, "Không tìm thấy thông tin chuyến đi", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Không tìm thấy thông tin chuyến đi");
             finish();
             return;
         }
@@ -190,14 +192,14 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
             public void onResponse(@NonNull Call<List<RouteOption>> call, @NonNull Response<List<RouteOption>> response) {
                 hideLoading();
                 if (!response.isSuccessful() || response.body() == null) {
-                    Toast.makeText(SelectRouteActivity.this, "Không lấy được danh sách tuyến đường", Toast.LENGTH_SHORT).show();
+                    AppToast.show(SelectRouteActivity.this, "Không lấy được danh sách tuyến đường");
                     return;
                 }
                 routeOptions.clear();
                 routeOptions.addAll(response.body());
 
                 if (routeOptions.isEmpty()) {
-                    Toast.makeText(SelectRouteActivity.this, "Không có tuyến đường nào được tìm thấy", Toast.LENGTH_SHORT).show();
+                    AppToast.show(SelectRouteActivity.this, "Không có tuyến đường nào được tìm thấy");
                     return;
                 }
 
@@ -208,7 +210,7 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
             @Override
             public void onFailure(@NonNull Call<List<RouteOption>> call, @NonNull Throwable t) {
                 hideLoading();
-                Toast.makeText(SelectRouteActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                AppToast.show(SelectRouteActivity.this, "Lỗi kết nối: " + t.getMessage());
             }
         });
     }
@@ -458,7 +460,7 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
 
     private void applySelectedRoute() {
         if (selectedRoute == null) {
-            Toast.makeText(this, "Vui lòng chọn một tuyến đường", Toast.LENGTH_SHORT).show();
+            AppToast.show(this, "Vui lòng chọn một tuyến đường");
             return;
         }
 
@@ -469,11 +471,11 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                 hideLoading();
                 if (!response.isSuccessful()) {
-                    Toast.makeText(SelectRouteActivity.this, "Áp dụng tuyến đường thất bại", Toast.LENGTH_SHORT).show();
+                    AppToast.show(SelectRouteActivity.this, "Áp dụng tuyến đường thất bại");
                     return;
                 }
                 
-                Toast.makeText(SelectRouteActivity.this, "Chọn tuyến đường thành công!", Toast.LENGTH_SHORT).show();
+                AppToast.show(SelectRouteActivity.this, "Chọn tuyến đường thành công!");
                 
                 // Save route polyline and details to SharedPreferences so TripDetailActivity can draw it on map!
                 if (selectedRoute != null) {
@@ -503,11 +505,11 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
                 // Save trip locally
                 saveTripToLocal();
 
-                // Navigate straight to TripDetailActivity (segments review mode)
+                // Navigate straight to EditSegmentActivity (segments review & district adding mode)
                 String city = (destination != null && !destination.trim().isEmpty()) ? destination.trim() : (tripTitle != null ? tripTitle : "");
                 String dates = buildDateRangeDisplay(startDateDisplay, endDateDisplay, roundTrip);
 
-                Intent intent = new Intent(SelectRouteActivity.this, TripDetailActivity.class);
+                Intent intent = new Intent(SelectRouteActivity.this, EditSegmentActivity.class);
                 intent.putExtra("planner_trip_id", tripId);
                 intent.putExtra(TripDetailActivity.EXTRA_CITY, city);
                 intent.putExtra(TripDetailActivity.EXTRA_TRIP_TITLE, tripTitle);
@@ -515,7 +517,7 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
                 intent.putExtra(TripDetailActivity.EXTRA_START_POINT, startPoint);
                 intent.putExtra(TripDetailActivity.EXTRA_DESTINATION, destination);
                 intent.putExtra(TripDetailActivity.EXTRA_ROUTE, buildRouteLabel(startPoint, destination));
-                intent.putExtra("auto_open_edit_segment", true);
+                intent.putExtra("is_creation_flow", true);
                 
                 startActivity(intent);
                 finish();
@@ -524,7 +526,7 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 hideLoading();
-                Toast.makeText(SelectRouteActivity.this, "Lỗi khi áp dụng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                AppToast.show(SelectRouteActivity.this, "Lỗi khi áp dụng: " + t.getMessage());
             }
         });
     }
@@ -537,10 +539,10 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
             public void onResponse(@NonNull Call<PlannerGenerateResponse> call, @NonNull Response<PlannerGenerateResponse> response) {
                 hideLoading();
                 if (!response.isSuccessful()) {
-                    Toast.makeText(SelectRouteActivity.this, "AI lập lịch trình thất bại", Toast.LENGTH_SHORT).show();
+                    AppToast.show(SelectRouteActivity.this, "AI lập lịch trình thất bại");
                     return;
                 }
-                Toast.makeText(SelectRouteActivity.this, "Lập lịch trình AI thành công!", Toast.LENGTH_SHORT).show();
+                AppToast.show(SelectRouteActivity.this, "Lập lịch trình AI thành công!");
                 
                 // Persist the trip locally so it appears in the trip lists!
                 saveTripToLocal();
@@ -565,7 +567,7 @@ public class SelectRouteActivity extends AppCompatActivity implements OnMapReady
             @Override
             public void onFailure(@NonNull Call<PlannerGenerateResponse> call, @NonNull Throwable t) {
                 hideLoading();
-                Toast.makeText(SelectRouteActivity.this, "Lỗi lập lịch trình AI: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                AppToast.show(SelectRouteActivity.this, "Lỗi lập lịch trình AI: " + t.getMessage());
             }
         });
     }

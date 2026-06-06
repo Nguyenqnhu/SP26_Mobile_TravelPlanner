@@ -16,6 +16,9 @@ public class RouteOption {
     @SerializedName("nodes")
     private List<String> nodes;
 
+    @SerializedName("nodeIds")
+    private List<String> nodeIds;
+
     @SerializedName("polyline")
     private List<RoutePolylinePointDto> polyline;
 
@@ -51,6 +54,14 @@ public class RouteOption {
 
     public void setNodes(List<String> nodes) {
         this.nodes = nodes;
+    }
+
+    public List<String> getNodeIds() {
+        return nodeIds;
+    }
+
+    public void setNodeIds(List<String> nodeIds) {
+        this.nodeIds = nodeIds;
     }
 
     public List<RoutePolylinePointDto> getPolyline() {

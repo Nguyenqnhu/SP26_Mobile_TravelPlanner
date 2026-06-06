@@ -120,6 +120,10 @@
             android:name=".ui.SelectRouteActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ui.EditSegmentActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

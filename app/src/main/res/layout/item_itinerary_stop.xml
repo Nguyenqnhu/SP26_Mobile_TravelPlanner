@@ -13,7 +13,8 @@
         android:gravity="end"
         android:orientation="vertical"
         android:paddingTop="4dp"
-        android:paddingEnd="4dp">
+        android:paddingEnd="4dp"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/tvStopTimeStart"
@@ -79,18 +80,6 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp">
 
-            <TextView
-                android:id="@+id/tvStopTimeRangeBar"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="08:30 – 09:30"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
             <ImageView
                 android:id="@+id/ivStopWeatherIcon"
                 android:layout_width="18dp"
@@ -105,8 +94,15 @@
                 android:layout_marginStart="6dp"
                 android:text="27°"
                 android:textColor="@color/white"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
+
+            <!-- Hidden time range to satisfy java view bindings -->
+            <TextView
+                android:id="@+id/tvStopTimeRangeBar"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
         </LinearLayout>
 
         <LinearLayout
@@ -245,6 +241,52 @@
                 android:clipToOutline="true"
                 android:contentDescription="@null"
                 android:scaleType="centerCrop" />
+        </LinearLayout>
+
+        <!-- AI Suggestion Reason Section -->
+        <LinearLayout
+            android:id="@+id/layoutAiReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Horizontal Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E2E8F0"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="10dp"
+                android:gravity="top">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginTop="2dp"
+                    android:src="@drawable/ic_sparkles"
+                    app:tint="#10B981"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:id="@+id/tvStopAiReason"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textColor="#059669"
+                    android:textSize="12sp"
+                    android:textStyle="italic"
+                    android:text="Lý do gợi ý: Chợ có nhiều nét văn hóa đặc sắc địa phương và ẩm thực phong phú." />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
