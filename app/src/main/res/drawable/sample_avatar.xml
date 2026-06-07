@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Vòng tròn nền -->
+    <path
+        android:fillColor="#E4F1EB"
+        android:pathData="M60,4
+            A56,56 0 1,1 59.9,4" />
+
+    <!-- Vòng tròn avatar trắng -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,16
+            A44,44 0 1,1 59.9,16" />
+
+    <!-- Đầu -->
+    <path
+        android:fillColor="#A7F3D0"
+        android:pathData="M60,28
+            a16,16 0 1,1 0,32
+            a16,16 0 1,1 0,-32" />
+
+    <!-- Vai / ngực -->
+    <path
+        android:fillColor="#34D399"
+        android:pathData="M28,84
+            c4,-16 16,-24 32,-24
+            c16,0 28,8 32,24
+            v8
+            a4,4 0 0,1 -4,4
+            h-56
+            a4,4 0 0,1 -4,-4
+            z" />
+
+</vector>
+

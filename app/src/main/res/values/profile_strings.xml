@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_item_personal_info">Thông tin cá nhân</string>
+    <string name="profile_item_change_password">Đổi mật khẩu</string>
+    <string name="profile_item_update_preference">Cập nhật sở thích</string>
+    <string name="profile_item_language">Ngôn ngữ</string>
+    <string name="profile_item_help">Trợ giúp</string>
+    <string name="profile_item_logout">Đăng xuất</string>
+</resources>

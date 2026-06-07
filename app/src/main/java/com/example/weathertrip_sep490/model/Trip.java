@@ -1,0 +1,108 @@
+package com.example.weathertrip_sep490.model;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
+
+public class Trip {
+
+    private final String id;
+    private final String tripTitle;
+    private final String startPoint;
+    private final String destination;
+    private final String city;
+    private final String dateRange;
+    @Nullable
+    private final String startDateIso;
+    @Nullable
+    private final String endDateIso;
+    @Nullable
+    private final String costDisplay;
+    private final TripStatus status;
+    private final int imageResId;
+
+    public Trip(
+            String id,
+            @NonNull String tripTitle,
+            String city,
+            String dateRange,
+            @Nullable String costDisplay,
+            TripStatus status,
+            int imageResId) {
+        this(id, tripTitle, "", city, dateRange, null, null, costDisplay, status, imageResId);
+    }
+
+    public Trip(
+            String id,
+            @NonNull String tripTitle,
+            String startPoint,
+            String destination,
+            String dateRange,
+            @Nullable String startDateIso,
+            @Nullable String endDateIso,
+            @Nullable String costDisplay,
+            TripStatus status,
+            int imageResId) {
+        this.id = id;
+        this.tripTitle = tripTitle;
+        this.startPoint = startPoint;
+        this.destination = destination;
+        this.city = destination;
+        this.dateRange = dateRange;
+        this.startDateIso = startDateIso;
+        this.endDateIso = endDateIso;
+        this.costDisplay = costDisplay;
+        this.status = status;
+        this.imageResId = imageResId;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getTripTitle() {
+        return tripTitle;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public String getStartPoint() {
+        return startPoint;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public String getDateRange() {
+        return dateRange;
+    }
+
+    @Nullable
+    public String getStartDateIso() {
+        return startDateIso;
+    }
+
+    @Nullable
+    public String getEndDateIso() {
+        return endDateIso;
+    }
+
+    @Nullable
+    public String getCostDisplay() {
+        return costDisplay;
+    }
+
+    public TripStatus getStatus() {
+        return status;
+    }
+
+    public int getImageResId() {
+        return imageResId;
+    }
+
+    public boolean isActive() {
+        return status == TripStatus.UPCOMING || status == TripStatus.ONGOING;
+    }
+}

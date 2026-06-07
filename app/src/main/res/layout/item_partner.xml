@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="164dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="12dp"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/imgPartner"
+        android:layout_width="164dp"
+        android:layout_height="120dp"
+        android:background="@drawable/bg_image_rounded_24"
+        android:clipToOutline="true"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_image_placeholder" />
+
+    <TextView
+        android:id="@+id/txtPartnerName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:maxLines="2"
+        android:text="Vạn Deal Hời Giảm Đến 40%"
+        android:textColor="@color/slate_800"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtPartnerDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:maxLines="1"
+        android:text="Ăn Một Mình"
+        android:textColor="@color/slate_500"
+        android:textSize="13sp" />
+</LinearLayout>

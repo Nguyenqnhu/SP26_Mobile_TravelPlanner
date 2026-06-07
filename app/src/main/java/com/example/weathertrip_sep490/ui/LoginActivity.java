@@ -1,0 +1,318 @@
+package com.example.weathertrip_sep490.ui;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.text.InputType;
+import android.text.TextUtils;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.appcompat.widget.SwitchCompat;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+
+import com.example.weathertrip_sep490.R;
+import com.example.weathertrip_sep490.data.AuthAPI;
+import com.example.weathertrip_sep490.data.RetrofitClient;
+import com.example.weathertrip_sep490.data.UserAPI;
+import com.example.weathertrip_sep490.model.LoginRequest;
+import com.example.weathertrip_sep490.model.LoginResponse;
+import com.example.weathertrip_sep490.model.JoinParticipantResponse;
+import com.example.weathertrip_sep490.model.UserPreferenceItem;
+import com.example.weathertrip_sep490.util.AppToast;
+import com.example.weathertrip_sep490.util.PreferenceSessionHelper;
+import com.example.weathertrip_sep490.util.ViewAnimationUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.util.Base64;
+
+import org.json.JSONObject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class LoginActivity extends AppCompatActivity {
+
+    private EditText etEmail;
+    private EditText etPassword;
+    private SwitchCompat swRemember;
+    private AppCompatButton btnLogin;
+    private TextView tvGoToRegister;
+    private TextView tvForgotPassword;
+    private ImageView ivTogglePassword;
+    private AuthAPI authAPI;
+    private SharedPreferences sharedPreferences;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+
+        initViews();
+        ViewAnimationUtil.setTouchScaleAnimation(btnLogin);
+        ViewAnimationUtil.setTouchScaleAnimation(tvGoToRegister);
+        ViewAnimationUtil.setTouchScaleAnimation(tvForgotPassword);
+        setupPasswordToggle(etPassword, ivTogglePassword);
+
+        authAPI = RetrofitClient.getInstance().getAuthAPI();
+        sharedPreferences = getSharedPreferences("TravelGoPrefs", MODE_PRIVATE);
+
+        if (sharedPreferences.getBoolean("remember_me", false)) {
+            etEmail.setText(sharedPreferences.getString("saved_email", ""));
+            etPassword.setText(sharedPreferences.getString("saved_password", ""));
+            swRemember.setChecked(true);
+        }
+
+        btnLogin.setOnClickListener(v -> performLogin());
+        tvGoToRegister.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+        });
+        tvForgotPassword.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
+        });
+    }
+
+    private void initViews() {
+        etEmail = findViewById(R.id.etEmail);
+        etPassword = findViewById(R.id.etPassword);
+        swRemember = findViewById(R.id.swRemember);
+        btnLogin = findViewById(R.id.btnLogin);
+        tvGoToRegister = findViewById(R.id.tvGoToRegister);
+        tvForgotPassword = findViewById(R.id.tvForgotPassword);
+        ivTogglePassword = findViewById(R.id.ivTogglePassword);
+    }
+
+    private void setupPasswordToggle(EditText editText, ImageView imageView) {
+        if (imageView == null) return;
+        imageView.setOnClickListener(v -> {
+            int type = editText.getInputType();
+            if ((type & InputType.TYPE_TEXT_VARIATION_PASSWORD) != 0) {
+                editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                imageView.setImageResource(android.R.drawable.ic_lock_lock);
+            } else {
+                editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                imageView.setImageResource(android.R.drawable.ic_menu_view);
+            }
+        });
+    }
+
+    private void performLogin() {
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+
+        if (TextUtils.isEmpty(email)) {
+            etEmail.setError("Vui lòng nhập email");
+            return;
+        }
+        if (TextUtils.isEmpty(password)) {
+            etPassword.setError("Vui lòng nhập mật khẩu");
+            return;
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Email không hợp lệ");
+            return;
+        }
+
+        setLoading(true);
+        LoginRequest request = new LoginRequest(email, password);
+        Call<LoginResponse> call = authAPI.login(request);
+
+        call.enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                setLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    LoginResponse loginResponse = response.body();
+                    String token = loginResponse.getAccessToken();
+                    if (token == null || token.trim().isEmpty()) {
+                        android.util.Log.w("Login", "Backend không trả accessToken. Kiểm tra API login trả về field accessToken/AccessToken.");
+                    }
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("access_token", token != null ? token.trim() : "");
+                    editor.putString("refresh_token", loginResponse.getRefreshToken() != null ? loginResponse.getRefreshToken().trim() : "");
+                    // Giải mã JWT để lấy userId (nameid/sub) cho các API /api/user/{id}
+                    if (token != null && !token.trim().isEmpty()) {
+                        String userId = extractUserIdFromToken(token.trim());
+                        if (userId != null && !userId.isEmpty()) {
+                            editor.putString("current_user_id", userId);
+                        }
+                    }
+                    // Lưu email hiện đang đăng nhập để lấy thông tin profile
+                    editor.putString("current_email", email);
+                    if (swRemember.isChecked()) {
+                        editor.putBoolean("remember_me", true);
+                        editor.putString("saved_email", email);
+                        editor.putString("saved_password", password);
+                    } else {
+                        editor.putBoolean("remember_me", false);
+                        editor.remove("saved_email");
+                        editor.remove("saved_password");
+                    }
+                    editor.commit();
+                    String loginMessage = loginResponse.getMessage();
+                    if (loginMessage == null || loginMessage.trim().isEmpty()) {
+                        loginMessage = "Đăng nhập thành công!";
+                    } else {
+                        loginMessage = loginMessage.trim();
+                    }
+                    AppToast.showSuccess(LoginActivity.this, loginMessage);
+                    String pendingJoinTripId = getIntent() != null ? getIntent().getStringExtra("pending_join_trip_id") : null;
+                    if (pendingJoinTripId != null && !pendingJoinTripId.trim().isEmpty()) {
+                        joinPendingInviteAfterLogin(pendingJoinTripId.trim(), token);
+                    } else {
+                        navigateAfterLogin(token, email);
+                    }
+                } else {
+                    AppToast.showError(LoginActivity.this, "Email hoặc mật khẩu không đúng");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                setLoading(false);
+                AppToast.showError(LoginActivity.this, "Lỗi kết nối: " + t.getMessage());
+            }
+        });
+    }
+
+    private void navigateAfterLogin(@Nullable String token, @NonNull String email) {
+        String userId = PreferenceSessionHelper.resolveUserId(this);
+
+        // Clear any old legacy non-scoped keys to avoid side effects of previous users
+        getSharedPreferences("TravelGoPrefs", MODE_PRIVATE).edit()
+                .remove("selected_preferences")
+                .remove("has_completed_preferences_once")
+                .apply();
+
+        setLoading(true);
+        RetrofitClient.getInstance().getPreferenceAPI().getUserPreferences()
+                .enqueue(new Callback<List<UserPreferenceItem>>() {
+                    @Override
+                    public void onResponse(Call<List<UserPreferenceItem>> call,
+                                           Response<List<UserPreferenceItem>> response) {
+                        setLoading(false);
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<String> ids = new ArrayList<>();
+                            for (UserPreferenceItem item : response.body()) {
+                                if (item != null && item.getPreferenceId() != null
+                                        && !item.getPreferenceId().trim().isEmpty()) {
+                                    ids.add(item.getPreferenceId().trim());
+                                }
+                            }
+                            if (!ids.isEmpty()) {
+                                PreferenceSessionHelper.saveSelectedIds(LoginActivity.this, userId, ids);
+                                PreferenceSessionHelper.markFlowCompleted(LoginActivity.this, userId);
+                                openHomepage(token);
+                                return;
+                            }
+                        }
+                        openPreferences(token, email);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<UserPreferenceItem>> call, Throwable t) {
+                        setLoading(false);
+                        // Fallback to local preferences only if network query fails
+                        if (PreferenceSessionHelper.hasLocalPreferences(LoginActivity.this, userId)) {
+                            openHomepage(token);
+                        } else {
+                            openPreferences(token, email);
+                        }
+                    }
+                });
+    }
+
+    private void openHomepage(@Nullable String token) {
+        Intent intent = new Intent(LoginActivity.this, HomepageActivity.class);
+        if (token != null && !token.isEmpty()) {
+            intent.putExtra("access_token", token);
+        }
+        startActivity(intent);
+        finish();
+    }
+
+    private void openPreferences(@Nullable String token, @NonNull String email) {
+        Intent intent = new Intent(LoginActivity.this, PreferencesActivity.class);
+        if (token != null && !token.isEmpty()) {
+            intent.putExtra("access_token", token);
+        }
+        intent.putExtra("current_email", email);
+        startActivity(intent);
+        finish();
+    }
+
+    private void joinPendingInviteAfterLogin(@NonNull String tripId, @Nullable String token) {
+        UserAPI userAPI = RetrofitClient.getInstance().getUserAPI();
+        userAPI.joinTrip(tripId).enqueue(new Callback<JoinParticipantResponse>() {
+            @Override
+            public void onResponse(Call<JoinParticipantResponse> call, Response<JoinParticipantResponse> response) {
+                if (response.isSuccessful()) {
+                    AppToast.showSuccess(LoginActivity.this, "Đã tham gia chuyến đi từ link mời");
+                } else {
+                    AppToast.showError(LoginActivity.this, "Không thể join trip mời (" + response.code() + ")");
+                }
+                Intent intent = new Intent(LoginActivity.this, TripManageActivity.class);
+                if (token != null && !token.isEmpty()) {
+                    intent.putExtra("access_token", token);
+                }
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onFailure(Call<JoinParticipantResponse> call, Throwable t) {
+                AppToast.showError(LoginActivity.this, "Lỗi mạng khi join trip mời");
+                Intent intent = new Intent(LoginActivity.this, TripManageActivity.class);
+                if (token != null && !token.isEmpty()) {
+                    intent.putExtra("access_token", token);
+                }
+                startActivity(intent);
+                finish();
+            }
+        });
+    }
+
+    private void setLoading(boolean loading) {
+        btnLogin.setEnabled(!loading);
+        btnLogin.setText(loading ? "Đang đăng nhập..." : "Đăng nhập");
+        btnLogin.setAlpha(loading ? 0.7f : 1f);
+        if (loading) {
+            com.example.weathertrip_sep490.util.LoadingDialog.show(this, "Đang đăng nhập...");
+        } else {
+            com.example.weathertrip_sep490.util.LoadingDialog.dismiss();
+        }
+    }
+
+    private String extractUserIdFromToken(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) return null;
+            byte[] decoded = Base64.decode(parts[1], Base64.URL_SAFE | Base64.NO_WRAP);
+            String payloadJson = new String(decoded);
+            JSONObject obj = new JSONObject(payloadJson);
+
+            // 1. Thử các key ngắn phổ biến
+            if (obj.has("nameid")) return obj.getString("nameid");
+            if (obj.has("nameidentifier")) return obj.getString("nameidentifier");
+            if (obj.has("sub")) return obj.getString("sub");
+            if (obj.has("id")) return obj.getString("id");
+
+            // 2. Thử key dạng full URI chứa "nameidentifier"
+            for (java.util.Iterator<String> it = obj.keys(); it.hasNext(); ) {
+                String key = it.next();
+                if (key != null && key.toLowerCase().contains("nameidentifier")) {
+                    return obj.getString(key);
+                }
+            }
+        } catch (Exception ignored) { }
+        return null;
+    }
+}

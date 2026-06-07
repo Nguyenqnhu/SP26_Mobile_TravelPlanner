@@ -1,0 +1,46 @@
+package com.example.weathertrip_sep490.model;
+
+import com.google.gson.annotations.SerializedName;
+
+public class LoginResponse {
+    @SerializedName(value = "token", alternate = {"accessToken", "AccessToken", "access_token"})
+    private String accessToken;
+    @SerializedName(value = "refreshToken", alternate = {"RefreshToken", "refresh_token"})
+    private String refreshToken;
+    @SerializedName("message")
+    private String message;
+
+
+
+    public LoginResponse() {
+    }
+
+    public LoginResponse(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
